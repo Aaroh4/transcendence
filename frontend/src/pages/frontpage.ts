@@ -23,6 +23,7 @@ export function loadFrontPage(): void {
 		});
 
 		document.getElementById('game-debug')!.addEventListener('click', (event) => {
+			event.preventDefault();
 			route(event, '/game');
 		});
 	})

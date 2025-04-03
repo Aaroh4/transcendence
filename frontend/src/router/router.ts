@@ -61,3 +61,7 @@ function loadPage(path: string): void {
 		});
 	}
 }
+
+window.addEventListener('popstate', () => {
+	loadPage(window.location.pathname);
+});
