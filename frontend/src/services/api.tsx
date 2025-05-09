@@ -820,4 +820,3 @@ export async function updatePassword(id: string, password: string) {
 // 	};
 // 	return ((await apiCall(options)).status);
 // } //i guess we doublecheck in front 
-

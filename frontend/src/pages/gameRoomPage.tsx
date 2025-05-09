@@ -3,6 +3,7 @@ import { createNewGame, frontEndGame, cleanGame } from "../game/frontEndGame";
 import { useEffect, useRef, useState } from "react";
 import { createSocket, getSocket, closeSocket } from "../utils/socket";
 import Background from '../components/background.js';
+import { Logger, LogLevel } from '../utils/logger.js';
 
 export default function GameRoom({matchType}) {
 	const hasRun1 = useRef(false);
@@ -11,6 +12,21 @@ export default function GameRoom({matchType}) {
 	const [tournamentStatus, setTournamentStatus] = useState(null);
 	const userId = sessionStorage.getItem('activeUserId');
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+	const [difficulty, setDifficulty] = useState<number>(0);
+	const log = new Logger(LogLevel.INFO);
+	
+  
+useEffect(() => {
+	sessionStorage.setItem("AIdifficulty", difficulty.toString());
+}, [difficulty]);
+
+const difficulties = [
+	{ level: 0, label: "🍭 Baby Mode" },
+	{ level: 1, label: "😎 Chill" },
+	{ level: 2, label: "⚔️ Let’s Goo!!" },
+	{ level: 3, label: "🔥 Hardcore" },
+	{ level: 4, label: "💀 Terminator" }
+]
 
 useEffect(() => {
 	if (!hasRun1.current && matchType === "tournament") {
@@ -52,14 +68,15 @@ useEffect(() => {
 	const isTournamentReady = tournamentStatus === "active" || tournamentStatus === "normal";
 
 	if (isTournamentReady) {
-		if (matchType !== "solo") {
+		if (matchType !== "solo" && matchType !== "ai") {
 			createSocket();
 		}
 
 		createNewGame(matchType, getSocket(), userId);
 		hasRun2.current = true;
 	}
-}, [tournamentStatus]);
+}, [matchType, tournamentStatus]);
+
 
 
 const matchTypeButtons = () => {
@@ -92,6 +109,58 @@ const matchTypeButtons = () => {
 						);
 				}
 			
+			case "ai":
+				return (
+					<div className="w-full mx-auto px-0">
+						<p className="text-center text-gray-600 mb-4">Lobby size: 1/1</p>
+						<h1 className="text-2xl font-bold text-center mb-4">Welcome to the VS AI Game!</h1>
+
+						<div className="flex w-full mb-4">
+						{difficulties.map(({ level, label }, index) => {
+							const isFirst = index === 0;
+							const isLast = index === difficulties.length - 1;
+
+							const roundedClass = isFirst
+								? 'rounded-l-md'
+								: isLast
+								? 'rounded-r-md'
+								: 'rounded-none';
+
+							return (
+								<button
+									key={level}
+									className={`w-1/5 py-2 text-white text-center ${roundedClass} ${
+										difficulty === level
+											? 'bg-green-700'
+											: 'bg-green-900 hover:bg-green-500'
+									} ${index < difficulties.length - 1 ? 'mr-1' : ''}`}
+									onClick={() => setDifficulty(level)}
+								>
+									{label}
+								</button>
+							);
+						})}
+					</div>
+
+
+						<button
+							id="ready-ai"
+							className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+						>
+							Start!
+						</button>
+					</div>
+			);
+			case "tournament":
+				return(
+					<>
+					<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
+					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
+					<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+						Ready up!
+					</button>
+					</>
+				);
 			case "normal":
 				return(
 					<>
