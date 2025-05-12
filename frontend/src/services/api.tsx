@@ -984,4 +984,3 @@ export async function getFriends(requestData: getFriendsRequest): Promise<getFri
 // 	};
 // 	return ((await apiCall(options)).status);
 // } //i guess we doublecheck in front 
-

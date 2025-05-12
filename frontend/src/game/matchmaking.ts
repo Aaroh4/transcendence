@@ -1,5 +1,5 @@
 import { Logger, LogLevel } from '../utils/logger.js';
-import { startSoloGame } from './frontEndGame.js';
+import { startAIGame, startSoloGame } from './frontEndGame.js';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -7,6 +7,7 @@ export function setupButtons(socket, userId)
 {
 	// Solo game
 	const soloBtn = document.getElementById("ready-solo");
+	const aiBtn = document.getElementById("ready-ai");
 	
 	if (soloBtn)
 	{
@@ -15,6 +16,16 @@ export function setupButtons(socket, userId)
 		gameEdit.hidden = false;
 		soloBtn.addEventListener("click", () => {
 			startSoloGame();
+		});
+	}
+
+	if (aiBtn)
+	{
+		const gameEdit = document.getElementById("edit-game");
+
+		gameEdit.hidden = false;
+		aiBtn.addEventListener("click", () => {
+			startAIGame();
 		});
 	}
 

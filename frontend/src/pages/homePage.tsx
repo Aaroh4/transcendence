@@ -44,7 +44,7 @@ const Home: React.FC = () => {
 		// console.log('User is now logged in');
 		});
 	}
-	
+
 	return (
 		<>
 		<Header />

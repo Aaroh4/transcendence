@@ -3,19 +3,20 @@ import { Logger, LogLevel } from '../utils/logger.js';
 import { TURN_URL, TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-config.js';
 import { setupButtons  } from './matchmaking.js';
 import { router } from '../App';
+import { GameAI } from './gameAI';
 
 const log = new Logger(LogLevel.INFO);
 
 log.info("UI ready")
 
-class Entity {
-	protected yVel: number;
-	protected xVel: number;
-	protected height: number;
-	protected width: number;
-	protected yPos: number;
-	protected xPos: number;
-	protected speed: number;
+export class Entity {
+	public yVel: number;
+	public xVel: number;
+	public height: number;
+	public width: number;
+	public yPos: number;
+	public xPos: number;
+	public speed: number;
 
 	constructor(h, w, y, x) {
 		this.yVel = 0;
@@ -36,7 +37,7 @@ class Entity {
 	}
 }
 
-class Ball extends Entity {
+export class Ball extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
 		this.speed = 5;
@@ -101,7 +102,7 @@ class Player extends Entity {
 		this.yVel = velocityY;
 	}
 
-	move(keysPressed: { [key: string]: boolean }, deltaTime) {
+	move(deltaTime) {
 		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
 		
 		if (nextY + this.height >= 600) return;
@@ -117,7 +118,7 @@ class Player extends Entity {
 
 enum KeyBindings{
 	UP = 'KeyW',
-    DOWN = 'KeyS',
+  DOWN = 'KeyS',
 	SUP = 'ArrowUp',
 	SDOWN = 'ArrowDown'
 }
@@ -137,6 +138,9 @@ export class frontEndGame {
 	private ballSize : number;
 	private ball: Ball | null = null;
 	private lastUpdateTime: number;
+	private isAIgame: boolean = false;
+	private gameAI: GameAI | null = null;
+	private AIdebug: boolean = false;
 
 	private dataChannel: RTCDataChannel | null = null;
     private peerConnection: RTCPeerConnection | null = null;
@@ -149,8 +153,9 @@ export class frontEndGame {
     private keyUpHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
-		this.player1 = new Player(50, 10, 300, 10);
-		this.player2 = new Player(50, 10, 300, 780);
+		this.container = document.getElementById("game-container");
+		this.player1 = new Player(60, 10, 300, 10);
+		this.player2 = new Player(60, 10, 300, 780);
 
 		//const ip = this.getExternalIP();
 		//if (ip) {
@@ -203,6 +208,10 @@ export class frontEndGame {
 		}
 	}
 
+	setIsAIgame(isAIgame: boolean) {
+		this.isAIgame = isAIgame;
+	}
+
 	setScore(player1Score, player2Score) {
 		this.player1Score += player1Score;
 		this.player2Score += player2Score;
@@ -216,6 +225,11 @@ export class frontEndGame {
 		this.ctx = this.gameCanvas.getContext("2d")!;
 		this.gameCanvas.width = 800;
 		this.gameCanvas.height = 600;
+	}
+
+	setupAI() 
+	{
+		this.gameAI = new GameAI(this.gameCanvas.height, this.player2.xPos, this.player2.height);
 	}
 
 	setupPeerConnectionEvents(socket) {
@@ -363,8 +377,42 @@ export class frontEndGame {
 		else
 			this.player2.setvel(0);
 
-		this.player1.move(this.keysPressed, deltaTime);
-		this.player2.move(this.keysPressed, deltaTime);
+		this.player1.move(deltaTime);
+		this.player2.move(deltaTime);
+		this.ball.update(this.player1, this.player2, deltaTime);
+		this.updateGraphics();
+	}
+
+	updateAIGameState()
+	{
+		const now = Date.now();
+		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
+		this.lastUpdateTime = now;
+		const treshold = 4;
+
+		if (this.keysPressed[KeyBindings.UP])
+			this.player1.setvel(-1);
+		else if (this.keysPressed[KeyBindings.DOWN])
+			this.player1.setvel(1);
+		else
+			this.player1.setvel(0);
+
+		// Simulate AI player movement
+		this.gameAI.getKeyPresses(this.ball, this.player2.getpos()[0]);
+		// console.log("AI Player Input: ", this.gameAI.aiPlayerInput);
+		this.keysPressed[KeyBindings.SUP] = this.gameAI.aiPlayerInput.SUP;
+		this.keysPressed[KeyBindings.SDOWN] = this.gameAI.aiPlayerInput.SDOWN;
+
+ 		if (this.keysPressed[KeyBindings.SUP]) 
+			this.player2.setvel(-1);
+		else if (this.keysPressed[KeyBindings.SDOWN])
+			this.player2.setvel(1);
+		else
+			this.player2.setvel(0);
+
+		this.player1.move(deltaTime);
+		this.player2.move(deltaTime);
+
 		this.ball.update(this.player1, this.player2, deltaTime);
 		this.updateGraphics();
 	}
@@ -382,9 +430,12 @@ export class frontEndGame {
 		this.ctx.fillText(this.player1Score.toString(), this.gameCanvas.width / 2 + 48, 50);
 		this.ctx.fillStyle = this.color;
 		this.ctx.fillRect(this.ballX, this.ballY, this.ballSize, this.ballSize);
-		this.ctx.fillRect(10, this.player1.getpos()[0], 10, 50);
-		this.ctx.fillRect(780, this.player2.getpos()[0], 10, 50);
-
+		this.ctx.fillRect(10, this.player1.getpos()[0], 10, this.player1.height);
+		this.ctx.fillRect(780, this.player2.getpos()[0], 10, this.player2.height);
+		if (this.isAIgame && this.AIdebug)
+		{
+			this.gameAI.drawAIPrediction(this.ctx);
+		}
 		if (this.ball)
 		{
 			this.ball.draw(this.ctx);
@@ -588,7 +639,7 @@ export function createNewGame(matchType : string, socket, userId : string)
 {
 	setupButtons(socket, userId);
 	game = new frontEndGame();
-	if (matchType != "solo")
+	if (matchType != "solo" && matchType != "ai")
 	{
 		game.socketLogic(socket);
 	}
@@ -632,3 +683,33 @@ export function startSoloGame()
 	loopSolo();
 }
 
+export function startAIGame()
+{
+	const select = document.getElementById("colorSelect") as HTMLSelectElement;
+	const color = select.options[select.selectedIndex].value;
+	const ballSize  = (document.getElementById("ball-size") as HTMLInputElement)
+	const ballSpeed = (document.getElementById("ball-speed") as HTMLInputElement)
+	const ballSizeValue = ballSize.value.trim() === "" ? ballSize.placeholder : ballSize.value;
+	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
+
+	game.setIsAIgame(true);
+	document.getElementById("gameroom-page").hidden = true;
+	game.setupSoloKeyListeners();
+	game.createCanvas();
+	game.setupAI();
+	game.settings({
+		ballSettings: {
+			ball: new Ball(20, 20, 400, 300),
+			ballSize: ballSizeValue,
+			ballSpeed: ballSpeedValue
+		},
+		playerSettings: {
+
+		}
+	}, color);
+	function loopAI() {
+		game.updateAIGameState();
+		animationFrameId = requestAnimationFrame(loopAI);
+	}
+	loopAI();
+}

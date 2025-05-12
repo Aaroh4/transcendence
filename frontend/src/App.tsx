@@ -20,6 +20,7 @@ export const router = createBrowserRouter([
 	{path: "/game", element: <ProtectedRoutes><GameRoom matchType="normal" /></ProtectedRoutes> },
 	{path: "/tour-game", element: <ProtectedRoutes><GameRoom matchType="tournament" /></ProtectedRoutes> },
 	{path: "/solo-game", element: <ProtectedRoutes><GameRoom matchType="solo" /></ProtectedRoutes> },
+	{path: "/ai-game", element: <ProtectedRoutes> <GameRoom matchType="ai" /></ProtectedRoutes> },
   {path: "/tournaments", element: <ProtectedRoutes><TournamentsPage /></ProtectedRoutes>},
   {path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes>},
   {path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes>},
