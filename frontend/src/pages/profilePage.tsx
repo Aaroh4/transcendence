@@ -43,7 +43,7 @@ const ProfilePage: React.FC = () => {
 			<div className="bg-white p-6 rounded-lg w-96 flex flex-col gap-4 items-center shadow-md">
 				<Link
 					to="/user"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center transition duration-100"
 				>
 					Back to user page
 				</Link>
@@ -52,7 +52,7 @@ const ProfilePage: React.FC = () => {
 			<div className="bg-black p-6 text-white rounded-lg w-96 flex flex-col gap-4 items-center shadow-md">
 			<button 
 				onClick={handleUserDelete} 
-				className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+				className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center transition duration-100"
 				>
 				Delete User
 			</button>

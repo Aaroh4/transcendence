@@ -50,17 +50,16 @@ const Login: React.FC = () => {
 
 		const response = await loginUser(user, captchaToken);
 
-		const { userId, accessToken, refreshToken, error} = response;
+		const { userId, name, accessToken, refreshToken, error} = response;
 		sessionStorage.setItem('activeUserId', userId.toString());
 
 		if (response.status == 200) {
-			sessionStorage.setItem(userId.toString(), JSON.stringify({accessToken, refreshToken, error}));
+			console.log(response);
+			sessionStorage.setItem(userId.toString(), JSON.stringify({name, accessToken, refreshToken, error}));
 			navigate("/user");
 			toast.open(response.error, "success");
 		} else {
 			toast.open(response.error, "error");
-			// console.log(response.error);
-			// sessionStorage.setItem(userId.toString(), JSON.stringify({accessToken, refreshToken, error}));
 			setFormState(prevState => ({
 				...prevState,
 				email: '',
@@ -114,7 +113,7 @@ const Login: React.FC = () => {
 					{captchaError && <p style={{ color: 'red' }}>{captchaError}</p>}
 					<button
 					type="submit"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+					className="w-64 border border-black bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center transition duration-100"
 					>
 						Login
 					</button>

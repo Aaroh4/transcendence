@@ -28,7 +28,7 @@
 // 		<div>
 
 // 				<div
-// 				className={`absolute left-0 right-0 w-full bg-gray-300 transition-all duration-500 overflow-hidden ${
+// 				className={`absolute left-0 right-0 w-full bg-gray-300 transition-all duration-1000 overflow-hidden ${
 // 					visibleState ? "max-h-64" : "max-h-0"
 // 				} flex flex-col items-center pt-4 z-100`}
 // 				>

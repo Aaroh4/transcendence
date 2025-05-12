@@ -36,7 +36,7 @@ const completeLogin = async function(req, reply, user) {
     db.prepare('INSERT INTO refresh_tokens (user_id, refresh_token) VALUES (?, ?)')
       .run(user.id, refreshToken)
   
-    return reply.send({ userId: user.id, accessToken: accessToken, refreshToken: refreshToken })
+    return reply.send({ userId: user.id, name: user.name, accessToken: accessToken, refreshToken: refreshToken })
   } catch (error) {
     console.log(error)
     return reply.code(500).send({ error: error.message})
@@ -61,6 +61,7 @@ const completeGoogleLogin = async function(req, reply, user) {
         <script>
           window.opener.postMessage({
             userId: ${JSON.stringify(user.id)},
+            name: ${JSON.stringify(user.name)},
             accessToken: ${JSON.stringify(accessToken)},
             refreshToken: ${JSON.stringify(refreshToken)}
           }, 'http://localhost:5173');
@@ -69,13 +70,8 @@ const completeGoogleLogin = async function(req, reply, user) {
       </body>
     </html>
   `;
-  
   return (reply.header('Content-Type', 'text/html').send(html));
 
-
-    // return reply.redirect(
-    //   `http://localhost:5173/google/callback?userId=${user.id}&accessToken=${accessToken}&refreshToken=${refreshToken}`
-    // );
   } catch (error) {
     console.log(error)
 

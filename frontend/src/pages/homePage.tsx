@@ -53,7 +53,7 @@ const Home: React.FC = () => {
 		
 				<Link
 					to="/login"
-					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 					>
 					<img src="../login.png" alt="Login Icon" className="w-2/4 h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Login</span>
@@ -61,7 +61,7 @@ const Home: React.FC = () => {
 		
 				<Link
 					to="/register"
-					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 					>
 					<img src="../register.png" alt="Register Icon" className="w-2/4 h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Register</span>
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
 			
 				<button 
 					onClick={handleGoogleLogin}
-					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../googleLogo.png" alt="Google Icon" className="w-2/4 h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Google sign in</span>
