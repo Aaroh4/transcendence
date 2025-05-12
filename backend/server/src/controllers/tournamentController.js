@@ -116,7 +116,13 @@ const joinTournament = async function(req, reply) {
 		db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
 		.run(players.length, tournament.id)
 
-      return reply.send({ 
+
+		// this needs to be here when ready thing is removed!!!!!
+
+		//if (await startTournament(req, reply)) this needs to be here when ready thing is removed!!!!!
+		//	console.log('Tournament start failed???'); this needs to be here when ready thing is removed!!!!!
+     
+	return reply.send({ 
         message: `User ${user.name} successfully joined tournament ${tournament.name}`,
         status: 'ready',
         tournamentId: tournament.id
@@ -166,6 +172,8 @@ const setReady = async function(req, reply) {
       updatedTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?')
         .get(tournament.id)
 
+		if (await startTournament(req, reply))
+			console.log('Tournament start failed???');
       return reply.send({ players: playerIds, tournament: updatedTournament })
     }
 
@@ -247,10 +255,10 @@ const startTournament = async function(req, reply) {
                 ORDER BY round ASC, match_number ASC;`)
       .all(tournamentId)
 
-    return reply.send({ bracket: tournamentBracket })
+    return 0
   } catch (error) {
     console.log(error)
-    return reply.code(500).send({ error: error.message })
+    return 1
   }
 }
 
