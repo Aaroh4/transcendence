@@ -57,7 +57,13 @@ const UserPage: React.FC = () => {
 					<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Demo Game</span>
 				</Link>
-
+				<Link
+					to="/ai-game"
+					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500"
+				>
+					<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
+					<span className="text-xl font-bold mt-2">VS AI Game</span>
+				</Link>
 				<Link
 					to="/tournaments"
 					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500"
