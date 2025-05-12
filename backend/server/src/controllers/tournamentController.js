@@ -290,6 +290,5 @@ export {
   getTournamentAmount,
   joinTournament, 
   setReady, 
-  startTournament,
   getTournamentParticipant
 }

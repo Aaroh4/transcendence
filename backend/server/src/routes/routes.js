@@ -24,7 +24,6 @@ import {
   getTournamentPlayerAmountOpts,
   joinTournamentOpts,
   setReadyOpts,
-  startTournamentOpts,
   getTournamentParticipantOpts
 } from '../schemas/tournamentSchemas.js'
 
@@ -78,7 +77,6 @@ async function tournamentRoutes (fastify, options) {
   fastify.get('/api/tournament/:tournamentId', getTournamentParticipantOpts)
   fastify.post('/api/tournament/create', createTournamentOpts)
   fastify.post('/api/tournament/:tournamentId/join', joinTournamentOpts)
-  fastify.post('/api/tournament/:tournamentId/start', startTournamentOpts)
   fastify.patch('/api/tournament/:tournamentId/ready', setReadyOpts)
 }
 
