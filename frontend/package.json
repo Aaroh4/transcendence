@@ -9,10 +9,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "tailwind": "npx @tailwindcss/cli -i ./src/input.css -o ./output.css -y",
-	"tailwind:watch": "npx tailwindcss -i ./src/input.css -o ./output.css --watch"
-},
+    "tailwind:watch": "npx tailwindcss -i ./src/input.css -o ./output.css --watch"
+  },
   "dependencies": {
+    "@babylonjs/gui": "^8.7.0",
     "@tailwindcss/cli": "^4.0.8",
+    "babylonjs": "^8.7.0",
     "backend": "^0.0.0",
     "backend-root": "file:../backend",
     "cd": "^0.3.3",

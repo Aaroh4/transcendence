@@ -55,10 +55,10 @@ export class GameAI {
 			const randomAdjust = (Math.random() * this.playerHeight / 3) * difficultyFactor;
 			if (r < 0.5) {
 				this.targetY += randomAdjust
-				console.log("Randomly adjusting target Y +", randomAdjust);
+				// console.log("Randomly adjusting target Y +", randomAdjust);
 			} else {
 				this.targetY -= randomAdjust
-				console.log("Randomly adjusting target Y -", randomAdjust);
+				// console.log("Randomly adjusting target Y -", randomAdjust);
 			}
 			// console.log("Predicting new path");
 		}
