@@ -4,6 +4,8 @@ import { TURN_URL, TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-c
 import { setupButtons  } from './matchmaking.js';
 import { router } from '../App';
 import { GameAI } from './gameAI';
+import { Renderer2D } from './renderer2d.js';
+import { Renderer3D } from './renderer3d.js';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -123,11 +125,38 @@ enum KeyBindings{
 	SDOWN = 'ArrowDown'
 }
 
+export interface GameState {
+	canvasWidth: number;
+	canvasHeight: number;
+	player1Y: number;
+	player2Y: number;
+	player1Height: number;
+	player2Height: number;
+	ballX: number;
+	ballY: number;
+	ballSize: number;
+	score1: number;
+	score2: number;
+	color: string;
+	isAIgame: boolean;
+	AIdebug: boolean;
+}
+
+export interface GameRenderer {
+	init(container: HTMLElement): void;
+	dispose(): void;
+	render(state: GameState): void;
+}
+
 export class frontEndGame {
 	private keysPressed: { [key: string]: boolean } = {};
 	private gameCanvas : HTMLCanvasElement;
 	private container : HTMLElement;
+	private canvasWidth : number = 800;
+	private canvasHeight : number = 600;
 	private ctx : CanvasRenderingContext2D;
+	private renderer: GameRenderer;
+	private currentMode: '2D' | '3D' = '2D';
 	private color : string;
 	private player1Score : number = 0;
 	private player2Score : number = 0;
@@ -143,14 +172,14 @@ export class frontEndGame {
 	private AIdebug: boolean = false;
 
 	private dataChannel: RTCDataChannel | null = null;
-    private peerConnection: RTCPeerConnection | null = null;
+  private peerConnection: RTCPeerConnection | null = null;
 	private configuration: RTCConfiguration;
 
-    // Add a property to store candidates that arrive before remote description
-    private bufferedCandidates: RTCIceCandidateInit[] = [];
+	// Add a property to store candidates that arrive before remote description
+	private bufferedCandidates: RTCIceCandidateInit[] = [];
 
-    private keyDownHandler: (e: KeyboardEvent) => void;
-    private keyUpHandler: (e: KeyboardEvent) => void;
+	private keyDownHandler: (e: KeyboardEvent) => void;
+	private keyUpHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
 		this.container = document.getElementById("game-container");
@@ -208,6 +237,25 @@ export class frontEndGame {
 		}
 	}
 
+	getGameState(): GameState {
+		return {
+			canvasWidth: this.canvasWidth,
+			canvasHeight: this.canvasHeight,
+			player1Y: this.player1.getpos()[0],
+			player2Y: this.player2.getpos()[0],
+			player1Height: this.player1.height,
+			player2Height: this.player2.height,
+			ballX: this.ballX,
+			ballY: this.ballY,
+			ballSize: this.ballSize,
+			score1: this.player1Score,
+			score2: this.player2Score,
+			color: this.color,
+			isAIgame: this.isAIgame,
+			AIdebug: this.AIdebug
+		};
+	}
+
 	setIsAIgame(isAIgame: boolean) {
 		this.isAIgame = isAIgame;
 	}
@@ -215,6 +263,16 @@ export class frontEndGame {
 	setScore(player1Score, player2Score) {
 		this.player1Score += player1Score;
 		this.player2Score += player2Score;
+	}
+
+	createRenderingContext() {	
+		this.container = document.getElementById("game-container");
+		if (this.currentMode === '2D') {
+			this.renderer = new Renderer2D();
+		} else {
+			this.renderer = new Renderer3D();
+		}
+		this.renderer.init(this.container);
 	}
 
 	createCanvas()
@@ -229,7 +287,7 @@ export class frontEndGame {
 
 	setupAI() 
 	{
-		this.gameAI = new GameAI(this.gameCanvas.height, this.player2.xPos, this.player2.height);
+		this.gameAI = new GameAI(this.canvasHeight, this.player2.xPos, this.player2.height);
 	}
 
 	setupPeerConnectionEvents(socket) {
@@ -354,6 +412,7 @@ export class frontEndGame {
 		  
 		  // Redraw the game
 		  this.updateGraphics();
+			//this.renderer.render(this.getGameState());
 		}
 	}
 
@@ -381,6 +440,7 @@ export class frontEndGame {
 		this.player2.move(deltaTime);
 		this.ball.update(this.player1, this.player2, deltaTime);
 		this.updateGraphics();
+		// this.renderer.render(this.getGameState());
 	}
 
 	updateAIGameState()
@@ -388,7 +448,6 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
-		const treshold = 4;
 
 		if (this.keysPressed[KeyBindings.UP])
 			this.player1.setvel(-1);
@@ -415,8 +474,10 @@ export class frontEndGame {
 
 		this.ball.update(this.player1, this.player2, deltaTime);
 		this.updateGraphics();
+		// this.renderer.render(this.getGameState());
 	}
 
+	// replaced by 2d and 3d renderer classes
 	updateGraphics() 
 	{
 		this.ctx.fillStyle = "#000";
@@ -451,6 +512,19 @@ export class frontEndGame {
 		this.lastUpdateTime = Date.now();
 	}
 
+	switchMode(newMode: '2D' | '3D') {
+		if (this.currentMode === newMode) return;
+
+		this.renderer.dispose(); // remove canvas or babylon engine
+		this.currentMode = newMode;
+
+		if (newMode === '2D') {
+			this.renderer = new Renderer2D();
+		} else {
+			this.renderer = new Renderer3D();
+		}
+		this.renderer.init(this.container);
+	}
 
 	socketLogic(socket)
 	{
@@ -595,6 +669,7 @@ export class frontEndGame {
 			document.getElementById("gameroom-page").hidden = true;
 			log.info("Game started in room:", roomId);
 			game.createCanvas();
+			// game.createRenderingContext();
 			game.settings(settings, color);
 
 			if (this.peerConnection == null) {
@@ -605,6 +680,7 @@ export class frontEndGame {
 				this.setupPeerConnectionEvents(socket);
 			}
 			game.updateGraphics();
+			// game.renderer.render(game.getGameState());
 		});
 		
 		socket.on("gameOver", (winner : number, type : string) => {
@@ -666,6 +742,7 @@ export function startSoloGame()
 	document.getElementById("gameroom-page").hidden = true;
 	game.setupSoloKeyListeners();
 	game.createCanvas();
+	// game.createRenderingContext();
 	game.settings({
 		ballSettings: {
 			ball: new Ball(20, 20, 400, 300),
@@ -696,6 +773,7 @@ export function startAIGame()
 	document.getElementById("gameroom-page").hidden = true;
 	game.setupSoloKeyListeners();
 	game.createCanvas();
+	// game.createRenderingContext();
 	game.setupAI();
 	game.settings({
 		ballSettings: {
@@ -713,3 +791,4 @@ export function startAIGame()
 	}
 	loopAI();
 }
+
