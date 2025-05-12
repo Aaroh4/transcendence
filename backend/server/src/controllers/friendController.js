@@ -150,11 +150,35 @@ const declineRequest = async function(req, reply) {
   }
 }
 
+const removeFriend = async function(req, reply) {
+  const userId = req.user.id
+  const friendId = req.params.id
+  const db = req.server.db
+
+  try {
+    const areFriends = db.prepare('SELECT * FROM friends WHERE user_id = ? AND friend_id = ?')
+      .get(userId, friendId)
+    
+    if (!areFriends) return reply.code(404).send({ message: `User ${friendId} is not on your friend list` })
+    
+    db.prepare(`DELETE FROM friends 
+      WHERE (user_id = ? AND friend_id = ?) 
+      OR (user_id = ? AND friend_id = ?)
+    `).run(userId, friendId, friendId, userId)
+
+    return reply.send({error: `Friend with id: ${friendId} has been removed`})
+  } catch (error) {
+    console.error('Database error:', error)
+    return reply.code(500).send({ error: error.message })
+  }
+}
+
 export { 
   friendRequest, 
   checkPending, 
   acceptRequest, 
   blockRequest, 
   getFriends,
-  declineRequest
+  declineRequest,
+  removeFriend
 }

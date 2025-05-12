@@ -17,7 +17,8 @@ import {
   acceptRequestOpts,
   blockRequestOpts,
   getFriendsOpts,
-  declineRequestOpts
+  declineRequestOpts,
+  removeFriendOpts
 } from '../schemas/friendSchemas.js'
 import { 
   getTournamentsOpts,
@@ -71,6 +72,7 @@ async function friendRoutes (fastify, options) {
   fastify.post('/api/friend/accept', acceptRequestOpts)
   fastify.post('/api/friend/block', blockRequestOpts)
   fastify.post('/api/friend/decline', declineRequestOpts)
+  fastify.delete('/api/friend/remove/:id', removeFriendOpts)
 }
 
 async function tournamentRoutes (fastify, options) {

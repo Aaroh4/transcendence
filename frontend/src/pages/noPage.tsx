@@ -14,7 +14,7 @@ export default function NoPage() {
 			  </h1>
 			  <Link
 				to="/home"
-				className="bg-black px-3 py-2 text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 transition duration-100"
+				className="bg-black px-3 py-2 text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 			  >
 				Go back to Home
 			  </Link>

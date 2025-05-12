@@ -506,22 +506,22 @@ export async function acceptRequest(requestData: friendActionRequest): Promise<f
 			if (!retryResponse.ok)
 				return {
 				status: retryResponse.status,
-				error: responseData.error || 'Accepting request failed'
+				error: responseData.error || 'Accept failed'
 				}
 			return {
 				status: retryResponse.status,
-				error: responseData.error || 'Accepting request was successfully'
+				error: responseData.error || 'Accept was successful'
 			};
 		};
 
 		if (response.status >= 300)
 			return {
 			status: response.status,
-			error: response.error || 'Accepting request failed'
+			error: response.error || 'Accept failed'
 		}
 		return {
 			status: response.status,
-			error: response.error || 'Accepting request was successfully'
+			error: response.error || 'Accept was successful'
 		};
 
 	} catch (error) {
@@ -562,22 +562,22 @@ export async function declineRequest(requestData: friendActionRequest): Promise<
 			if (!retryResponse.ok)
 				return {
 				status: retryResponse.status,
-				error: responseData.error || 'Declining request failed'
+				error: responseData.error || 'Decline failed'
 				}
 			return {
 				status: retryResponse.status,
-				error: responseData.error || 'Declining request was successfully'
+				error: responseData.error || 'Decline was successful'
 			};
 		};
 
 		if (response.status >= 300)
 			return {
 			status: response.status,
-			error: response.error || 'Declining request failed'
+			error: response.error || 'Decline failed'
 		}
 		return {
 			status: response.status,
-			error: response.error || 'Declining request was successfully'
+			error: response.error || 'Decline was successful'
 		};
 
 	} catch (error) {
@@ -618,22 +618,89 @@ export async function blockRequest(requestData: friendActionRequest): Promise<fr
 			if (!retryResponse.ok)
 				return {
 				status: retryResponse.status,
-				error: responseData.error || 'Blocking request failed'
+				error: responseData.error || 'Block failed'
 				}
 			return {
 				status: retryResponse.status,
-				error: responseData.error || 'Blocking request was successfully'
+				error: responseData.error || 'Block successful'
 			};
 		};
 
 		if (response.status >= 300)
 			return {
 			status: response.status,
-			error: response.error || 'Blocking request failed'
+			error: response.error || 'Block failed'
 		}
 		return {
 			status: response.status,
-			error: response.error || 'Blocking request was successfully'
+			error: response.error || 'Block was successful'
+		};
+
+
+	} catch (error) {
+		console.error("blockRequest Error:", error);
+		return {
+			status: 500,
+			error: 'Something went wrong. Please try again.'
+		};
+	}
+}
+
+export interface removeFriendRequest {
+	accToken: string;
+	friendId: number;
+}
+
+interface removeFriendResponse {
+	status: number;
+	error?: string;
+}
+
+export async function removeFriend(requestData: removeFriendRequest): Promise<removeFriendResponse> {
+	
+	try {
+			const options = {
+				method: 'DELETE',
+				body: JSON.stringify({ friendId: requestData.friendId }),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${requestData.accToken}`
+				}
+			}
+
+		const response = await authFetch(`/api/friend/remove/${requestData.friendId}`, options);
+
+		if (response.status === 1) {
+			const retryResponse = await fetch(`/api/friend/remove/${requestData.friendId}`, {
+				method: 'DELETE',
+				body: JSON.stringify({ friendId: requestData.friendId }),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			});
+
+			const responseData = await retryResponse.json();
+		
+			if (!retryResponse.ok)
+				return {
+				status: retryResponse.status,
+				error: responseData.error || 'Remove friend failed'
+				}
+			return {
+				status: retryResponse.status,
+				error: responseData.error || 'Remove friend successful'
+			};
+		};
+
+		if (response.status >= 300)
+			return {
+			status: response.status,
+			error: response.error || 'Remove friend failed'
+		}
+		return {
+			status: response.status,
+			error: response.error || 'Remove friend successful'
 		};
 
 

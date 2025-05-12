@@ -12,7 +12,8 @@ import {
 	declineRequest,
 	blockRequest,
 	friendActionRequest,
-	searchUsers
+	searchUsers,
+	removeFriend
 } from "../services/api";
 
 interface UserHeaderProps {
@@ -118,6 +119,12 @@ const UserHeader: React.FC = () => {
 		if (response.status === 200) {
 			toast.open(response.error, "info");
 			setPendingRequests((prev) => prev.filter((req) => req.id !== friendId));
+			
+			const acceptedFriend = pendingRequests.find((req) => req.id === friendId);
+			if (!acceptedFriend) return;
+		
+			setPendingRequests((prev) => prev.filter((req) => req.id !== friendId));
+			setFriendsList((prev) => [...prev, acceptedFriend]);
 		}
 	}
 
@@ -148,6 +155,21 @@ const UserHeader: React.FC = () => {
 		if (response.status === 200) {
 			toast.open(response.error, "info");
 			setPendingRequests((prev) => prev.filter((req) => req.id !== friendId));
+		}
+	}
+
+	const handleRemove = async (friendId: number) => {
+
+		const info: friendActionRequest = {
+			accToken: sessionData.accessToken,
+			friendId: friendId
+		}
+
+		const response = await removeFriend(info);
+
+		if (response.status === 200) {
+			setFriendsList((prev) => prev.filter((friend) => friend.id !== friendId));
+			toast.open(response.error, "info");
 		}
 	}
 
@@ -306,7 +328,7 @@ const UserHeader: React.FC = () => {
 
 					{friendsList && friendsList.length > 0 && (
 					<div className="w-full px-4 gap-4">
-						<h2 className="text-lg font-semibold mb-2 text-black">Frineds:</h2>
+						<h2 className="text-lg font-semibold mb-2 text-black">Friends:</h2>
 							{friendsList.map((req) => (
 							<div key={req.id} className="flex items-center justify-between bg-white p-2 rounded mb-2">
 								<div className="flex items-center">
@@ -314,11 +336,21 @@ const UserHeader: React.FC = () => {
 								<span className="text-black">{req.name}</span>
 								</div>
 								
+								<div className="flex items-center space-x-2">
 								<span
 								className={`w-4 h-4 border border-black rounded-full ${
 									req.online_status === 1 ? "bg-green-600" : "bg-red-500"
 								} inline-block ml-2`}
 								/>
+
+								<button
+									onClick={() => handleRemove(req.id)}
+									className="bg-red-500 text-white border border-black px-2 py-1 rounded hover:bg-red-600"
+									>
+									Remove
+								</button>
+								</div>
+
 							</div>
 							))}
 					</div>
