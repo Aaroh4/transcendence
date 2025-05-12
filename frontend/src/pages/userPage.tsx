@@ -40,8 +40,8 @@ const UserPage: React.FC = () => {
 		<>
 		<UserHeader />
 		<Background />
-		<div className="flex flex-col items-center justify-center gap-6 p-101">
-  			<div className="flex gap-6">
+		<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
+  			<div className="flex flex-wrap gap-6 justify-center">
 
 				<Link 
 					to="/solo-game"
@@ -60,7 +60,7 @@ const UserPage: React.FC = () => {
 				</Link>
 				<Link
 					to="/ai-game"
-					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500"
+					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">VS AI Game</span>
