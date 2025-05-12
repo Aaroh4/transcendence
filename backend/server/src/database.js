@@ -38,6 +38,10 @@ async function dbInit(fastify, options) {
 //     CREATE UNIQUE INDEX IF NOT EXISTS unique_number_index ON users (number);
 //  `);
 
+// db.exec(`
+//   DROP TABLE IF EXISTS friends;
+// `)
+
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -136,7 +140,7 @@ async function dbInit(fastify, options) {
     CREATE TABLE IF NOT EXISTS friends (
       user_id INTEGER NOT NULL,
       friend_id INTEGER NOT NULL,
-      status TEXT NOT NULL CHECK(status IN ('pending', 'accepted', 'blocked')),
+      status TEXT NOT NULL CHECK(status IN ('pending', 'accepted', 'declined', 'blocked')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (user_id, friend_id),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
