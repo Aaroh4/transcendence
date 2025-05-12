@@ -70,6 +70,7 @@ async function dbInit(fastify, options) {
       name TEXT NOT NULL,
       winner INTEGER,
       size INTEGER,
+	  playerAmount INTEGER DEFAULT 0,
       created_by INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       status TEXT NOT NULL CHECK(status IN ('created', 'ready', 'in_progress', 'completed')),

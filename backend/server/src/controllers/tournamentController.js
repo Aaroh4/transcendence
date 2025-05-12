@@ -26,6 +26,7 @@ const createTournament = async function(req, reply) {
     const tournament = {
       id: result.lastInsertRowid,
       name: name,
+	  playerAmount: 0,
       size: size,
       created_by: userId,
       status: 'created'
@@ -45,6 +46,7 @@ const getTournaments = async function(req, reply) {
     const tournaments = db.prepare("SELECT * FROM tournaments WHERE status = 'created'")
       .all()
 
+	console.log(tournaments);
 
     if (tournaments.length === 0) return reply.code(404).send({ error: "No tournaments found" })
     
@@ -53,6 +55,25 @@ const getTournaments = async function(req, reply) {
     console.log(error)
     return reply.code(500).send({ error: error.message })
   }
+}
+
+const getTournamentAmount = async function(req, reply) {
+	const db = req.server.db
+	const { tournamentId } = req.params
+
+	try {
+		const playerAmount = db.prepare('SELECT playerAmount FROM tournaments WHERE id = ?')
+		.get(tournamentId)
+	
+		if (!playerAmount) {
+		  return reply.code(404).send({ error: 'Tournament not found' });
+		}
+
+		return reply.send(playerAmount);
+	  } catch (err) {
+		console.error(err);
+		return reply.code(500).send({ error: 'Internal Server Error' });
+	  }
 }
 
 const joinTournament = async function(req, reply) {
@@ -78,10 +99,10 @@ const joinTournament = async function(req, reply) {
       })
     }
 
-    const hasJoined = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
-      .get(tournamentId, user.id)
+	const hasJoined = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+	.all(user.id)
     
-    if (hasJoined) return reply.code(409).send({ error: "User has already joined this tournament" })
+    if (hasJoined.length >= 1) return reply.code(409).send({ error: "User has already joined a tournament" })
 
     db.prepare('INSERT INTO tournament_players (user_id, tournament_id) VALUES(?, ?)')
       .run(userId, tournamentId)
@@ -92,12 +113,17 @@ const joinTournament = async function(req, reply) {
     if (players.length === tournament.size) {
       db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
         .run('ready', tournament.id)
+		db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
+		.run(players.length, tournament.id)
+
       return reply.send({ 
         message: `User ${user.name} successfully joined tournament ${tournament.name}`,
         status: 'ready',
         tournamentId: tournament.id
       })
     }
+	db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
+	.run(players.length, tournament.id)
     return reply.send({ 
       message: `User ${user.name} successfully joined tournament ${tournament.name}`,
       status: 'waiting',
@@ -252,7 +278,8 @@ const getTournamentParticipant = async function(req, reply) {
 
 export { 
   createTournament, 
-  getTournaments, 
+  getTournaments,
+  getTournamentAmount,
   joinTournament, 
   setReady, 
   startTournament,

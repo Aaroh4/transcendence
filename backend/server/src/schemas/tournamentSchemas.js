@@ -1,6 +1,7 @@
 import { 
   createTournament,
   getTournaments,
+  getTournamentAmount,
   joinTournament,
   setReady,
   startTournament,
@@ -34,6 +35,20 @@ const getTournamentsOpts = {
     },
   },
   handler: getTournaments,
+}
+
+const getTournamentPlayerAmountOpts = {
+	schema: {
+	  response: {
+		200: {
+		  type: 'object',
+		  properties: {
+			playerAmount: { type: 'integer' }
+		  }
+		}
+	  }
+	},
+	handler: getTournamentAmount,
 }
 
 const joinTournamentOpts = {
@@ -117,6 +132,7 @@ const getTournamentParticipantOpts = {
 export { 
   createTournamentOpts,
   getTournamentsOpts,
+  getTournamentPlayerAmountOpts,
   joinTournamentOpts,
   setReadyOpts,
   startTournamentOpts,

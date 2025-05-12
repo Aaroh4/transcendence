@@ -2,11 +2,26 @@ import UserHeader from "../components/userHeader";
 import { Link } from 'react-router-dom';
 import React from 'react';
 import { useState, useRef } from "react";
+import { useToast } from "../components/toastBar/toastContext";
 
 
 export interface tournament {
 	name : string;
 	size : number;
+}
+
+export async function getPlayerAmount(tourId : number) : Promise<number> {	
+	try {
+		const response = await fetch('/api/tournament/' + tourId + '/playerAmount', {
+			method: 'GET',
+		});
+
+		const responseData = await response.json();
+
+		return responseData.playerAmount;
+	} catch (error) {
+		console.error("Fetch failed:", error);
+	}
 }
 
 export async function createrTour(tournament): Promise<number> {
@@ -32,8 +47,7 @@ export async function createrTour(tournament): Promise<number> {
 	}
 }
 
-export async function joinerTour(tourId : number): Promise<number> {
-	
+export async function joinTour(tourId : number): Promise<number> {
 	const userId = sessionStorage.getItem('activeUserId');
 	
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
@@ -45,6 +59,10 @@ export async function joinerTour(tourId : number): Promise<number> {
 			'Authorization': `Bearer ${sessionData.accessToken}`
 			}
 		});
+
+		if (response.status != 200) {
+			return (response.status);
+		}
 	} catch (error) {
 		console.error("Login error:", error);
 	}
@@ -57,30 +75,6 @@ export async function joinerTour(tourId : number): Promise<number> {
 		});
 
 		return response.status;
-
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
-
-export async function starterTour(): Promise<number> {
-	
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournament/1/start', {
-			method: 'POST',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-
-		const responseData = await response.json();
-
-		return response.status;
-
 	} catch (error) {
 		console.error("Login error:", error);
 	}
@@ -115,7 +109,7 @@ const TournamentsPage: React.FC = () => {
 	const [fetchedTournaments, setFetchedTournaments] = useState<any[]>([]);
 	const tourName = useRef<HTMLInputElement>(null);
 	const tourSize = useRef<HTMLInputElement>(null);
-
+	const toast = useToast();
 
 	const fetchTournaments = async () => {
 		try {
@@ -139,33 +133,16 @@ const TournamentsPage: React.FC = () => {
 			if (response == 200) {
 				console.log("Tournament created");
 			} else {
-				console.log("Tournament creation failed");
+				toast.open("Tournament creation failed", "error");
 			}
 		}
 		);
 		setShowForm(false);
 	}
 
-	const startTour = () => {
-		starterTour().then((response) => {
-			if (response == 200) {
-				console.log("Tournament started");
-			} else {
-				console.log("Tournament start failed");
-			}
-		}
-		);
-	}
-
 	return (
 		<>
 		<UserHeader />
-
-		<button onClick={startTour} 
-		id="test-start-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-					start tournament
-		</button>
-
 
 		<Link 
 					to="/tour-game"
@@ -245,11 +222,22 @@ const TournamentsPage: React.FC = () => {
 					/>	
 					<div className="flex flex-col">
 					<p className="font-medium">{tour.name}</p>
-					<p className="text-sm text-gray-500">{tour.players + "/" + tour.size}</p>
+					<p className="text-sm text-gray-500">{tour.playerAmount + "/" + tour.size}</p>
 					</div>
 					</div>
 					<button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700"
-					onClick={() => joinerTour(tour.id)}
+					onClick={() => {
+						joinTour(tour.id).then((response) => {
+							if (response != 200) {
+								toast.open("You are already in a tournament", "error" );
+							}
+						});
+						getPlayerAmount(tour.id).then((newAmount) => {
+						  setFetchedTournaments((prevTournaments) =>
+							prevTournaments.map((t) =>
+							  t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
+						});
+					}}
 					>
 					Join
 					</button>
