@@ -42,7 +42,7 @@ const getTournaments = async function(req, reply) {
   const db = req.server.db
 
   try {
-    const tournaments = db.prepare('SELECT * FROM tournaments')
+    const tournaments = db.prepare("SELECT * FROM tournaments WHERE status = 'created'")
       .all()
 
 
