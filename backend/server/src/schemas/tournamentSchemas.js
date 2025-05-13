@@ -50,31 +50,6 @@ const joinTournamentOpts = {
   handler: joinTournament,
 }
 
-const setReadyOpts = {
-  schema: {
-    params: {
-      type: 'object',
-      properties: {
-        tournamentId: { type: 'integer', minimum: 1 },
-      },
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          players: { 
-            type: 'array',
-            items: { type: 'integer' },
-          },
-          tournament: Tournament
-        },
-      },
-    },
-  },
-  preHandler: authenticateToken,
-  handler: setReady,
-}
-
 const startTournamentOpts = {
   schema: {
     params: {
@@ -118,7 +93,6 @@ export {
   createTournamentOpts,
   getTournamentsOpts,
   joinTournamentOpts,
-  setReadyOpts,
   startTournamentOpts,
   getTournamentParticipantOpts
 }

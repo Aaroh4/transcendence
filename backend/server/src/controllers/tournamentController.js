@@ -92,11 +92,7 @@ const joinTournament = async function(req, reply) {
     if (players.length === tournament.size) {
       db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
         .run('ready', tournament.id)
-      return reply.send({ 
-        message: `User ${user.name} successfully joined tournament ${tournament.name}`,
-        status: 'ready',
-        tournamentId: tournament.id
-      })
+      return startTournament(req, reply, tournamentId)
     }
     return reply.send({ 
       message: `User ${user.name} successfully joined tournament ${tournament.name}`,
@@ -109,49 +105,7 @@ const joinTournament = async function(req, reply) {
   }
 }
 
-const setReady = async function(req, reply) {
-  const { tournamentId } = req.params
-  const db = req.server.db
-
-  try {
-    const tournament = db.prepare('SELECT * FROM tournaments WHERE id = ?')
-      .get(tournamentId)
-    
-    if (!tournament) return reply.code(404).send({ error: `No tournament found with id ${tournamentId}` })
-    
-    const player = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
-      .get(tournamentId, req.user.id)
-    
-    if (!player) return reply.code(404).send({ error: `Player not found in tournament ${tournamentId}` })
-
-    db.prepare('UPDATE tournament_players SET is_ready = 1 WHERE tournament_id = ? AND user_id = ?')
-      .run(tournament.id, player.user_id)
-
-    const readyPlayers = db.prepare('SELECT user_id FROM tournament_players WHERE tournament_id = ? AND is_ready = 1')
-      .all(tournamentId)
-
-    const playerIds = readyPlayers.map(player => player.user_id)
-    let updatedTournament = tournament
-    
-    if (readyPlayers.length === tournament.size) {
-      db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
-        .run('ready', tournament.id)
-
-      updatedTournament = db.prepare('SELECT * FROM tournaments WHERE id = ?')
-        .get(tournament.id)
-
-      return reply.send({ players: playerIds, tournament: updatedTournament })
-    }
-
-    return reply.send({ players: playerIds, tournament: tournament })
-  } catch (error) {
-    console.log(error)
-    return reply.code(500).send({ error: error.message })
-  }
-}
-
-const startTournament = async function(req, reply) {
-  const { tournamentId } = req.params
+const startTournament = async function(req, reply, tournamentId) {
   const db = req.server.db
 
   try {
@@ -253,8 +207,7 @@ const getTournamentParticipant = async function(req, reply) {
 export { 
   createTournament, 
   getTournaments, 
-  joinTournament, 
-  setReady, 
+  joinTournament,
   startTournament,
   getTournamentParticipant
 }

@@ -141,6 +141,8 @@ async function dbInit(fastify, options) {
       FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `)
+  
+  db.prepare("DELETE FROM tournaments WHERE status != 'completed'").run()
 
   fastify.decorate("db", db);
 
