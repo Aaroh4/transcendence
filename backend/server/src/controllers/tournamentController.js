@@ -114,7 +114,7 @@ const joinTournament = async function(req, reply) {
 			.run('ready', tournament.id)
 		db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
 		.run(players.length, tournament.id)
-		return startTournament(req, reply, tournamentId)
+		startTournament(req, reply, tournamentId)
 		}
 		db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
 		.run(players.length, tournament.id)
@@ -137,7 +137,7 @@ const startTournament = async function(req, reply, tournamentId) {
 		const tournament = db.prepare('SELECT * FROM tournaments WHERE id = ?')
 			.get(tournamentId)
 	
-		const players = db.prepare('SELECT user_id FROM tournament_players WHERE tournament_id = ? AND is_ready = 1')
+		const players = db.prepare('SELECT user_id FROM tournament_players WHERE tournament_id = ?')
 			.all(tournamentId)
 	
 		const playerIds = players.map(player => player.user_id)
