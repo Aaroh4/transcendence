@@ -158,7 +158,7 @@ export class frontEndGame {
 	private canvasHeight : number = 600;
 	private ctx : CanvasRenderingContext2D;
 	private renderer: GameRenderer | null = null;
-	private currentMode: '2D' | '3D' = '2D';
+	private currentMode: '2D' | '3D' = '3D';
 	private color : string;
 	private player1Score : number = 0;
 	private player2Score : number = 0;
@@ -726,6 +726,8 @@ export function createNewGame(matchType : string, socket, userId : string)
 	{
 		game.socketLogic(socket);
 	}
+	// add game to window object for 2D/3D renderer switching
+	window.game = game;
 }
 
 export function cleanGame()

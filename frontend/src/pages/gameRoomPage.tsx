@@ -152,16 +152,16 @@ const matchTypeButtons = () => {
 				</div>
 		);
 			// En tiia kumpi naista oli uudempi
-		case "tournament":
-			return(
-				<>
-				<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-				<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
-				<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-					Ready up!
-				</button>
-				</>
-			);
+		// case "tournament":
+		// 	return(
+		// 		<>
+		// 		<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
+		// 		<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
+		// 		<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+		// 			Ready up!
+		// 		</button>
+		// 		</>
+		// 	);
 		case "normal":
 			return(
 				<>
@@ -206,6 +206,21 @@ const matchTypeButtons = () => {
 					<p className="text-center text-gray-600 mb-4">Ball speed</p>
 					<input id="ball-speed" type="text" placeholder="3" className="block w-full p-2 border border-gray-300 rounded mt-2"/>
 				</details>
+			</div>
+			
+			<div className="flex justify-center items-center space-x-4 mt-6">
+				<button
+					onClick={() => window.game?.switchMode('2D')}
+					className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+				>
+					2D Mode
+				</button>
+				<button
+					onClick={() => window.game?.switchMode('3D')}
+					className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-700"
+				>
+					3D Mode
+				</button>
 			</div>
 
 			<div id="game-container" className="bg-green-100 p-2 rounded-lg shadow-md mt-4 w-[820px] h-[620px]"></div>

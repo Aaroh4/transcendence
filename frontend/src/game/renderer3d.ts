@@ -1,6 +1,6 @@
 // BabylonRenderer.ts
-import { GameState } from "./frontEndGame";
-import * as BABYLON from "babylonjs";
+import { GameState, GameRenderer } from "./frontEndGame";
+import * as BABYLON from "@babylonjs/core";
 import * as GUI from "@babylonjs/gui";
 
 export class Renderer3D {
@@ -52,7 +52,7 @@ export class Renderer3D {
 		this.ball.position.y = 2;
 
 		// GUI overlay for scores
-		this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
 		this.scoreText = new GUI.TextBlock();
 		this.scoreText.color = "white";
 		this.scoreText.fontSize = 24;
