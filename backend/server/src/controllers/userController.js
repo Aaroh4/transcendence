@@ -94,23 +94,24 @@ const getUser = async function (req, reply) {
 }
 
 const deleteUser = async function (req, reply) {
-  const { id, token } = req.body
   const db = req.server.db
+  const userId = req.user.id
 
   try {
-    const userId = db.prepare('SELECT user_id FROM refresh_tokens WHERE refresh_token = ?')
-      .get(token)
+    const user = db.prepare('SELECT * FROM users WHERE id = ?')
+      .get(userId)
     
-    if (!userId) return reply.code(404).send({ error: "Refresh token not found"})
+    if (!user) return reply.code(404).send({ error: "User not found"})
     
-    db.prepare('DELETE FROM refresh_tokens WHERE refresh_token = ?')
-      .run(token)
+    db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?')
+      .run(userId)
 
     db.prepare('DELETE FROM users WHERE id = ?')
-      .run(id)
+      .run(userId)
     
-    return reply.send({ message: `User ${id} has been removed` })
+    return reply.code(204).send()
   } catch (error) {
+    console.log(error)
     return reply.code(500).send({ error: error.message })
   }
 }
@@ -136,6 +137,7 @@ const updateUser = async function (req, reply) {
       email
     })
   } catch (error) {
+    console.log(error)
       return reply.code(500).send({ error: error.message })
   }
 }
@@ -168,11 +170,13 @@ const updatePassword = async function (req, reply) {
    
     return reply.send({ message: `Password was changed for user ${id}` })
   } catch (error) {
-      if (error.code === 'FST_ERR_VALIDATION') {
-        return reply.code(400).send({ error: 'Minimum length for password is 8 and it has to contain atleast 1 digit and 1 special character' })
-      } else {
-        return reply.code(500).send({ error: error.message })
-      }
+    console.log(error)
+
+    if (error.code === 'FST_ERR_VALIDATION') {
+      return reply.code(400).send({ error: 'Minimum length for password is 8 and it has to contain atleast 1 digit and 1 special character' })
+    } else {
+      return reply.code(500).send({ error: error.message })
+    }
   }
 }
 

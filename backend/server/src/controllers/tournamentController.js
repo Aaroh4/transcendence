@@ -141,6 +141,7 @@ const joinTournament = async function(req, reply) {
   }
 }
 
+const startTournament = async function(req, reply, tournamentId) {
 const setReady = async function(req, reply) {
   const { tournamentId } = req.params
   const db = req.server.db
@@ -286,6 +287,9 @@ const getTournamentParticipant = async function(req, reply) {
 
 export { 
   createTournament, 
+  getTournaments, 
+  joinTournament,
+  startTournament,
   getTournaments,
   getTournamentAmount,
   joinTournament, 

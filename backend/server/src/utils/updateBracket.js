@@ -1,6 +1,6 @@
 import db from '../dbInstance.js'
 
-function updateBracket(winnerId, loserId) {
+function updateBracket(winnerId, loserId, winnerScore, loserScore) {
   const updateMatches = db.transaction((winnerId, loserId) => {
     const match = db.prepare(`
       SELECT * FROM matches 
@@ -9,6 +9,30 @@ function updateBracket(winnerId, loserId) {
     `).get(winnerId, loserId, 'in_progress', loserId, winnerId, 'in_progress')
     
     if (!match) throw new Error('No in-progress match found')
+    
+    db.prepare(`
+      INSERT INTO match_history (
+      user_id,
+      opponent_id, 
+      user_score, 
+      opponent_score, 
+      winner_id,
+      round,
+      tournament_id,
+      match_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(winnerId, loserId, winnerScore, loserScore, winnerId, match.round, match.tournament_id, 'tournament')
+
+    db.prepare(`
+      INSERT INTO match_history (
+      user_id,
+      opponent_id, 
+      user_score, 
+      opponent_score,  
+      winner_id,
+      round,
+      tournament_id,
+      match_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(loserId, winnerId, loserScore, winnerScore, winnerId, match.round, match.tournament_id, 'tournament')
 
     db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
       .run('completed', winnerId, match.id)

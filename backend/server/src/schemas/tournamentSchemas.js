@@ -3,11 +3,9 @@ import {
   getTournaments,
   getTournamentAmount,
   joinTournament,
-  setReady,
   getTournamentParticipant
 } from '../controllers/tournamentController.js'
 import Tournament from '../models/tournamentModel.js'
-import Match from '../models/matchModel.js'
 import authenticateToken from '../middleware/authentication.js'
 
 const createTournamentOpts = {
@@ -64,31 +62,6 @@ const joinTournamentOpts = {
   handler: joinTournament,
 }
 
-const setReadyOpts = {
-  schema: {
-    params: {
-      type: 'object',
-      properties: {
-        tournamentId: { type: 'integer', minimum: 1 },
-      },
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          players: { 
-            type: 'array',
-            items: { type: 'integer' },
-          },
-          tournament: Tournament
-        },
-      },
-    },
-  },
-  preHandler: authenticateToken,
-  handler: setReady,
-}
-
 const getTournamentParticipantOpts = {
   schema: {
     params: {
@@ -108,6 +81,5 @@ export {
   getTournamentsOpts,
   getTournamentPlayerAmountOpts,
   joinTournamentOpts,
-  setReadyOpts,
   getTournamentParticipantOpts
 }

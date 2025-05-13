@@ -409,9 +409,11 @@ function startGameLoop(roomId) {
 			const playerIds = Object.keys(room.players);
 			const winnerId = playerIds[winner].dbId
       const loserId = playerIds[1 - winner].dbId
+      const winnerScore = game.getScores()[winner]
+      const loserScore = game.getScores()[1 - winner]
 
       try {
-        updateBracket(winnerId, loserId)
+        updateBracket(winnerId, loserId, winnerScore, loserScore)
       } catch (error) {
           console.log(error)
       }
