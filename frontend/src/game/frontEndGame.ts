@@ -158,7 +158,7 @@ export class frontEndGame {
 	private canvasHeight : number = 600;
 	private ctx : CanvasRenderingContext2D;
 	private renderer: GameRenderer | null = null;
-	private currentMode: '2D' | '3D' = '3D';
+	public  currentMode: '2D' | '3D' = '3D';
 	private color : string;
 	private player1Score : number = 0;
 	private player2Score : number = 0;
@@ -674,6 +674,7 @@ export class frontEndGame {
 			}
 		
 			document.getElementById("gameroom-page").hidden = true;
+			document.getElementById("game-wrapper")?.classList.remove("hidden");
 			log.info("Game started in room:", roomId);
 			// game.createCanvas();
 			game.createRenderingContext();
@@ -749,6 +750,8 @@ export function startSoloGame()
 	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
 
 	document.getElementById("gameroom-page").hidden = true;
+	document.getElementById("game-wrapper")?.classList.remove("hidden");
+
 	game.setupSoloKeyListeners();
 	// game.createCanvas();
 	game.createRenderingContext();
@@ -780,6 +783,7 @@ export function startAIGame()
 
 	game.setIsAIgame(true);
 	document.getElementById("gameroom-page").hidden = true;
+	document.getElementById("game-wrapper")?.classList.remove("hidden");
 	game.setupSoloKeyListeners();
 	// game.createCanvas();
 	game.createRenderingContext();
