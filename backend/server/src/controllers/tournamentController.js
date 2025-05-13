@@ -13,7 +13,7 @@ const createTournament = async function(req, reply) {
         item.status !== 'completed'
       })
       if (activeTournaments.length > 0) {
-        return reply.code(409).send({ 
+        return reply.code(409).send({
           error: "User already has an active tournament started",
           status: activeTournaments.status
         })

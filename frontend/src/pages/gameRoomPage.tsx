@@ -91,90 +91,79 @@ const matchTypeButtons = () => {
 					</button>
 					</>
 				);
-				case "tournament":
-					if (tournamentStatus != "active")
-						{
-							return (<p>No Tournament Active!</p>);
-						}	
-						else
-						{
-							return(
-							<>
-							<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-							<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
-							<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-								Ready up!
-							</button>
-							</>
-						);
-				}
-			
-			case "ai":
-				return (
-					<div className="w-full mx-auto px-0">
-						<p className="text-center text-gray-600 mb-4">Lobby size: 1/1</p>
-						<h1 className="text-2xl font-bold text-center mb-4">Welcome to the VS AI Game!</h1>
-
-						<div className="flex w-full mb-4">
-						{difficulties.map(({ level, label }, index) => {
-							const isFirst = index === 0;
-							const isLast = index === difficulties.length - 1;
-
-							const roundedClass = isFirst
-								? 'rounded-l-md'
-								: isLast
-								? 'rounded-r-md'
-								: 'rounded-none';
-
-							return (
-								<button
-									key={level}
-									className={`w-1/5 py-2 text-white text-center ${roundedClass} ${
-										difficulty === level
-											? 'bg-green-700'
-											: 'bg-green-900 hover:bg-green-500'
-									} ${index < difficulties.length - 1 ? 'mr-1' : ''}`}
-									onClick={() => setDifficulty(level)}
-								>
-									{label}
-								</button>
-							);
-						})}
-					</div>
-
-
-						<button
-							id="ready-ai"
-							className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
-						>
-							Start!
+		case "tournament":
+			if (tournamentStatus != "active")
+				{
+					return (<p>No Tournament Active!</p>);
+				}	
+				else
+				{
+					return(
+						<>
+						<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
+						<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
+						<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+							Ready up!
 						</button>
-					</div>
+						</>
+					);
+				}
+		case "ai":
+			return (
+				<div className="w-full mx-auto px-0">
+					<p className="text-center text-gray-600 mb-4">Lobby size: 1/1</p>
+					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the VS AI Game!</h1>
+
+					<div className="flex w-full mb-4">
+					{difficulties.map(({ level, label }, index) => {
+						const isFirst = index === 0;
+						const isLast = index === difficulties.length - 1;
+
+						const roundedClass = isFirst
+							? 'rounded-l-md'
+							: isLast
+							? 'rounded-r-md'
+							: 'rounded-none';
+
+						return (
+							<button
+								key={level}
+								className={`w-1/5 py-2 text-white text-center ${roundedClass} ${
+									difficulty === level
+										? 'bg-green-700'
+										: 'bg-green-900 hover:bg-green-500'
+								} ${index < difficulties.length - 1 ? 'mr-1' : ''}`}
+								onClick={() => setDifficulty(level)}
+							>
+								{label}
+							</button>
+						);
+					})}
+				</div>
+
+
+					<button
+						id="ready-ai"
+						className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+					>
+						Start!
+					</button>
+				</div>
+		);
+		case "normal":
+			return(
+				<>
+				<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
+				<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Gameroom!</h1>
+				<button id="ready-match" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+					Start Matchmaking!
+				</button>
+				</>
 			);
-			case "tournament":
-				return(
-					<>
-					<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
-					<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-						Ready up!
-					</button>
-					</>
-				);
-			case "normal":
-				return(
-					<>
-					<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Gameroom!</h1>
-					<button id="ready-match" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-						Start Matchmaking!
-					</button>
-					</>
-				);
-			default:
-			return (<p>FUCK OFF</p>);
-		}
-	};
+		default:
+		return (<p>FUCK OFF</p>);
+	}
+};
 
 	return (
 		<>
