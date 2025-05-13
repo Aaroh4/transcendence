@@ -156,10 +156,19 @@ const removeFriend = async function(req, reply) {
     const areFriends = db.prepare('SELECT * FROM friends WHERE user_id = ? AND friend_id = ?')
       .get(userId, friendId)
     
+    const areFriendsReverse = db.prepare('SELECT * FROM friends WHERE user_id = ? AND friend_id = ?')
+      .get(friendId, userId)
+  
     if (!areFriends) return reply.code(404).send({ message: `User ${friendId} is not on your friend list` })
     
     db.prepare('DELETE FROM friends WHERE user_id = ? AND friend_id = ?')
       .run(userId, friendId)
+    
+    if (areFriendsReverse) {
+      db.prepare('DELETE FROM friends WHERE user_id = ? AND friend_id = ?')
+        .run(friendId, userId)
+    }
+    
   } catch (error) {
     console.error('Database error:', error)
     return reply.code(500).send({ error: error.message })
