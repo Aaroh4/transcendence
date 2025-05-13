@@ -65,7 +65,14 @@ const acceptRequest = async function(req, reply) {
 
     db.prepare('UPDATE friends SET status = ? WHERE user_id = ? AND friend_id = ?')
       .run('accepted', friendId, userId)
-
+    
+    const existingReverse = db.prepare('SELECT * FROM friends WHERE user_id = ? AND friend_id = ?')
+      .get(userId, friendId)
+    
+    if (!existingReverse) {
+      db.prepare('INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)')
+        .run(userId, friendId, 'accepted')
+    }
     return reply.send(`Friend request from user ${friendId} was accepted`)
   } catch (error) {
     console.error('Database error:', error)
@@ -109,7 +116,7 @@ const getFriends = async function(req, reply) {
     `).all(req.user.id, req.user.id, 'accepted')
 
     if (friends.length === 0) return reply.code(204).send()
-    
+
     return reply.send(friends)
   } catch (error) {
     console.error('Database error:', error)

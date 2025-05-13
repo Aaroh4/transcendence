@@ -11,8 +11,8 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     if (!match) throw new Error('No in-progress match found')
     
     db.prepare(`
-      INSERT INTO matches (
-      user_id 
+      INSERT INTO match_history (
+      user_id,
       opponent_id, 
       user_score, 
       opponent_score, 
@@ -23,8 +23,8 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     `).run(winnerId, loserId, winnerScore, loserScore, winnerId, match.round, match.tournament_id, 'tournament')
 
     db.prepare(`
-      INSERT INTO matches (
-      user_id 
+      INSERT INTO match_history (
+      user_id,
       opponent_id, 
       user_score, 
       opponent_score,  
