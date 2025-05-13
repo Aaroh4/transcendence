@@ -69,3 +69,4 @@ client_secret.json
 **/.env
 .env
 turn.out
+database.bc*

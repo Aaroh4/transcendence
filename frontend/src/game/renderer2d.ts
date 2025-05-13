@@ -15,12 +15,12 @@ export class Renderer2D implements GameRenderer{
 	init(state: GameState): void {
 		console.log("Init Renderer2D");
 		this.container = this.container = document.getElementById("game-container");
+		this.container.innerHTML = ""; // new
 		this.gameCanvas = document.createElement("canvas");
 		this.gameCanvas.height = state.canvasHeight;
 		this.gameCanvas.width = state.canvasWidth;
 		this.container.appendChild(this.gameCanvas);
 		this.ctx = this.gameCanvas.getContext("2d")!;
-		this.container.innerHTML = ""; // new
 	}
 
 	render(state: GameState): void {

@@ -21,11 +21,11 @@ export class Renderer3D {
 
 	init(state: GameState): void {
 		this.container = document.getElementById("game-container");
+		this.container.innerHTML = "";
 		this.gameCanvas = document.createElement("canvas");
 		this.gameCanvas.id = "babylon-canvas";
 		this.gameCanvas.style.width = state.canvasWidth + "px";
 		this.gameCanvas.style.height = state.canvasHeight + "px";
-		this.container.innerHTML = "";
 		this.container.appendChild(this.gameCanvas);
 
 		this.engine = new BABYLON.Engine(this.gameCanvas, true);
