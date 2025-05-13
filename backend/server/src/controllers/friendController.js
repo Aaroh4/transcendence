@@ -190,7 +190,4 @@ export {
   getFriends,
   declineRequest,
   removeFriend
-  getFriends,
-  declineRequest,
-  removeFriend
 }

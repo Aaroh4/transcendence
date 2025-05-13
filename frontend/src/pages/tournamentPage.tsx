@@ -59,22 +59,7 @@ export async function joinTour(tourId : number): Promise<number> {
 			'Authorization': `Bearer ${sessionData.accessToken}`
 			}
 		});
-
-		if (response.status != 200) {
-			return (response.status);
-		}
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-	try {
-		const response = await fetch('/api/tournament/' + tourId + '/ready', {
-			method: 'PATCH',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-
-		return response.status;
+		return (response.status);
 	} catch (error) {
 		console.error("Login error:", error);
 	}
