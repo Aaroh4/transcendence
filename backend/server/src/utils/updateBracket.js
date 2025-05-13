@@ -33,12 +33,17 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
       tournament_id,
       match_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(loserId, winnerId, loserScore, winnerScore, winnerId, match.round, match.tournament_id, 'tournament')
+    
+    db.prepare('UPDATE users SET wins = wins + 1 WHERE id = ?')
+      .run(winnerId)
+    db.prepare('UPDATE users SET losses = losses + 1 WHERE id = ?')
+      .run(loserId)
 
     db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
       .run('completed', winnerId, match.id)
 
-	db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
-	.run(loserId, match.tournament_id)
+    db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
+      .run(loserId, match.tournament_id)
 
     const nextMatch = db.prepare(`
       SELECT * FROM matches
@@ -49,8 +54,8 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     if (!nextMatch) {
       db.prepare('UPDATE tournaments SET status = ?, winner = ? WHERE id = ?')
         .run('completed', winnerId, match.tournament_id)
-	  db.prepare('DELETE FROM tournament_players WHERE tournament_id = ?')
-		.run(match.tournament_id)
+      db.prepare('DELETE FROM tournament_players WHERE tournament_id = ?')
+        .run(match.tournament_id)
     } else if (match.id === nextMatch.player_one_prev_match) {
       db.prepare(`
         UPDATE matches SET player_one_id = ?
