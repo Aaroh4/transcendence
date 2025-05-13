@@ -14,7 +14,9 @@ export default function GameRoom({matchType}) {
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 	const [difficulty, setDifficulty] = useState<number>(0);
 	const log = new Logger(LogLevel.INFO);
-	const [renderMode, setRenderMode] = useState<'2D' | '3D'>('2D');
+	const [renderMode, setRenderMode] = useState<'2D' | '3D'>(() =>
+		typeof window !== 'undefined' && window.game?.currentMode === '3D' ? '3D' : '2D'
+	);
 
   
 useEffect(() => {
@@ -178,7 +180,7 @@ const matchTypeButtons = () => {
 		}
 	};
 
-	const renderTypeButtons = () => { 
+	const renderSwitchButtons = () => { 
 		return (			<div className="flex justify-center items-center gap-1 mt-4 mb-4">
 				<button
 					className={`px-4 py-2 text-white text-center rounded-l-md mr-1 ${
@@ -243,7 +245,7 @@ const matchTypeButtons = () => {
 			</div>
 
 			<div id="game-wrapper" className="w-[820px] hidden mx-auto">
-				{renderTypeButtons()}
+				{renderSwitchButtons()}
 
 				<div id="game-container" className="bg-green-100 p-2 rounded-lg shadow-md mt-4 w-[820px] h-[620px]"></div>
 			</div>

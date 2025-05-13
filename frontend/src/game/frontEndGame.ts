@@ -152,11 +152,8 @@ export interface GameRenderer {
 
 export class frontEndGame {
 	private keysPressed: { [key: string]: boolean } = {};
-	private gameCanvas : HTMLCanvasElement;
-	private container : HTMLElement;
 	private canvasWidth : number = 800;
 	private canvasHeight : number = 600;
-	private ctx : CanvasRenderingContext2D;
 	private renderer: GameRenderer | null = null;
 	public  currentMode: '2D' | '3D' = '3D';
 	private color : string;
@@ -184,10 +181,7 @@ export class frontEndGame {
 	private keyUpHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
-		this.container = document.getElementById("game-container");
-		//this.renderer = new Renderer2D();	
 
-		//this.renderer.init(this.container, this.canvasWidth, this.canvasHeight);
 		this.player1 = new Player(60, 10, 300, 10);
 		this.player2 = new Player(60, 10, 300, 780);
 
@@ -273,23 +267,13 @@ export class frontEndGame {
 	}
 
 	createRenderingContext() {	
-		this.container = document.getElementById("game-container");
+		//this.container = document.getElementById("game-container");
 		if (this.currentMode === '2D') {
 			this.renderer = new Renderer2D();
 		} else {
 			this.renderer = new Renderer3D();
 		}
 		this.renderer.init(this.getGameState());
-	}
-
-	createCanvas()
-	{
-		this.container = document.getElementById("game-container");
-		this.gameCanvas = document.createElement("canvas");
-		this.container.appendChild(this.gameCanvas);
-		this.ctx = this.gameCanvas.getContext("2d")!;
-		this.gameCanvas.width = 800;
-		this.gameCanvas.height = 600;
 	}
 
 	setupAI() 
@@ -418,7 +402,6 @@ export class frontEndGame {
 		  this.ballX = positions[2][1];
 		  
 		  // Redraw the game
-		  // this.updateGraphics();
 			this.renderer.render(this.getGameState());
 		}
 	}
@@ -446,7 +429,7 @@ export class frontEndGame {
 		this.player1.move(deltaTime);
 		this.player2.move(deltaTime);
 		this.ball.update(this.player1, this.player2, deltaTime);
-		// this.updateGraphics();
+
 		this.renderer.render(this.getGameState());
 	}
 
@@ -480,34 +463,8 @@ export class frontEndGame {
 		this.player2.move(deltaTime);
 
 		this.ball.update(this.player1, this.player2, deltaTime);
-		// this.updateGraphics();
+		
 		this.renderer.render(this.getGameState());
-	}
-
-	// replaced by 2d and 3d renderer classes
-	updateGraphics() 
-	{
-		this.ctx.fillStyle = "#000";
-		this.ctx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-		for (var i = 0; i <= this.gameCanvas.height; i += 30) {
-			this.ctx.fillStyle = "white";
-			this.ctx.fillRect(this.gameCanvas.width / 2 - 10, i + 5, 15, 20);
-		}
-		this.ctx.font = "48px 'Comic Sans MS', cursive, sans-serif";
-		this.ctx.fillText(this.player2Score.toString(), this.gameCanvas.width / 2 - 48 * 2, 50);
-		this.ctx.fillText(this.player1Score.toString(), this.gameCanvas.width / 2 + 48, 50);
-		this.ctx.fillStyle = this.color;
-		this.ctx.fillRect(this.ballX, this.ballY, this.ballSize, this.ballSize);
-		this.ctx.fillRect(10, this.player1.getpos()[0], 10, this.player1.height);
-		this.ctx.fillRect(780, this.player2.getpos()[0], 10, this.player2.height);
-		if (this.isAIgame && this.AIdebug)
-		{
-			this.gameAI.drawAIPrediction(this.ctx);
-		}
-		if (this.ball)
-		{
-			this.ball.draw(this.ctx);
-		}
 	}
 
 	settings(settings, color)
@@ -676,7 +633,6 @@ export class frontEndGame {
 			document.getElementById("gameroom-page").hidden = true;
 			document.getElementById("game-wrapper")?.classList.remove("hidden");
 			log.info("Game started in room:", roomId);
-			// game.createCanvas();
 			game.createRenderingContext();
 			game.settings(settings, color);
 
@@ -687,7 +643,6 @@ export class frontEndGame {
 				log.info("Peer connection created");
 				this.setupPeerConnectionEvents(socket);
 			}
-			// game.updateGraphics();
 			game.renderer.render(game.getGameState());
 		});
 		
@@ -753,7 +708,6 @@ export function startSoloGame()
 	document.getElementById("game-wrapper")?.classList.remove("hidden");
 
 	game.setupSoloKeyListeners();
-	// game.createCanvas();
 	game.createRenderingContext();
 	game.settings({
 		ballSettings: {
@@ -785,7 +739,6 @@ export function startAIGame()
 	document.getElementById("gameroom-page").hidden = true;
 	document.getElementById("game-wrapper")?.classList.remove("hidden");
 	game.setupSoloKeyListeners();
-	// game.createCanvas();
 	game.createRenderingContext();
 	game.setupAI();
 	game.settings({
