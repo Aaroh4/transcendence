@@ -2,6 +2,8 @@ import db from '../dbInstance.js'
 
 function updateBracket(winnerId, loserId, winnerScore, loserScore) {
   const updateMatches = db.transaction((winnerId, loserId) => {
+	console.log("winnerId", winnerId);
+	console.log("loserId", loserId);
     const match = db.prepare(`
       SELECT * FROM matches 
       WHERE (player_one_id = ? AND player_two_id = ? AND status = ?)
@@ -36,6 +38,11 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
 
     db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
       .run('completed', winnerId, match.id)
+
+	console.log("SAAAAAAAAAAAAAAAAAAAAAAAAAAAAATNAANCNASDNCNASDCNDOASCISDJCOIASCOPJASCDASICUOICASDOCIDUASCOIUASD");
+
+	  db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
+      .run(loserId, match.tournament_id)
 
     const nextMatch = db.prepare(`
       SELECT * FROM matches

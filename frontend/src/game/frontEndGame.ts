@@ -637,6 +637,7 @@ let animationFrameId: number | null = null;
 
 export function createNewGame(matchType : string, socket, userId : string)
 {
+	console.log("id: ", userId);
 	setupButtons(socket, userId);
 	game = new frontEndGame();
 	if (matchType != "solo" && matchType != "ai")

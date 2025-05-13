@@ -11,7 +11,7 @@ async function dbInit(fastify, options) {
   // const db = new Database(dbFile); //, { verbose: console.log })
 
 //  db.exec(`
-//    DROP TABLE IF EXISTS otp_codes;
+//    DROP TABLE IF EXISTS match_history;
 //  `)
 
 //  db.exec(`
@@ -97,8 +97,8 @@ async function dbInit(fastify, options) {
       date DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE SET NULL,
       FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL,
-      FOREIGN KEY (player_one_id) REFERENCES users(id) ON DELETE SET NULL,
-      FOREIGN KEY (player_two_id) REFERENCES users(id) ON DELETE SET NULL
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+      FOREIGN KEY (opponent_id) REFERENCES users(id) ON DELETE SET NULL
     );
   `)
 
