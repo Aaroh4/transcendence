@@ -91,10 +91,32 @@ export async function getTournaments()
 const TournamentsPage: React.FC = () => {
 	const [showForm, setShowForm] = useState(false);
 	const [showList, setShowList] = useState(false);
+	const [myTour, setMyTour] = useState(null);
 	const [fetchedTournaments, setFetchedTournaments] = useState<any[]>([]);
 	const tourName = useRef<HTMLInputElement>(null);
 	const tourSize = useRef<HTMLInputElement>(null);
 	const toast = useToast();
+
+	const featchLeaveButton = async () => {
+		const userId = sessionStorage.getItem('activeUserId');
+	
+		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+
+		const response = await fetch('/api/tournament/participant/tourPage', {
+			method: 'GET',
+			headers: {
+			'Authorization': `Bearer ${sessionData.accessToken}`
+			}
+		});
+
+		if (response.ok)
+		{
+			const data = await response.json();
+			setMyTour(data.tournament.id);
+		}
+		else
+			setMyTour(-1);
+	}
 
 	const fetchTournaments = async () => {
 		try {
@@ -108,6 +130,8 @@ const TournamentsPage: React.FC = () => {
 		} catch (error) {
 		  console.error("Failed to fetch tournaments", error);
 		}
+		
+		await featchLeaveButton();
 	  };
 
 	const createTour = () => {
@@ -210,6 +234,7 @@ const TournamentsPage: React.FC = () => {
 					<p className="text-sm text-gray-500">{tour.playerAmount + "/" + tour.size}</p>
 					</div>
 					</div>
+					{String(tour.id) !== String(myTour) ? (
 					<button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700"
 					onClick={() => {
 						joinTour(tour.id).then((response) => {
@@ -222,10 +247,16 @@ const TournamentsPage: React.FC = () => {
 							prevTournaments.map((t) =>
 							  t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
 						});
+						featchLeaveButton();
 					}}
 					>
 					Join
+					</button>) : String(tour.id) === String(myTour) ? (
+
+					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+						Leave
 					</button>
+					) : null}
 				</div>
 				))}
 			</div>

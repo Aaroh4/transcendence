@@ -55,7 +55,7 @@ const joinTournamentOpts = {
       required: ['tournamentId'],
       properties: {
         tournamentId: { type: 'integer' }
-      },
+},
     },
   },
   preHandler: authenticateToken,
@@ -64,13 +64,13 @@ const joinTournamentOpts = {
 
 const getTournamentParticipantOpts = {
   schema: {
-    params: {
-      type: 'object',
-      required: ['tournamentId'],
-      properties: {
-        tournamentId: { type: 'integer' },
-      },
-    },
+	params: {
+		type: 'object',
+		required: ['tourType'],
+		properties: {
+			tourType: { type: 'string' }
+		}
+	}
   },
   preHandler: authenticateToken,
   handler: getTournamentParticipant,

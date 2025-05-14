@@ -208,21 +208,27 @@ const startTournament = async function(req, reply, tournamentId) {
 	}
 
 const getTournamentParticipant = async function(req, reply) {
-  const { tournamentId } = req.params
   const db = req.server.db
+  const userId = req.user.id
+  const { tourType } = req.params;
 
   try {
-    const tournament = db.prepare('SELECT * FROM tournaments WHERE id = ? AND status = ?')
-    .get(tournamentId, 'in_progress')
+	let tournament;
+	tournament = db.prepare("SELECT * FROM tournament_players WHERE user_id = ?")
+	.all(userId)
+	if (tournament.length === 0) return reply.code(404).send({ error: `No tournament found` })
+	if (tourType === 'tourPage')
+	{
+		console.log(tournament[0].id);
+		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'created'")
+		.all(tournament[0].tournament_id)
+		if (realTournament.length === 0) 
+			return reply.code(404).send({ error: `No tournament found` })
+		else 
+			return reply.code(200).send({ tournament: realTournament[0] });
+	}
 
-    if (!tournament) return reply.code(404).send({ error: `No tournament found with id ${tournamentId} and status in_progress` })
-    
-    const player = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
-      .get(tournamentId, req.user.id)
-    
-    if (!player) return reply.code(404).send({ error: `Player not found in tournament ${tournamentId}` })
-    
-    return reply.code(204).send()
+    return reply.code(200).send({ tournament: tournament[0] });
   } catch (error) {
       console.log(error)
       return reply.code(500).send({ error: error.message })

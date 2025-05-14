@@ -30,7 +30,7 @@ const difficulties = [
 
 useEffect(() => {
 	if (!hasRun1.current && matchType === "tournament") {
-		fetch('/api/tournament/1', {
+		fetch('/api/tournament/participant/gamePage', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ useEffect(() => {
 			}
 		})
 		.then((res) => {
-			if (res.status === 204) {
+			if (res.status === 200) {
 				setTournamentStatus("active");
 			} else {
 				setTournamentStatus("no-tournament");
