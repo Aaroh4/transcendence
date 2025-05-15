@@ -173,7 +173,6 @@ export function setupNetworking(server){
 			const roomId = findGameRoom(userId);
 			if (roomId === -1)
 			{
-				console.log("Mita vittua")
 				return ;
 			}
 			if (!rooms[roomId]) {
@@ -189,7 +188,7 @@ export function setupNetworking(server){
 
 		// Normal matchmaking
 		// Allocates a room id for a normal room
-		socket.on("joinRoomQue", () => {
+		socket.on("joinRoomQue", (userId) => {
 			let roomFlag = 0;
 			const socketRoom = [...socket.rooms][1]
 
@@ -223,7 +222,7 @@ export function setupNetworking(server){
 			}
 			else
 				roomIds.closeRoomDoors(roomId);
-			joinRoom(roomId, socket);
+			joinRoom(roomId, socket, userId);
 		});
 
 		// Lets the host of the room start the game
