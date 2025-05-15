@@ -608,7 +608,7 @@ export class frontEndGame {
 		});
 		
 		socket.on("gameOver", (winner : number, type : string) => {
-			if (type == "solo")
+			if (type == "normal")
 				document.getElementById("gameroom-page").hidden = false;
 			var winnerElement = document.createElement("span");
 			winnerElement.id = "winner-text";

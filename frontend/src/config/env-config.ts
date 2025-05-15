@@ -1,6 +1,6 @@
 // frontend/src/env-config.ts
-export const STUN_URL = "__STUN_URL__";
-export const TURN_URL = "__TURN_URL__";
-export const TURN_USER = "__TURN_USER__";
-export const TURN_PASS = "__TURN_PASS__";
-export const EXT_IP = "__EXT_IP__";
+export const STUN_URL = "stun:stun.l.google.com:19302";
+export const TURN_URL = "turn:turn:3478";
+export const TURN_USER = "user";
+export const TURN_PASS = "pass";
+export const EXT_IP = "10.11.4.6";
