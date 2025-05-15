@@ -4,7 +4,7 @@ import { Game } from './game/game.js';
 import { Logger, LogLevel } from './utils/logger.js';
 import { startChat } from "./chat.js";
 import db from './dbInstance.js'
-import updateBracket from "./utils/updateBracket.js";
+import { updateBracket, updateMatchHistory } from "./utils/updateBracket.js";
 
 const log = new Logger(LogLevel.INFO);
 
@@ -157,11 +157,11 @@ export function setupNetworking(server){
 				
 				return (roomId)
 			} else {
-			if (rooms[match.room_id]?.players && Object.keys(rooms[match.room_id].players).length === 1) {
-				db.prepare('UPDATE matches SET status = ? WHERE id = ?')
-				.run('in_progress', match.id);
-			}
-			  return (match.room_id)
+          if (rooms[match.room_id]?.players && Object.keys(rooms[match.room_id].players).length === 1) {
+            db.prepare('UPDATE matches SET status = ? WHERE id = ?')
+            .run('in_progress', match.id);
+          }
+          return (match.room_id)
 			}
 		}
 
@@ -400,19 +400,19 @@ function startGameLoop(roomId) {
 	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
 		game.stop();
 		const winner = game.getScores()[0] >= 5 ? 0 : 1;
+    const playerList = Object.values(room.players);
+    const winnerId = playerList[winner].dbId;
+    const loserId = playerList[1 - winner].dbId;
+    const winnerScore = game.getScores()[winner]
+    const loserScore = game.getScores()[1 - winner]
 
 		if (room.type === "normal") {
+      updateMatchHistory(winnerId, loserId, winnerScore, loserScore)
 			room.gameStarted = false; // Allow rematch
 			if (Object.keys(room.players).length === 1) {
 				roomIds.openRoomDoors(roomId);
 			}
 		} else if (room.type === "tournament") {
-			const playerList = Object.values(room.players);
-		const winnerId = playerList[winner].dbId;
-		const loserId = playerList[1 - winner].dbId;
-		const winnerScore = game.getScores()[winner]
-		const loserScore = game.getScores()[1 - winner]
-
       try {
         updateBracket(winnerId, loserId, winnerScore, loserScore)
       } catch (error) {
