@@ -3,7 +3,9 @@ import {
   getTournaments,
   getTournamentAmount,
   joinTournament,
-  getTournamentParticipant
+  getTournamentParticipant,
+  leaveTournament,
+  getTournamentBracket
 } from '../controllers/tournamentController.js'
 import Tournament from '../models/tournamentModel.js'
 import authenticateToken from '../middleware/authentication.js'
@@ -76,10 +78,39 @@ const getTournamentParticipantOpts = {
   handler: getTournamentParticipant,
 }
 
+const leaveTournamentOpts = {
+  schema: {
+    params: {
+      type: 'object',
+      required: ['tournamentId'],
+      properties: {
+        tournamentId: { type: 'integer' },
+      },
+    },
+  },
+  preHandler: authenticateToken,
+  handler: leaveTournament,
+}
+
+const getTournamentBracketOpts = {
+  schema: {
+    params: {
+      type: 'object',
+      required: ['tournamentId'],
+      properties: {
+        tournamentId: { type: 'integer' },
+      },
+    },
+  },
+  handler: getTournamentBracket,
+}
+
 export { 
   createTournamentOpts,
   getTournamentsOpts,
   getTournamentPlayerAmountOpts,
   joinTournamentOpts,
-  getTournamentParticipantOpts
+  getTournamentParticipantOpts,
+  leaveTournamentOpts,
+  getTournamentBracketOpts
 }
