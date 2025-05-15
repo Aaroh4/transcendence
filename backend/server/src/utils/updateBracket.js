@@ -9,7 +9,10 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     `).get(winnerId, loserId, 'in_progress', loserId, winnerId, 'in_progress')
     
     if (!match) throw new Error('No in-progress match found')
-    
+
+    db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
+      .run('completed', winnerId, match.id)
+
     db.prepare(`
       INSERT INTO match_history (
       user_id,
@@ -38,10 +41,7 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
       .run(winnerId)
     db.prepare('UPDATE users SET losses = losses + 1 WHERE id = ?')
       .run(loserId)
-
-    db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
-      .run('completed', winnerId, match.id)
-
+    
     db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
       .run(loserId, match.tournament_id)
 
@@ -71,4 +71,31 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
   updateMatches(winnerId, loserId)
 }
 
-export default updateBracket
+function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
+    db.prepare(`
+      INSERT INTO match_history (
+      user_id,
+      opponent_id, 
+      user_score, 
+      opponent_score, 
+      tournament_id,
+      match_type) VALUES (?, ?, ?, ?, ?, ?)
+    `).run(winnerId, loserId, winnerScore, loserScore, winnerId, 'single')
+
+    db.prepare(`
+      INSERT INTO match_history (
+      user_id,
+      opponent_id, 
+      user_score, 
+      opponent_score,  
+      winner_id,
+      match_type) VALUES (?, ?, ?, ?, ?, ?)
+    `).run(loserId, winnerId, loserScore, winnerScore, winnerId, 'single')
+    
+    db.prepare('UPDATE users SET wins = wins + 1 WHERE id = ?')
+      .run(winnerId)
+    db.prepare('UPDATE users SET losses = losses + 1 WHERE id = ?')
+      .run(loserId)
+}
+
+export { updateBracket, updateMatchHistory }

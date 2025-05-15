@@ -1,4 +1,4 @@
-import UserHeader from "../components/headers";
+import UserHeader from "../components/userHeader";
 import { createNewGame, frontEndGame, cleanGame } from "../game/frontEndGame";
 import { useEffect, useRef, useState } from "react";
 import { createSocket, getSocket, closeSocket } from "../utils/socket";
