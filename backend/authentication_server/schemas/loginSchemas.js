@@ -1,15 +1,16 @@
+import authenticateToken from '../../server/src/middleware/authentication.js'
 import { logoutUser, loginUser, getToken, googleAuthHandler } from '../controllers/loginController.js'
 
 const logoutOpts = {
   schema: {
     body: {
       type: 'object',
-      required: ['token'],
       properties: {
         token: { type: 'string' },
       },
     },
   },
+  preHandler: authenticateToken,
   handler: logoutUser,
 }
 

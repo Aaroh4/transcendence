@@ -62,24 +62,7 @@ const getUserOpts = {
 }
 
 const deleteUserOpts = {
-  schema: {
-    body: {
-      type: 'object',
-      required: ['id', 'token'],
-      properties: {
-        id: { type: 'integer', minimum: 1 },
-        token: { type: 'string' },
-      },
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'string' },
-        },
-      },
-    },
-  },
+  schema: {},
   preHandler: authenticateToken,
   handler: deleteUser,
 }

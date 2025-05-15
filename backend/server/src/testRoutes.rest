@@ -133,3 +133,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibmFtZSI6I
 ### Check active tournament for user
 
 GET http://localhost:5001/api/tournament/1
+
+### Search for users
+
+GET http:/localhost:5001/api/users/search?query=te

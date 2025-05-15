@@ -1,12 +1,27 @@
 import UserHeader from "../components/userHeader";
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import React from 'react';
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useToast } from "../components/toastBar/toastContext";
 
 
 export interface tournament {
 	name : string;
 	size : number;
+}
+
+export async function getPlayerAmount(tourId : number) : Promise<number> {	
+	try {
+		const response = await fetch('/api/tournament/' + tourId + '/playerAmount', {
+			method: 'GET',
+		});
+
+		const responseData = await response.json();
+
+		return responseData.playerAmount;
+	} catch (error) {
+		console.error("Fetch failed:", error);
+	}
 }
 
 export async function createrTour(tournament): Promise<number> {
@@ -24,8 +39,6 @@ export async function createrTour(tournament): Promise<number> {
 			'Authorization': `Bearer ${sessionData.accessToken}`
 			}
 		});
-
-		const responseData = await response.json();
  
 		return response.status;
 
@@ -34,130 +47,110 @@ export async function createrTour(tournament): Promise<number> {
 	}
 }
 
-export async function joinerTour(): Promise<number> {
-	
+export async function joinTour(tourId : number): Promise<number> {
 	const userId = sessionStorage.getItem('activeUserId');
 	
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 	
 	try {
-		const response = await fetch('/api/tournament/1/join', {
+		const response = await fetch('/api/tournament/' + tourId + '/join', {
 			method: 'POST',
 			headers: {
 			'Authorization': `Bearer ${sessionData.accessToken}`
 			}
 		});
-
-		const responseData = await response.json();
-
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-	try {
-		const response = await fetch('/api/tournament/1/ready', {
-			method: 'PATCH',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-
-		const responseData = await response.json();
-
-		return response.status;
-
+		return (response.status);
 	} catch (error) {
 		console.error("Login error:", error);
 	}
 }
 
-export async function starterTour(): Promise<number> {
-	
+export async function getTournaments() 
+{
 	const userId = sessionStorage.getItem('activeUserId');
 	
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 	
 	try {
-		const response = await fetch('/api/tournament/1/start', {
-			method: 'POST',
+		const response = await fetch('/api/tournaments', {
+			method: 'GET',
 			headers: {
 			'Authorization': `Bearer ${sessionData.accessToken}`
 			}
 		});
 
 		const responseData = await response.json();
-		console.log(responseData.error);
-		console.log(responseData.bracket)
 
-		return response.status;
+		return responseData;
 
 	} catch (error) {
 		console.error("Login error:", error);
 	}
 }
-
 
 const TournamentsPage: React.FC = () => {
 	const [showForm, setShowForm] = useState(false);
 	const [showList, setShowList] = useState(false);
+	const [myTour, setMyTour] = useState(null);
+	const [fetchedTournaments, setFetchedTournaments] = useState<any[]>([]);
+	const tourName = useRef<HTMLInputElement>(null);
+	const tourSize = useRef<HTMLInputElement>(null);
+	const toast = useToast();
 
+	const fetchLeaveButton = async () => {
+		const userId = sessionStorage.getItem('activeUserId');
+	
+		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+
+		const response = await fetch('/api/tournament/participant/tourPage', {
+			method: 'GET',
+			headers: {
+			'Authorization': `Bearer ${sessionData.accessToken}`
+			}
+		});
+
+		if (response.ok)
+		{
+			const data = await response.json();
+			setMyTour(data.tournament.id);
+		}
+		else
+			setMyTour(-1);
+	}
+
+	const fetchTournaments = async () => {
+		try {
+		  await fetchLeaveButton();
+		  const data = await getTournaments();
+
+		  if (Array.isArray(data)) {
+			setFetchedTournaments(data);
+		  } else {
+			console.error("Unexpected data format:", data);
+		  }
+		} catch (error) {
+		  console.error("Failed to fetch tournaments", error);
+		}
+	};
 
 	const createTour = () => {
-		createrTour({name: "paskaturnaus", size: 2}).then((response) => {
+		const name = tourName.current.value.trim() || tourName.current.placeholder;
+		const size = tourSize.current.value.trim() || tourSize.current.placeholder;
+
+		createrTour({name: name, size: size}).then((response) => {
 			if (response == 200) {
 				console.log("Tournament created");
 			} else {
-				console.log("Tournament creation failed");
+				toast.open("Tournament creation failed", "error");
 			}
 		}
 		);
+		setShowForm(false);
 	}
-
-	const joinTour = () => {
-		joinerTour().then((response) => {
-			if (response == 200) {
-				console.log("Tournament joined");
-			} else {
-				console.log("Tournament join failed");
-			}
-		}
-		);
-	}
-
-	const startTour = () => {
-		starterTour().then((response) => {
-			if (response == 200) {
-				console.log("Tournament started");
-			} else {
-				console.log("Tournament start failed");
-			}
-		}
-		);
-	}
-
-	const tournaments = Array.from({ length: 200 }, (_, i) => ({
-		id: i,
-		name: `Tournament ${i + 1}`,
-		players: `${4 + i}/${20} players`, // Latter number needs to be set to the tournaments max players
-	  }));								  // first one to the current ones
-
 
 	return (
 		<>
 		<UserHeader />
-		<button onClick={createTour} 
-		id="create-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-					create tournament
-		</button>
-		<button onClick={joinTour} 
-		id="test-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-					join tournament
-		</button>
-
-		<button onClick={startTour} 
-		id="test-start-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-					start tournament
-		</button>
-
 
 		<Link 
 					to="/tour-game"
@@ -174,7 +167,10 @@ const TournamentsPage: React.FC = () => {
       </button>
 
 	  <button
-        onClick={() => setShowList(true)}
+          onClick={() => {
+			setShowList(true);
+			fetchTournaments();
+		  }}
         className="px-4 py-2 bg-blue-600 text-white rounded shadow"
       >
         Tournament list
@@ -188,6 +184,7 @@ const TournamentsPage: React.FC = () => {
               id="tour-name"
               type="text"
               placeholder="Among us Skibidi fortnite"
+			  ref={tourName}
               className="block w-full p-2 border border-gray-300 rounded mb-4"
             />
             <p className="text-center text-gray-600 mb-4">Tournament size</p>
@@ -195,11 +192,12 @@ const TournamentsPage: React.FC = () => {
               id="tour-size"
               type="text"
               placeholder="4"
+			  ref={tourSize}
               className="block w-full p-2 border border-gray-300 rounded mb-4"
             />
 			<button
-              onClick={() => setShowForm(false)}
-              className="w-full bg-green-500 text-white p-2 rounded"
+			onClick={createTour}
+			className="w-full bg-green-500 text-white p-2 rounded"
             >
               Confirm
             </button>
@@ -219,7 +217,7 @@ const TournamentsPage: React.FC = () => {
 			<p className="text-center text-gray-600 mb-4">Tournaments</p>
 
 			<div className="overflow-y-auto space-y-4 pr-2 flex-grow">
-				{tournaments.map((tour) => (
+				{fetchedTournaments.map((tour) => (
 				<div
 					key={tour.id}
 					className="flex items-center justify-between border p-3 rounded"
@@ -232,18 +230,41 @@ const TournamentsPage: React.FC = () => {
 					/>	
 					<div className="flex flex-col">
 					<p className="font-medium">{tour.name}</p>
-					<p className="text-sm text-gray-500">{tour.players}</p>
+					<p className="text-sm text-gray-500">{tour.playerAmount + "/" + tour.size}</p>
 					</div>
 					</div>
-					<button className="bg-green-500 text-white px-3 py-1 rounded">
+					{String(tour.id) !== String(myTour) ? (
+					<button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700"
+					onClick={() => {
+						joinTour(tour.id).then((response) => {
+							if (response != 200) {
+								toast.open("You are already in a tournament", "error" );
+							}
+						});
+						getPlayerAmount(tour.id).then((newAmount) => {
+						  setFetchedTournaments((prevTournaments) =>
+							prevTournaments.map((t) =>
+							  t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
+						});
+						fetchLeaveButton();
+					}}
+					>
 					Join
+					</button>) : String(tour.id) === String(myTour) ? (
+
+					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+						Leave
 					</button>
+					) : null}
 				</div>
 				))}
 			</div>
 
 			<button
-				onClick={() => setShowList(false)}
+				onClick={() => {
+					setShowList(false);
+					setFetchedTournaments([]);
+				}}
 				className="mt-4 w-full bg-red-500 text-white p-2 rounded"
 			>
 				Close
