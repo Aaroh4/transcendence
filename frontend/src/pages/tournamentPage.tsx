@@ -97,7 +97,7 @@ const TournamentsPage: React.FC = () => {
 	const tourSize = useRef<HTMLInputElement>(null);
 	const toast = useToast();
 
-	const featchLeaveButton = async () => {
+	const fetchLeaveButton = async () => {
 		const userId = sessionStorage.getItem('activeUserId');
 	
 		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
@@ -120,6 +120,7 @@ const TournamentsPage: React.FC = () => {
 
 	const fetchTournaments = async () => {
 		try {
+		  await fetchLeaveButton();
 		  const data = await getTournaments();
 
 		  if (Array.isArray(data)) {
@@ -130,9 +131,7 @@ const TournamentsPage: React.FC = () => {
 		} catch (error) {
 		  console.error("Failed to fetch tournaments", error);
 		}
-		
-		await featchLeaveButton();
-	  };
+	};
 
 	const createTour = () => {
 		const name = tourName.current.value.trim() || tourName.current.placeholder;
@@ -247,7 +246,7 @@ const TournamentsPage: React.FC = () => {
 							prevTournaments.map((t) =>
 							  t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
 						});
-						featchLeaveButton();
+						fetchLeaveButton();
 					}}
 					>
 					Join
@@ -262,7 +261,10 @@ const TournamentsPage: React.FC = () => {
 			</div>
 
 			<button
-				onClick={() => setShowList(false)}
+				onClick={() => {
+					setShowList(false);
+					setFetchedTournaments([]);
+				}}
 				className="mt-4 w-full bg-red-500 text-white p-2 rounded"
 			>
 				Close

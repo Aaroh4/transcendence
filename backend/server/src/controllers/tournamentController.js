@@ -104,21 +104,24 @@ const joinTournament = async function(req, reply) {
 		.all(user.id)
 		
 		if (hasJoined.length >= 1) return reply.code(409).send({ error: "User has already joined a tournament" })
-		db.prepare('INSERT INTO tournament_players (user_id, tournament_id) VALUES(?, ?)')
-		.run(userId, tournamentId)
+		
+    db.prepare('INSERT INTO tournament_players (user_id, tournament_id) VALUES(?, ?)')
+		  .run(userId, tournamentId)
 	
 		const players = db.prepare('SELECT user_id FROM tournament_players WHERE tournament_id = ?')
 		.all(tournament.id)
-	
+
+    db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
+		  .run(players.length, tournament.id)
+
 		if (players.length === tournament.size) {
-		db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
-			.run('ready', tournament.id)
-		db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
-		.run(players.length, tournament.id)
-		startTournament(req, reply, tournamentId)
+      db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
+        .run('ready', tournament.id)
+      db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
+      .run(players.length, tournament.id)
+      return startTournament(req, reply, tournamentId)
 		}
-		db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
-		.run(players.length, tournament.id)
+
 		return reply.send({ 
 		message: `User ${user.name} successfully joined tournament ${tournament.name}`,
 		status: 'waiting',
@@ -128,7 +131,7 @@ const joinTournament = async function(req, reply) {
 		console.log(error)
 		return reply.code(500).send({ error: error.message })
 	}
-	}
+}
 	
 const startTournament = async function(req, reply, tournamentId) {
 	const db = req.server.db
@@ -194,18 +197,23 @@ const startTournament = async function(req, reply, tournamentId) {
 		})
 		bracketTransaction()
 	
-		const tournamentBracket = db
-		.prepare(`SELECT * FROM matches
-					WHERE tournament_id = ?
-					ORDER BY round ASC, match_number ASC;`)
-		.all(tournamentId)
+		// const tournamentBracket = db
+		// .prepare(`SELECT * FROM matches
+		// 			WHERE tournament_id = ?
+		// 			ORDER BY round ASC, match_number ASC;`)
+		// .all(tournamentId)
 	
-		return reply.send({ bracket: tournamentBracket })
+		// return reply.send({ bracket: tournamentBracket })
+    return reply.send({ 
+      message: `User ${req.user.id} successfully joined tournament ${tournamentId}`,
+      status: 'in_progress',
+      tournamentId: tournamentId
+    })
 	} catch (error) {
 		console.log(error)
 		return reply.code(500).send({ error: error.message })
 	}
-	}
+}
 
 const getTournamentParticipant = async function(req, reply) {
   const db = req.server.db
