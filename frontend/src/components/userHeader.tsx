@@ -16,9 +16,9 @@ import {
 	removeFriend
 } from "../services/api";
 
-interface UserHeaderProps {
-	userName: string;
-};
+// interface UserHeaderProps {
+// 	userName: string;
+// };
 
 interface FriendSearchProps {
 	query: string;
@@ -218,7 +218,7 @@ const UserHeader: React.FC = () => {
 
 	return (
 		<>
-		<header className="w-full bg-black text-white py-10 px-10 shadow-lg flex items-center justify-between">
+		<header className="flex-wrap w-full bg-black text-white py-10 px-10 shadow-lg flex items-center justify-between">
 
 		  <div className="flex items-center space-x-10">
 			<h1 className="text-5xl font-extrabold tracking-tight text-green-500">
@@ -241,19 +241,30 @@ const UserHeader: React.FC = () => {
 				
 				<div>
 					<form onSubmit={handleSearch}>
-						<div className="mb-4">
-							<label htmlFor="query" className="block text-sm font-medium text-black">
-								Add friends by Username
-							</label>
+						<label htmlFor="query" className="block text-sm font-medium text-black">
+							Add friends by Username
+						</label>
+						<div className="flex gap-2">
 							<input
 								type="text"
 								name="query"
 								value={searchState.query}
 								onChange={handleSearchInputChange}
-								className="w-full border border-black bg-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+								className="flex-grow border border-black bg-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 								required //fetches all if this is commented out
 								placeholder="Enter Username ..."
 							/>
+							<button
+								type="button"
+								onClick={() => {
+									setSearchState({ query: '' });
+									setUserList([]);
+								}}
+								
+								className="bg-gray-300 text-black px-2 py-2 rounded-md hover:bg-gray-400"
+							>
+								Clear
+							</button>
 						</div>
 
 						<button
@@ -265,27 +276,26 @@ const UserHeader: React.FC = () => {
 					</form>
 
 					{userList && userList.length > 0 && (
-					<div className="w-full bg-white mt-1 rounded-md shadow-lg border border-gray-300 overflow-hidden transition-all duration-300 ease-out z-100">
+					<div className="w-full bg-white mt-1 rounded-md shadow-lg border border-gray-300 overflow-hidden z-100">
+					  <div className="space-y-4 pr-2 flex-grow max-h-96 overflow-y-auto">
 						{userList.filter((req) => req.id !== Number(userId) && !friendsList.map(friend => friend.id).includes(req.id))
-							.map((req) => (
-						<div key={req.id} className="flex items-center justify-between p-2 hover:bg-gray-100">
-							
+						  .map((req) => (
+						  <div key={req.id} className="flex items-center justify-between p-2 hover:bg-gray-100">
 							<div className="flex items-center space-x-2">
-								<img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-								<span className="text-black">{req.name}</span>
+							  <img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
+							  <span className="text-black">{req.name}</span>
 							</div>
-
 							<div className="flex space-x-2">
-								<button
-									onClick={() => handleAddFriend(req.id)}
-									className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-								>
-									Add
-								</button>
+							  <button
+								onClick={() => handleAddFriend(req.id)}
+								className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+							  >
+								Add
+							  </button>
 							</div>
-
-						</div>
+						  </div>
 						))}
+					  </div>
 					</div>
 					)}
 			
@@ -329,6 +339,7 @@ const UserHeader: React.FC = () => {
 					{friendsList && friendsList.length > 0 && (
 					<div className="w-full px-4 gap-4">
 						<h2 className="text-lg font-semibold mb-2 text-black">Friends:</h2>
+						<div className="space-y-4 pr-2 flex-grow max-h-96 overflow-y-auto">
 							{friendsList.map((req) => (
 							<div key={req.id} className="flex items-center justify-between bg-white p-2 rounded mb-2">
 								<div className="flex items-center">
@@ -353,6 +364,7 @@ const UserHeader: React.FC = () => {
 
 							</div>
 							))}
+						</div>
 					</div>
 					)}
 				</div>
