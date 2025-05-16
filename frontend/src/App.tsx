@@ -9,21 +9,22 @@ import NoPage from './pages/noPage'
 import TournamentsPage from './pages/tournamentPage.js'
 import ProfilePage from './pages/profilePage'
 import ProtectedRoutes from './components/authRoutes'
+import RedirectForLoggedIn from './components/redirecForLoggedIn'
 
 // import "../output.css";
 
 export const router = createBrowserRouter([
-  {path: "/", element:<Home />},
-  {path: "/home", element:<Home />},
-  {path: "/login", element:<Login/> },
-  {path: "/register", element: <Registration />},
+  {path: "/", element: <RedirectForLoggedIn><Home /></RedirectForLoggedIn> },
+  {path: "/home", element: <RedirectForLoggedIn><Home /></RedirectForLoggedIn> },
+  {path: "/login", element: <RedirectForLoggedIn><Login/></RedirectForLoggedIn> },
+  {path: "/register", element: <RedirectForLoggedIn><Registration /></RedirectForLoggedIn> },
 	{path: "/game", element: <ProtectedRoutes><GameRoom matchType="normal" /></ProtectedRoutes> },
 	{path: "/tour-game", element: <ProtectedRoutes><GameRoom matchType="tournament" /></ProtectedRoutes> },
 	{path: "/solo-game", element: <ProtectedRoutes><GameRoom matchType="solo" /></ProtectedRoutes> },
 	{path: "/ai-game", element: <ProtectedRoutes> <GameRoom matchType="ai" /></ProtectedRoutes> },
-  {path: "/tournaments", element: <ProtectedRoutes><TournamentsPage /></ProtectedRoutes>},
-  {path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes>},
-  {path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes>},
+  {path: "/tournaments", element: <ProtectedRoutes><TournamentsPage /></ProtectedRoutes> },
+  {path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes> },
+  {path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes> },
   {path: "*", element: <NoPage />},
 ]);
 

@@ -20,7 +20,8 @@ const UserPage: React.FC = () => {
 			const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 
 			const user: LogoutRequest = {
-				token: sessionData.refreshToken
+				token: sessionData.refreshToken,
+				accToken: sessionData.accessToken
 			};
 
 			console.log("Calling logoutUser API");
