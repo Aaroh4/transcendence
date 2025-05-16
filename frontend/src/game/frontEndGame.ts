@@ -608,7 +608,7 @@ export class frontEndGame {
 		});
 		
 		socket.on("gameOver", (winner : number, type : string) => {
-			if (type == "solo")
+			if (type == "normal")
 				document.getElementById("gameroom-page").hidden = false;
 			var winnerElement = document.createElement("span");
 			winnerElement.id = "winner-text";
@@ -637,6 +637,7 @@ let animationFrameId: number | null = null;
 
 export function createNewGame(matchType : string, socket, userId : string)
 {
+	console.log("id: ", userId);
 	setupButtons(socket, userId);
 	game = new frontEndGame();
 	if (matchType != "solo" && matchType != "ai")

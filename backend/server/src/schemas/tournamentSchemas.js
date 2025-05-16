@@ -1,13 +1,13 @@
 import { 
   createTournament,
   getTournaments,
+  getTournamentAmount,
   joinTournament,
-  setReady,
-  startTournament,
-  getTournamentParticipant
+  getTournamentParticipant,
+  leaveTournament,
+  getTournamentBracket
 } from '../controllers/tournamentController.js'
 import Tournament from '../models/tournamentModel.js'
-import Match from '../models/matchModel.js'
 import authenticateToken from '../middleware/authentication.js'
 
 const createTournamentOpts = {
@@ -36,6 +36,20 @@ const getTournamentsOpts = {
   handler: getTournaments,
 }
 
+const getTournamentPlayerAmountOpts = {
+	schema: {
+	  response: {
+		200: {
+		  type: 'object',
+		  properties: {
+			playerAmount: { type: 'integer' }
+		  }
+		}
+	  }
+	},
+	handler: getTournamentAmount,
+}
+
 const joinTournamentOpts = {
   schema: {
     params: {
@@ -43,64 +57,28 @@ const joinTournamentOpts = {
       required: ['tournamentId'],
       properties: {
         tournamentId: { type: 'integer' }
-      },
+},
     },
   },
   preHandler: authenticateToken,
   handler: joinTournament,
 }
 
-const setReadyOpts = {
-  schema: {
-    params: {
-      type: 'object',
-      properties: {
-        tournamentId: { type: 'integer', minimum: 1 },
-      },
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          players: { 
-            type: 'array',
-            items: { type: 'integer' },
-          },
-          tournament: Tournament
-        },
-      },
-    },
-  },
-  preHandler: authenticateToken,
-  handler: setReady,
-}
-
-const startTournamentOpts = {
-  schema: {
-    params: {
-      type: 'object',
-      properties: {
-        tournamentId: { type: 'integer', minimum: 1 },
-      },
-      required: ['tournamentId'],
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          bracket: {
-            type: 'array',
-            items: Match,
-          },
-        },
-      },
-    },
-  },
-  preHandler: authenticateToken,
-  handler: startTournament,
-}
-
 const getTournamentParticipantOpts = {
+  schema: {
+	params: {
+		type: 'object',
+		required: ['tourType'],
+		properties: {
+			tourType: { type: 'string' }
+		}
+	}
+  },
+  preHandler: authenticateToken,
+  handler: getTournamentParticipant,
+}
+
+const leaveTournamentOpts = {
   schema: {
     params: {
       type: 'object',
@@ -111,14 +89,28 @@ const getTournamentParticipantOpts = {
     },
   },
   preHandler: authenticateToken,
-  handler: getTournamentParticipant,
+  handler: leaveTournament,
+}
+
+const getTournamentBracketOpts = {
+  schema: {
+    params: {
+      type: 'object',
+      required: ['tournamentId'],
+      properties: {
+        tournamentId: { type: 'integer' },
+      },
+    },
+  },
+  handler: getTournamentBracket,
 }
 
 export { 
   createTournamentOpts,
   getTournamentsOpts,
+  getTournamentPlayerAmountOpts,
   joinTournamentOpts,
-  setReadyOpts,
-  startTournamentOpts,
-  getTournamentParticipantOpts
+  getTournamentParticipantOpts,
+  leaveTournamentOpts,
+  getTournamentBracketOpts
 }
