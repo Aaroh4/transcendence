@@ -4,7 +4,7 @@ const User = {
     id: { type: 'integer' },
     name: { type: 'string' },
     email: {type: 'string' },
-    status: { type: 'integer' },
+    online_status: { type: 'integer' },
     wins: { type: 'integer' },
     losses: { type: 'integer' },
     avatar: { type: 'string' }

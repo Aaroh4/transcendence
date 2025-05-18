@@ -28,7 +28,7 @@ log.info("DIST:::: " + FRONTEND_DIST);
 dotenv.config({ path: "../.env" });
 
 const fastify = Fastify({
-	logger: false
+	logger: true
 })
 
 fastify.register(view, {

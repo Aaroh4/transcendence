@@ -44,45 +44,37 @@ const Home: React.FC = () => {
 		// console.log('User is now logged in');
 		});
 	}
-	
+
 	return (
 		<>
-		<Background />
 		<Header />
-			<div className="flex flex-col items-center justify-center min-h-screen">
-			<div className="bg-white p-6 rounded-lg w-96 flex flex-col gap-4 items-center shadow-md">
-			  	<Link 
-					to="/game"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
-			  	>
-					Demo Game
-			  	</Link>
-				  <Link 
-					to="/solo-game"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
-			  	>
-					Demo SignleplayernerNWnSns Game
-			  	</Link>
-			  	<Link 
+		<Background/>
+			<div className="flex gap-6 items-center justify-center p-101">
+		
+				<Link
 					to="/login"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
-			  	>
-					Login
-			 	</Link>
-			  	<Link 
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					>
+					<img src="../login.png" alt="Login Icon" className="w-2/4 h-2/4 mb-2" />
+					<span className="text-xl font-bold mt-2">Login</span>
+				</Link>
+		
+				<Link
 					to="/register"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
-			  	>
-					Register
-			  	</Link>
-				  <p className="text-gray-700">Or</p>
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					>
+					<img src="../register.png" alt="Register Icon" className="w-2/4 h-2/4 mb-2" />
+					<span className="text-xl font-bold mt-2">Register</span>
+				</Link>
+			
 				<button 
 					onClick={handleGoogleLogin}
-					className="w-64 bg-blue-500 text-white py-2 rounded-md hover:bg-blue-900 text-center"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
-					Sign in with Google
+					<img src="../googleLogo.png" alt="Google Icon" className="w-2/4 h-2/4 mb-2" />
+					<span className="text-xl font-bold mt-2">Google sign in</span>
 				</button>
-			</div>
+		
 			</div>
 		</>
 	);

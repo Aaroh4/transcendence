@@ -3,6 +3,8 @@ import wrtc from "wrtc";
 import { Game } from './game/game.js';
 import { Logger, LogLevel } from './utils/logger.js';
 import { startChat } from "./chat.js";
+import db from './dbInstance.js'
+import { updateBracket, updateMatchHistory } from "./utils/updateBracket.js";
 
 const log = new Logger(LogLevel.INFO);
 
@@ -10,7 +12,7 @@ global.RTCPeerConnection = wrtc.RTCPeerConnection;
 global.RTCSessionDescription = wrtc.RTCSessionDescription;
 global.RTCIceCandidate = wrtc.RTCIceCandidate;
 
-// Alloactes ids whenever they are freed
+// Allocates ids whenever they are freed
 class IDAllocator {
     constructor(maxID) {
         this.maxID = maxID;
@@ -52,7 +54,7 @@ class IDAllocator {
 let io;
 const games = {};
 const rooms = {};
-const roomIds = new IDAllocator(50);
+const roomIds = new IDAllocator(5000); // max room amount
 
 export function setupNetworking(server){
 	log.debug('Checking WebRTC globals:');
@@ -80,10 +82,10 @@ export function setupNetworking(server){
 			method.call(log, ...logdata.args, { __frontend: true });
 		});
 
+		// Clean up rooms and connections when a player disconnects
 		socket.on("disconnect", () => {
 			log.info("User disconnected:", socket.id);
 		
-			// Clean up rooms and connections when a player disconnects
 			const playerRoom = socket.room;
 				if (playerRoom && rooms[playerRoom]?.players[socket.id]) {
 					const player = rooms[playerRoom].players[socket.id];
@@ -138,27 +140,78 @@ export function setupNetworking(server){
 			}
 		});
 
-		//socket.on("joinRoom", (roomId) => {
-		//	if (!rooms[roomId]) {
-		//		rooms[roomId] = {
-		//		players: {},
-		//		gameStarted: false,
-		//		hostId: null
-		//		};
-		//	}
-		//	joinRoom(roomId, socket);
-		//});
+		// finding room for tournament
+		function findGameRoom(userId) {		  
+			const match = db.prepare('SELECT * FROM matches WHERE (player_one_id = ? OR player_two_id = ?) AND status = ?')
+			  .get(userId, userId, 'waiting')
+			
+			if (!match) {
+				return (-1)
+			}
+		  
+			if (!match.room_id) {
+			  const roomId = roomIds.allocate();
+			  roomIds.closeRoomDoors(roomId);
+			  db.prepare('UPDATE matches SET room_id = ? WHERE id = ?')
+			  .run(roomId, match.id)
+				
+				return (roomId)
+			} else {
+          if (rooms[match.room_id]?.players && Object.keys(rooms[match.room_id].players).length === 1) {
+            db.prepare('UPDATE matches SET status = ? WHERE id = ?')
+            .run('in_progress', match.id);
+          }
+          return (match.room_id)
+			}
+		}
 
-		socket.on("readyTour", () => {
-			// allocate a room when both players are ready in the database
+
+		// Allocates a room id for a tournament room
+		// and lets the other player join in
+		socket.on("readyTour", (userId) => {
+			console.log("userid", userId);
+			const roomId = findGameRoom(userId);
+			if (roomId === -1)
+			{
+				console.log("Mita vittua")
+				return ;
+			}
+			if (!rooms[roomId]) {
+				rooms[roomId] = {
+				players: {},
+				gameStarted: false,
+				hostId: null,
+				type: "tournament" // Games matchmaking type
+				};
+			}
+			joinRoom(roomId, socket, userId);
 		});
 
+		// Normal matchmaking
+		// Allocates a room id for a normal room
 		socket.on("joinRoomQue", () => {
+			let roomFlag = 0;
+			const socketRoom = [...socket.rooms][1]
+
 			if (socket.rooms.size > 1)
-				return ;
+			{
+				io.to(socketRoom).emit('playerDisconnected', Object.keys(rooms[socketRoom].players).length);
+				socket.leave([...socket.rooms][1]);
+				if (Object.keys(rooms[socketRoom].players).length === 1)
+					roomFlag = 1;
+				else
+					roomFlag = 2;
+				delete rooms[socketRoom].players[socket.id];
+			}
 			const roomId = roomIds.allocate();
+
+			if (roomFlag == 1)
+				roomIds.freeRoom(socketRoom);
+			else if (roomFlag == 2)
+				roomIds.openRoomDoors(socketRoom);
 			if (roomId == -1)
 				return ;
+
 			if (!rooms[roomId]) {
 				roomIds.openRoomDoors(roomId);
 				rooms[roomId] = {
@@ -173,6 +226,7 @@ export function setupNetworking(server){
 			joinRoom(roomId, socket);
 		});
 
+		// Lets the host of the room start the game
 		socket.on('hostStart', (settings) => {
 			const playerRoom = socket.room;
 			if (!playerRoom || !rooms[playerRoom] || rooms[playerRoom].hostId != socket.id) return;
@@ -326,6 +380,9 @@ function initializeWebRTC(roomId) {
 	}
 }
 
+// Game loop for updating game state
+// and sending it to players
+
 function startGameLoop(roomId) {
 	const room = rooms[roomId];
 	const game = games[roomId];
@@ -338,33 +395,48 @@ function startGameLoop(roomId) {
 
 	if (!game.isRunning())
 		return ;
-	log.info("Game running: " + roomId);
+	//log.info("Game running: " + roomId);
 
-	if (game.getScores()[0] >= 5)
-	{
+	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
 		game.stop();
-		io.to(roomId).emit('gameOver', 1);
-		if (room.type == "normal")
-		{
-			room.gameStarted = false; // you can rematch
-			if (Object.keys(rooms[roomId].players).length === 1)
+		const winner = game.getScores()[0] >= 5 ? 0 : 1;
+    const playerList = Object.values(room.players);
+    const winnerId = playerList[winner].dbId;
+    const loserId = playerList[1 - winner].dbId;
+    const winnerScore = game.getScores()[winner]
+    const loserScore = game.getScores()[1 - winner]
+
+		if (room.type === "normal") {
+      updateMatchHistory(winnerId, loserId, winnerScore, loserScore)
+			room.gameStarted = false; // Allow rematch
+			if (Object.keys(room.players).length === 1) {
 				roomIds.openRoomDoors(roomId);
+			}
+		} else if (room.type === "tournament") {
+      try {
+        updateBracket(winnerId, loserId, winnerScore, loserScore)
+      } catch (error) {
+          console.log(error)
+      }
 		}
-		return ;
-	}
-	else if (game.getScores()[1] >= 5)
-	{
-		game.stop();
-		if (room.type == "normal")
-		{
-			room.gameStarted = false; // you can rematch
-			if (Object.keys(rooms[roomId].players).length === 1)
-				roomIds.openRoomDoors(roomId);
+
+		io.to(roomId).emit('gameOver', winner + 1, room.type);
+
+		for (const playerId in room.players) {
+			const player = room.players[playerId];
+
+			if (player.dataChannel) {
+				player.dataChannel.close();
+				player.dataChannel = null;
+			}
+	
+			if (player.peerConnection) {
+				player.peerConnection.close();
+				player.peerConnection = null;
+			}
 		}
-		io.to(roomId).emit('gameOver', 2);
-		return ;
+		return;
 	}
-		
 
 	game.update();
 	
@@ -400,15 +472,19 @@ function startGameLoop(roomId) {
 	setImmediate(gameLoop);
 }
 
-
-function joinRoom(roomId, socket)
+// Handles the joining of a room
+// and the initialization of the game
+function joinRoom(roomId, socket, dbId)
 {
-	if (Object.keys(rooms[roomId].players).length < 2) {
-		if (Object.keys(rooms[roomId].players).length === 0) {
-		rooms[roomId].hostId = socket.id;
+	console.log("dbid", dbId);
+	const room = rooms[roomId];
+	if (Object.keys(room.players).length < 2) {
+		if (Object.keys(room.players).length === 0 && room.type == "normal") {
+			room.hostId = socket.id;
 		}
 		
-		rooms[roomId].players[socket.id] = {
+		room.players[socket.id] = {
+		dbId: dbId,
 		playerPosition: { x: 0, y: 0 },
 		peerConnection: null,
 		dataChannel: null,
@@ -418,16 +494,44 @@ function joinRoom(roomId, socket)
 		socket.room = roomId;
 		socket.join(roomId);
 
-		io.to(roomId).emit("playerJoined", Object.keys(rooms[roomId].players).length);
+		io.to(roomId).emit("playerJoined", Object.keys(room.players).length);
 		log.info(`${socket.id} joined room ${roomId}`);
 	}
 
-	const numPlayers = Object.keys(rooms[roomId].players).length;
+	const numPlayers = Object.keys(room.players).length;
 	log.info(`Players in room: ${numPlayers}`);
 
 	// when room is full start game and initialize WebRTC
-	if (Object.keys(rooms[roomId].players).length === 2) {
-		const playerIds = Object.keys(rooms[roomId].players);
-		io.sockets.sockets.get(playerIds[0]).emit("roomFull");
+	if (Object.keys(room.players).length === 2 && room.type == "normal") {
+		const playerIds = Object.keys(room.players);
+		io.sockets.sockets.get(playerIds[0]).emit("roomFull", room.type);
+	} else if (Object.keys(room.players).length === 2 && room.type == "tournament") {
+		const playerIds = Object.keys(room.players);
+		io.sockets.sockets.get(playerIds[0]).emit("roomFull", room.type);
+		io.sockets.sockets.get(playerIds[1]).emit("roomFull", room.type);
+
+
+		if (Object.keys(room.players).length === 2 && !room.gameStarted) {
+			setTimeout(() => {
+			const playerIds = Object.keys(room.players);
+			room.gameStarted = true;
+
+			games[roomId] = new Game(playerIds[0], playerIds[1]);
+			const settings = { // there might be a better way to do this oh well
+				ballSettings: {
+					ballSize: 20,
+					ballSpeed: 3
+				},
+				playerSettings: {
+	
+				}
+			};
+			games[roomId].settings(settings);
+			initializeWebRTC(roomId);
+			const socketsInRoomAdapter = io.sockets.adapter.rooms.get(roomId);
+			log.info(`Adapter state for room ${roomId} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
+			
+			io.to(roomId).emit("startGame", roomId, settings);
+		}, 10000); }
 	}
 }

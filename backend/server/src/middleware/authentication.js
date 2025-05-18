@@ -10,6 +10,7 @@ const authenticateToken = async (req, reply) => {
     req.user = user;
   } catch (error) {
     console.log(error)
+	
     return reply.code(403).send({ error: 'Unauthorized' });
   }
 }

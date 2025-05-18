@@ -1,5 +1,6 @@
 import { 
   getUsers,
+  searchUsers,
   addUser,
   getUser,
   deleteUser,
@@ -61,24 +62,7 @@ const getUserOpts = {
 }
 
 const deleteUserOpts = {
-  schema: {
-    body: {
-      type: 'object',
-      required: ['id', 'token'],
-      properties: {
-        id: { type: 'integer', minimum: 1 },
-        token: { type: 'string' },
-      },
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'string' },
-        },
-      },
-    },
-  },
+  schema: {},
   preHandler: authenticateToken,
   handler: deleteUser,
 }
@@ -158,6 +142,25 @@ const uploadOpts = {
   handler: uploadAvatar,
 }
 
+const searchUsersOpts = {
+  schema: {
+    querystring: {
+      type: 'object',
+      required: ['query'],
+      properties: {
+        query: { type: 'string' },
+      },
+    },
+    response: {
+      200: {
+        type: 'array',
+        items: User,
+      },
+    },
+  },
+  handler: searchUsers,
+}
+
 export {
   getUserOpts,
   getUsersOpts,
@@ -166,5 +169,6 @@ export {
   updateUserOpts,
   updatePasswordOpts,
   dashboardOpts,
-  uploadOpts
+  uploadOpts,
+  searchUsersOpts
 }

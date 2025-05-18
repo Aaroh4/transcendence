@@ -166,7 +166,7 @@ const Registration: React.FC = () => {
 				{captchaError && <p style={{ color: 'red' }}>{captchaError}</p>}
 				<button
 					type="submit"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+					className="w-64 border border-black bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center transition duration-100"
 				>
 					Register
 				</button>

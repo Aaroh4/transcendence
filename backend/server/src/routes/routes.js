@@ -2,7 +2,8 @@ import { getExternalIP } from '../utils/externalIp.js';
 
 import { 
   getUserOpts, 
-  getUsersOpts, 
+  getUsersOpts,
+  searchUsersOpts,
   addUserOpts, 
   deleteUserOpts, 
   updateUserOpts, 
@@ -15,14 +16,18 @@ import {
   checkPendingOpts, 
   acceptRequestOpts,
   blockRequestOpts,
-  getFriendsOpts
+  getFriendsOpts,
+  declineRequestOpts,
+  removeFriendOpts
 } from '../schemas/friendSchemas.js'
 import { 
   getTournamentsOpts,
   createTournamentOpts,
+  getTournamentPlayerAmountOpts,
   joinTournamentOpts,
-  setReadyOpts,
-  startTournamentOpts
+  getTournamentParticipantOpts,
+  leaveTournamentOpts,
+  getTournamentBracketOpts
 } from '../schemas/tournamentSchemas.js'
 
 let cachedIP = null;
@@ -51,6 +56,7 @@ async function root (fastify, options) {
 
 async function userRoutes (fastify, options) {
   fastify.get('/api/users', getUsersOpts) //Palauttaa User objektin joka käyttäjälle mikä sisältää: id, name, status(1 = online, 0 = offline), wins, losses, path avatariin
+  fastify.get('/api/users/search', searchUsersOpts)
   fastify.get('/api/user/:id', getUserOpts) //Vaatii parametrina ID:n ja palauttaa User objektin id:n perusteella
   fastify.get('/api/dashboard', dashboardOpts) //mahdollista käyttää myöhemmin esim profiili sivuna, redirectaa käyttäjän loginin jälkeen
   fastify.put('/api/upload', uploadOpts) //Avatarin uploadaamiseen, ottaa kuva tiedoston ja tallentaa kuvan avatars kansioon ja pathin databaseen
@@ -66,14 +72,19 @@ async function friendRoutes (fastify, options) {
   fastify.post('/api/friend/request', friendRequestOpts) //Vaatii request bodyssa friendId joka on sen käyttäjän id joka halutaan lisätä kaveriksi
   fastify.post('/api/friend/accept', acceptRequestOpts)
   fastify.post('/api/friend/block', blockRequestOpts)
+  fastify.post('/api/friend/decline', declineRequestOpts)
+  fastify.delete('/api/friend/remove/:id', removeFriendOpts)
 }
 
 async function tournamentRoutes (fastify, options) {
   fastify.get('/api/tournaments', getTournamentsOpts)
+  fastify.get('/api/tournament/:tournamentId/playerAmount', getTournamentPlayerAmountOpts)
+  fastify.get('/api/tournament/participant/:tourType', getTournamentParticipantOpts)
+  fastify.get('/api/tournament/:tournamentId', getTournamentParticipantOpts)
+  fastify.get('/api/tournament/:tournamentId/bracket', getTournamentBracketOpts)
   fastify.post('/api/tournament/create', createTournamentOpts)
   fastify.post('/api/tournament/:tournamentId/join', joinTournamentOpts)
-  fastify.post('/api/tournament/:tournamentId/start', startTournamentOpts)
-  fastify.patch('/api/tournament/:tournamentId/ready', setReadyOpts)
+  fastify.delete('/api/tournament/:tournamentId/leave', leaveTournamentOpts)
 }
 
 export { root, userRoutes, friendRoutes, tournamentRoutes }

@@ -1,31 +1,63 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
 
+// interface FriendRequestProps {
+// 	id: string;
+// }
 
-const FriendsList: React.FC = () => {
+// const FriendsList: React.FC = () => {
 	
-	const [visibleState, changeState] = useState(false);
+// 	const [formState, setFormState] = useState<FriendRequestProps>({
+// 		id: ''
+// 	});
+
+// 	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+// 		const { name, value } = event.target;
+// 		setFormState(prevState => ({
+// 			...prevState,
+// 			[name]: value
+// 		}));
+// 	};
+
+// 	const [visibleState, changeState] = useState(false);
 	
-	const toggleState = () => {
-		changeState(prevState => !prevState);
-	};
+// 	const toggleState = () => {
+// 		changeState(prevState => !prevState);
+// 	};
 
-	return (
-		<div>
-			<button onClick={toggleState}>
-				{visibleState ? "Close" : "Frineds"}
-			</button>
-			<div
-        style={{
-          position: "fixed",
-          top: 128,
-          right: visibleState ? 0 : "-250px", // Slide in/out based on the visibility state
-          width: "250px",
-          height: "100%",
-          backgroundColor: "lightgray",
-          transition: "right 0.5s ease",
-        }}></div>
-		</div>
-	  );
-}
+// 	return (
+// 		<div>
 
-export default FriendsList;
+// 				<div
+// 				className={`absolute left-0 right-0 w-full bg-gray-300 transition-all duration-1000 overflow-hidden ${
+// 					visibleState ? "max-h-64" : "max-h-0"
+// 				} flex flex-col items-center pt-4 z-100`}
+// 				>
+// 				<button
+// 					onClick={toggleState}
+// 					className="mb-4 bg-green-500 text-white px-4 py-2 rounded-md"
+// 				>
+// 					{visibleState ? "Close" : "Friends"}
+// 				</button>
+
+// 				<div className="w-11/12">
+// 					<label htmlFor="id" className="block text-sm font-medium text-gray-700">
+// 						Add friends by ID
+// 					</label>
+// 					<input
+// 						type="text"
+// 						id="id"
+// 						name="id"
+// 						value={formState.id}
+// 						onChange={handleInputChange}
+// 						className="border border-black bg-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+// 						required
+// 					/>
+// 				</div>
+
+// 			</div>
+
+// 		</div>
+// 	  );
+// }
+
+// export default FriendsList;

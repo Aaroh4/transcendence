@@ -11,28 +11,52 @@ import ProfilePage from './pages/profilePage'
 import EditProfile from './pages/editProfile'
 import ProtectedRoutes from './components/authRoutes'
 
-// //import "./index.css";
+// import "../output.css";
 
-const router = createBrowserRouter([
-  	{path: "/", element:<Home />},
-  	{path: "/home", element:<Home />},
-  	{path: "/login", element:<Login/> },
-  	{path: "/register", element: <Registration />},
-	{path: "/game", element: <ProtectedRoutes> <GameRoom matchType="normal" /></ProtectedRoutes> },
-	{path: "/solo-game", element: <ProtectedRoutes> <GameRoom matchType="solo" /></ProtectedRoutes> },
-  	{path: "/tournaments", element: <ProtectedRoutes> <TournamentsPage /></ProtectedRoutes>},
-  	{path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes>},
-	{path: "*", element: <NoPage />},
-  	{path: "/user/edit", element: <EditProfile />},
-  	{path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes>}
+export const router = createBrowserRouter([
+  {path: "/", element:<Home />},
+  {path: "/home", element:<Home />},
+  {path: "/login", element:<Login/> },
+  {path: "/register", element: <Registration />},
+	{path: "/game", element: <ProtectedRoutes><GameRoom matchType="normal" /></ProtectedRoutes> },
+	{path: "/tour-game", element: <ProtectedRoutes><GameRoom matchType="tournament" /></ProtectedRoutes> },
+	{path: "/solo-game", element: <ProtectedRoutes><GameRoom matchType="solo" /></ProtectedRoutes> },
+	{path: "/ai-game", element: <ProtectedRoutes> <GameRoom matchType="ai" /></ProtectedRoutes> },
+  {path: "/tournaments", element: <ProtectedRoutes><TournamentsPage /></ProtectedRoutes>},
+  {path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes>},
+  {path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes>},
+  {path: "/user/edit", element: <ProtectedRoutes><EditProfile /></ProtectedRoutes>},
+  {path: "*", element: <NoPage />},
 ]);
 
 const App: React.FC = () => {
 
   return (
-    <div>
+	<>
+      <style>{`
+        /* WebKit scrollbar styles */
+        ::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #000000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background-color: #20d61a;
+          border-radius: 5px;
+          border: 2px solid #f0f0f0;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+		  
+      `}</style>
+
       <RouterProvider router={router}></RouterProvider>
-    </div>
+	</>
   )
 }
 
