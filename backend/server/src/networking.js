@@ -117,8 +117,7 @@ export function setupNetworking(server){
 						io.to(playerRoom).emit("playerDisconnected", Object.keys(rooms[playerRoom].players).length);
 						if (games[playerRoom].gameStarted == false)
 							roomIds.openRoomDoors(playerRoom);
-					}
-					
+					}	
 			}
 		});
 
@@ -180,7 +179,7 @@ export function setupNetworking(server){
 				players: {},
 				gameStarted: false,
 				hostId: null,
-				type: "tournament" // Games matchmaking type
+				type: "tournament", // Games matchmaking type
 				};
 			}
 			joinRoom(roomId, socket, userId);
@@ -400,20 +399,20 @@ function startGameLoop(roomId) {
 	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
 		game.stop();
 		const winner = game.getScores()[0] >= 5 ? 0 : 1;
-    const winnerId = playerList[winner].dbId;
-    const loserId = playerList[1 - winner].dbId;
-    const winnerScore = game.getScores()[winner]
-    const loserScore = game.getScores()[1 - winner]
-
+		const winnerId = playerList[winner].dbId;
+		const loserId = playerList[1 - winner].dbId;
+		const winnerScore = game.getScores()[winner]
+		const loserScore = game.getScores()[1 - winner]
+		
 		if (room.type === "normal") {
-      updateMatchHistory(winnerId, loserId, winnerScore, loserScore)
+			updateMatchHistory(winnerId, loserId, winnerScore, loserScore)
 			room.gameStarted = false; // Allow rematch
 			if (Object.keys(room.players).length === 1) {
 				roomIds.openRoomDoors(roomId);
 			}
 		} else if (room.type === "tournament") {
-      try {
-        updateBracket(winnerId, loserId, winnerScore, loserScore)
+		try {
+    		updateBracket(winnerId, loserId, winnerScore, loserScore);
       } catch (error) {
           console.log(error)
       }
