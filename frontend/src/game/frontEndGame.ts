@@ -411,18 +411,20 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
+		const dir = this.currentMode === '3D' ? -1 : 1;
+
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
+			this.player1.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
+			this.player1.setvel(1 * dir);	
 		else
 			this.player1.setvel(0);
 
 		if (this.keysPressed[KeyBindings.SUP]) 
-			this.player2.setvel(-1);
+			this.player2.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.SDOWN])
-			this.player2.setvel(1);
+			this.player2.setvel(1 * dir);
 		else
 			this.player2.setvel(0);
 
@@ -438,11 +440,12 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
+		const dir = this.currentMode === '3D' ? -1 : 1;
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
+			this.player1.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
+			this.player1.setvel(1 * dir);
 		else
 			this.player1.setvel(0);
 

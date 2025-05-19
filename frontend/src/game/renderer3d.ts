@@ -13,6 +13,8 @@ export class Renderer3D {
 	private camera: BABYLON.FreeCamera;
 	private paddle1: BABYLON.Mesh;
 	private paddle2: BABYLON.Mesh;
+	private leftEdge: BABYLON.Mesh;
+	private rightEdge: BABYLON.Mesh;
 	private ball: BABYLON.Mesh;
 	private scoreText: GUI.TextBlock;
 	private guiTexture: GUI.AdvancedDynamicTexture;
@@ -54,9 +56,14 @@ export class Renderer3D {
 			height: this.state.canvasHeight / this.unitScale
 		}, this.scene);
 
-		const mat = new BABYLON.StandardMaterial("mat", this.scene);
-		mat.diffuseColor = BABYLON.Color3.Blue();
-		ground.material = mat;
+		const groundMat = new BABYLON.StandardMaterial("mat", this.scene);
+		groundMat.diffuseColor = BABYLON.Color3.Green();
+		ground.material = groundMat;
+
+		this.leftEdge = BABYLON.MeshBuilder.CreateBox("leftEdge", { height: 1, width: this.state.canvasWidth / this.unitScale, depth: 1 }, this.scene);
+		this.leftEdge.position.z = -this.state.canvasHeight / this.unitScale / 2 - 0.5;
+		this.rightEdge = BABYLON.MeshBuilder.CreateBox("rightEdge", { height: 1, width: this.state.canvasWidth / this.unitScale, depth: 1 }, this.scene);
+		this.rightEdge.position.z = this.state.canvasHeight / this.unitScale / 2 + 0.5;
 
 		this.paddle1 = BABYLON.MeshBuilder.CreateBox("p1", { height: 1, width: 1, depth: this.state.player1Height / this.unitScale }, this.scene);
 		this.paddle2 = BABYLON.MeshBuilder.CreateBox("p2", { height: 1, width: 1, depth: this.state.player2Height / this.unitScale }, this.scene);
@@ -66,8 +73,6 @@ export class Renderer3D {
 		this.ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: state.ballSize / this.unitScale }, this.scene);
 		console.log("Ball size: ", this.state.ballSize);
 		this.ball.position.y = 1;
-		//this.ball.position.x = this.to3dX(state.ball.xPos);
-		//this.ball.position.z = this.to3dZ(state.ball.yPos);
 
 		// GUI overlay for scores
 		this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
@@ -75,6 +80,38 @@ export class Renderer3D {
 		this.scoreText.color = "white";
 		this.scoreText.fontSize = 24;
 		this.guiTexture.addControl(this.scoreText);
+
+		var originalUp = this.camera.upVector.clone();
+		var originalRotation = this.camera.rotation.clone();
+		this.scene.onKeyboardObservable.add((kbInfo) => {
+			switch (kbInfo.type) {
+				case BABYLON.KeyboardEventTypes.KEYDOWN:
+					if (kbInfo.event.key === "1") {
+						this.camera.rotation = originalRotation;
+						this.camera.position = new BABYLON.Vector3(0, 15, -45);
+						this.camera.setTarget(BABYLON.Vector3.Zero());
+						this.camera.upVector = originalUp;
+					}
+					if (kbInfo.event.key === "2") {
+						this.camera.position = new BABYLON.Vector3(0, 40, 0);
+						this.camera.setTarget(BABYLON.Vector3.Zero());
+						this.camera.upVector = originalUp;
+						this.camera.rotation.y = Math.PI / -2;
+						var forward = this.camera.getForwardRay().direction;
+						var rotationMatrix = BABYLON.Matrix.RotationAxis(forward, Math.PI / -2);
+						var newUp = BABYLON.Vector3.TransformNormal(this.camera.upVector, rotationMatrix);
+						this.camera.upVector = newUp;
+					}
+					if (kbInfo.event.key === "3") {
+
+						this.camera.rotation = originalRotation;
+						this.camera.position = new BABYLON.Vector3(-45, 15, 0);
+						this.camera.setTarget(BABYLON.Vector3.Zero());
+						this.camera.upVector = originalUp;
+					}
+					break;
+			}
+		});
 
 		this.engine.runRenderLoop(() => {
 			this.scene.render();
