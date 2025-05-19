@@ -385,6 +385,7 @@ function initializeWebRTC(roomId) {
 function startGameLoop(roomId) {
 	const room = rooms[roomId];
 	const game = games[roomId];
+	const playerList = Object.values(room.players);
 	
 	if (!game || !room) return;
 	
@@ -399,7 +400,6 @@ function startGameLoop(roomId) {
 	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
 		game.stop();
 		const winner = game.getScores()[0] >= 5 ? 0 : 1;
-    const playerList = Object.values(room.players);
     const winnerId = playerList[winner].dbId;
     const loserId = playerList[1 - winner].dbId;
     const winnerScore = game.getScores()[winner]

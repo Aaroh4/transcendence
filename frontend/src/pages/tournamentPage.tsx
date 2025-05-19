@@ -65,6 +65,24 @@ export async function joinTour(tourId : number): Promise<number> {
 	}
 }
 
+export async function leaveTour(tourId : number) {
+	const userId = sessionStorage.getItem('activeUserId');
+	
+	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+
+	try {
+		const response = await fetch('/api/tournament/' + tourId + '/leave', {
+			method: 'DELETE',
+			headers: {
+			'Authorization': `Bearer ${sessionData.accessToken}`
+			}
+		});
+		return (response.status);
+	} catch (error) {
+		console.error("Login error:", error);
+	}
+}
+
 export async function getTournaments() 
 {
 	const userId = sessionStorage.getItem('activeUserId');
@@ -252,7 +270,21 @@ const TournamentsPage: React.FC = () => {
 					Join
 					</button>) : String(tour.id) === String(myTour) ? (
 
-					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
+					onClick={() => {
+						leaveTour(tour.id).then((response) => {
+							if (response != 200) {
+								toast.open("YOU ARE NOT IN THIS TOURNAMENT!!", "error" );
+							}
+						});						
+						getPlayerAmount(tour.id).then((newAmount) => {
+							setFetchedTournaments((prevTournaments) =>
+							  prevTournaments.map((t) =>
+								t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
+						  });
+						fetchLeaveButton();
+					}}
+					>
 						Leave
 					</button>
 					) : null}

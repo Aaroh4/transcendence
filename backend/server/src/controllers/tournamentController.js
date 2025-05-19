@@ -250,6 +250,9 @@ const leaveTournament = async function(req, reply) {
     db.prepare('DELETE FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
       .run(tournamentId, userId)
     
+	db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
+	  .run(tournamentId)
+
     return reply.send({ error: `User ${userId} left tournament ${tournamentId}`})
   } catch (error) {
     console.log(error)
