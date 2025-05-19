@@ -66,8 +66,8 @@ export class Renderer3D {
 		this.ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: state.ballSize / this.unitScale }, this.scene);
 		console.log("Ball size: ", this.state.ballSize);
 		this.ball.position.y = 1;
-		this.ball.position.x = this.to3dX(state.ball.xPos);
-		this.ball.position.z = this.to3dZ(state.ball.yPos);
+		//this.ball.position.x = this.to3dX(state.ball.xPos);
+		//this.ball.position.z = this.to3dZ(state.ball.yPos);
 
 		// GUI overlay for scores
 		this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
