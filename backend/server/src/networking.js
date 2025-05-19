@@ -385,9 +385,9 @@ function initializeWebRTC(roomId) {
 function startGameLoop(roomId) {
 	const room = rooms[roomId];
 	const game = games[roomId];
-	const playerList = Object.values(room.players);
 	
 	if (!game || !room) return;
+	const playerList = Object.values(room.players);
 	
 	const gameLoop = () => {
 
