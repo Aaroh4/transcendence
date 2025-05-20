@@ -14,7 +14,10 @@ export default function GameRoom({matchType}) {
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 	const [difficulty, setDifficulty] = useState<number>(0);
 	const log = new Logger(LogLevel.INFO);
-	
+	const [renderMode, setRenderMode] = useState<'2D' | '3D'>(() =>
+		typeof window !== 'undefined' && window.game?.currentMode === '3D' ? '3D' : '2D'
+	);
+
   
 useEffect(() => {
 	sessionStorage.setItem("AIdifficulty", difficulty.toString());
@@ -162,8 +165,41 @@ const matchTypeButtons = () => {
 			);
 		default:
 		return (<p>FUCK OFF</p>);
-	}
-};
+		}
+	};
+
+	const renderSwitchButtons = () => { 
+		return (			<div className="flex justify-center items-center gap-1 mt-4 mb-4">
+				<button
+					className={`px-4 py-2 text-white text-center rounded-l-md mr-1 ${
+						renderMode === '2D'
+							? 'bg-green-700'
+							: 'bg-green-900 hover:bg-green-500'
+					}`}
+					onClick={() => {
+						window.game?.switchMode('2D');
+						setRenderMode('2D');
+					}}
+				>
+					2D Mode
+				</button>
+
+				<button
+					className={`px-4 py-2 text-white text-center rounded-r-md ${
+						renderMode === '3D'
+							? 'bg-green-700'
+							: 'bg-green-900 hover:bg-green-500'
+					}`}
+					onClick={() => {
+						window.game?.switchMode('3D');
+						setRenderMode('3D');
+					}}
+				>
+					3D Mode
+				</button>
+			</div>
+			)
+		}
 
 	return (
 		<>
@@ -196,8 +232,11 @@ const matchTypeButtons = () => {
 				</details>
 			</div>
 
-			<div id="game-container" className="bg-green-100 p-2 rounded-lg shadow-md mt-4 w-[820px] h-[620px]"></div>
+			<div id="game-wrapper" className="w-[820px] hidden mx-auto">
+				{renderSwitchButtons()}
 
+				<div id="game-container" className="bg-green-100 p-2 rounded-lg shadow-md mt-4 w-[820px] h-[620px]"></div>
+			</div>
 			{/*<div id="chat-container" className="bg-green-900 p-2 rounded-lg shadow-md mt-4 w-[400px] h-[620px] fixed top-4 right-4">
 				<input id="chat-box" type="text" placeholder="" className="block w-full p-2 border border-gray-300 rounded mt-2" maxLength="50"/>
 				<button id="send-btn"className="w-full bg-purple-500 text-white text-center py-2 rounded-md hover:bg-green-600">

@@ -4,6 +4,8 @@ import { TURN_URL, TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-c
 import { setupButtons  } from './matchmaking.js';
 import { router } from '../App';
 import { GameAI } from './gameAI';
+import { Renderer2D } from './renderer2d.js';
+import { Renderer3D } from './renderer3d.js';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -92,7 +94,7 @@ export class Ball extends Entity {
 	}
 }
 
-class Player extends Entity {
+export class Player extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
 		this.speed = 4;
@@ -123,11 +125,37 @@ enum KeyBindings{
 	SDOWN = 'ArrowDown'
 }
 
+export interface GameState {
+	canvasWidth: number;
+	canvasHeight: number;
+	player1Y: number;
+	player2Y: number;
+	player1Height: number;
+	player2Height: number;
+	ballX: number;
+	ballY: number;
+	ballSize: number;
+	ball: Ball | null;
+	player1Score: number;
+	player2Score: number;
+	color: string;
+	gameAI: GameAI;
+	isAIgame: boolean;
+	AIdebug: boolean;
+}
+
+export interface GameRenderer {
+	init(state: GameState): void;
+	dispose(): void;
+	render(state: GameState): void;
+}
+
 export class frontEndGame {
 	private keysPressed: { [key: string]: boolean } = {};
-	private gameCanvas : HTMLCanvasElement;
-	private container : HTMLElement;
-	private ctx : CanvasRenderingContext2D;
+	private canvasWidth : number = 800;
+	private canvasHeight : number = 600;
+	private renderer: GameRenderer | null = null;
+	public  currentMode: '2D' | '3D' = '3D';
 	private color : string;
 	private player1Score : number = 0;
 	private player2Score : number = 0;
@@ -143,17 +171,17 @@ export class frontEndGame {
 	private AIdebug: boolean = false;
 
 	private dataChannel: RTCDataChannel | null = null;
-    private peerConnection: RTCPeerConnection | null = null;
+  private peerConnection: RTCPeerConnection | null = null;
 	private configuration: RTCConfiguration;
 
-    // Add a property to store candidates that arrive before remote description
-    private bufferedCandidates: RTCIceCandidateInit[] = [];
+	// Add a property to store candidates that arrive before remote description
+	private bufferedCandidates: RTCIceCandidateInit[] = [];
 
-    private keyDownHandler: (e: KeyboardEvent) => void;
-    private keyUpHandler: (e: KeyboardEvent) => void;
+	private keyDownHandler: (e: KeyboardEvent) => void;
+	private keyUpHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
-		this.container = document.getElementById("game-container");
+
 		this.player1 = new Player(60, 10, 300, 10);
 		this.player2 = new Player(60, 10, 300, 780);
 
@@ -208,6 +236,27 @@ export class frontEndGame {
 		}
 	}
 
+	getGameState(): GameState {
+		return {
+			canvasWidth: this.canvasWidth,
+			canvasHeight: this.canvasHeight,
+			player1Y: this.player1.getpos()[0],
+			player2Y: this.player2.getpos()[0],
+			player1Height: this.player1.height,
+			player2Height: this.player2.height,
+			ball: this.ball,
+			ballX: this.ballX,
+			ballY: this.ballY,
+			ballSize: this.ballSize,
+			player1Score: this.player1Score,
+			player2Score: this.player2Score,
+			color: this.color,
+			gameAI: this.gameAI,
+			isAIgame: this.isAIgame,
+			AIdebug: this.AIdebug
+		};
+	}
+
 	setIsAIgame(isAIgame: boolean) {
 		this.isAIgame = isAIgame;
 	}
@@ -217,19 +266,19 @@ export class frontEndGame {
 		this.player2Score += player2Score;
 	}
 
-	createCanvas()
-	{
-		this.container = document.getElementById("game-container");
-		this.gameCanvas = document.createElement("canvas");
-		this.container.appendChild(this.gameCanvas);
-		this.ctx = this.gameCanvas.getContext("2d")!;
-		this.gameCanvas.width = 800;
-		this.gameCanvas.height = 600;
+	createRenderingContext() {	
+		//this.container = document.getElementById("game-container");
+		if (this.currentMode === '2D') {
+			this.renderer = new Renderer2D();
+		} else {
+			this.renderer = new Renderer3D();
+		}
+		this.renderer.init(this.getGameState());
 	}
 
 	setupAI() 
 	{
-		this.gameAI = new GameAI(this.gameCanvas.height, this.player2.xPos, this.player2.height);
+		this.gameAI = new GameAI(this.canvasHeight, this.player2.xPos, this.player2.height);
 	}
 
 	setupPeerConnectionEvents(socket) {
@@ -353,7 +402,7 @@ export class frontEndGame {
 		  this.ballX = positions[2][1];
 		  
 		  // Redraw the game
-		  this.updateGraphics();
+			this.renderer.render(this.getGameState());
 		}
 	}
 
@@ -362,25 +411,28 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
+		const dir = this.currentMode === '3D' ? -1 : 1;
+
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
+			this.player1.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
+			this.player1.setvel(1 * dir);	
 		else
 			this.player1.setvel(0);
 
 		if (this.keysPressed[KeyBindings.SUP]) 
-			this.player2.setvel(-1);
+			this.player2.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.SDOWN])
-			this.player2.setvel(1);
+			this.player2.setvel(1 * dir);
 		else
 			this.player2.setvel(0);
 
 		this.player1.move(deltaTime);
 		this.player2.move(deltaTime);
 		this.ball.update(this.player1, this.player2, deltaTime);
-		this.updateGraphics();
+
+		this.renderer.render(this.getGameState());
 	}
 
 	updateAIGameState()
@@ -388,12 +440,12 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
-		const treshold = 4;
+		const dir = this.currentMode === '3D' ? -1 : 1;
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
+			this.player1.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
+			this.player1.setvel(1 * dir);
 		else
 			this.player1.setvel(0);
 
@@ -414,32 +466,8 @@ export class frontEndGame {
 		this.player2.move(deltaTime);
 
 		this.ball.update(this.player1, this.player2, deltaTime);
-		this.updateGraphics();
-	}
-
-	updateGraphics() 
-	{
-		this.ctx.fillStyle = "#000";
-		this.ctx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-		for (var i = 0; i <= this.gameCanvas.height; i += 30) {
-			this.ctx.fillStyle = "white";
-			this.ctx.fillRect(this.gameCanvas.width / 2 - 10, i + 5, 15, 20);
-		}
-		this.ctx.font = "48px 'Comic Sans MS', cursive, sans-serif";
-		this.ctx.fillText(this.player2Score.toString(), this.gameCanvas.width / 2 - 48 * 2, 50);
-		this.ctx.fillText(this.player1Score.toString(), this.gameCanvas.width / 2 + 48, 50);
-		this.ctx.fillStyle = this.color;
-		this.ctx.fillRect(this.ballX, this.ballY, this.ballSize, this.ballSize);
-		this.ctx.fillRect(10, this.player1.getpos()[0], 10, this.player1.height);
-		this.ctx.fillRect(780, this.player2.getpos()[0], 10, this.player2.height);
-		if (this.isAIgame && this.AIdebug)
-		{
-			this.gameAI.drawAIPrediction(this.ctx);
-		}
-		if (this.ball)
-		{
-			this.ball.draw(this.ctx);
-		}
+		
+		this.renderer.render(this.getGameState());
 	}
 
 	settings(settings, color)
@@ -451,6 +479,19 @@ export class frontEndGame {
 		this.lastUpdateTime = Date.now();
 	}
 
+	switchMode(newMode: '2D' | '3D') {
+		if (this.currentMode === newMode) return;
+
+		this.renderer.dispose(); // remove canvas or babylon engine
+		this.currentMode = newMode;
+
+		if (newMode === '2D') {
+			this.renderer = new Renderer2D();
+		} else {
+			this.renderer = new Renderer3D();
+		}
+		this.renderer.init(this.getGameState());
+	}
 
 	socketLogic(socket)
 	{
@@ -593,8 +634,9 @@ export class frontEndGame {
 			}
 		
 			document.getElementById("gameroom-page").hidden = true;
+			document.getElementById("game-wrapper")?.classList.remove("hidden");
 			log.info("Game started in room:", roomId);
-			game.createCanvas();
+			game.createRenderingContext();
 			game.settings(settings, color);
 
 			if (this.peerConnection == null) {
@@ -604,7 +646,7 @@ export class frontEndGame {
 				log.info("Peer connection created");
 				this.setupPeerConnectionEvents(socket);
 			}
-			game.updateGraphics();
+			game.renderer.render(game.getGameState());
 		});
 		
 		socket.on("gameOver", (winner : number, type : string) => {
@@ -644,6 +686,8 @@ export function createNewGame(matchType : string, socket, userId : string)
 	{
 		game.socketLogic(socket);
 	}
+	// add game to window object for 2D/3D renderer switching
+	window.game = game;
 }
 
 export function cleanGame()
@@ -665,8 +709,10 @@ export function startSoloGame()
 	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
 
 	document.getElementById("gameroom-page").hidden = true;
+	document.getElementById("game-wrapper")?.classList.remove("hidden");
+
 	game.setupSoloKeyListeners();
-	game.createCanvas();
+	game.createRenderingContext();
 	game.settings({
 		ballSettings: {
 			ball: new Ball(20, 20, 400, 300),
@@ -695,8 +741,9 @@ export function startAIGame()
 
 	game.setIsAIgame(true);
 	document.getElementById("gameroom-page").hidden = true;
+	document.getElementById("game-wrapper")?.classList.remove("hidden");
 	game.setupSoloKeyListeners();
-	game.createCanvas();
+	game.createRenderingContext();
 	game.setupAI();
 	game.settings({
 		ballSettings: {
@@ -714,3 +761,4 @@ export function startAIGame()
 	}
 	loopAI();
 }
+
