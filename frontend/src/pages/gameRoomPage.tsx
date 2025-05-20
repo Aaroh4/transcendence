@@ -1,4 +1,4 @@
-import UserHeader from "../components/headers";
+import UserHeader from "../components/userHeader";
 import { createNewGame, frontEndGame, cleanGame } from "../game/frontEndGame";
 import { useEffect, useRef, useState } from "react";
 import { createSocket, getSocket, closeSocket } from "../utils/socket";
@@ -33,7 +33,7 @@ const difficulties = [
 
 useEffect(() => {
 	if (!hasRun1.current && matchType === "tournament") {
-		fetch('/api/tournament/1', {
+		fetch('/api/tournament/participant/gamePage', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ useEffect(() => {
 			}
 		})
 		.then((res) => {
-			if (res.status === 204) {
+			if (res.status === 200) {
 				setTournamentStatus("active");
 			} else {
 				setTournamentStatus("no-tournament");
@@ -102,16 +102,15 @@ const matchTypeButtons = () => {
 				else
 				{
 					return(
-					<>
-					<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
-					<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-						Ready up!
-					</button>
-					</>
-				);
-		}
-			
+						<>
+						<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
+						<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
+						<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+							Ready up!
+						</button>
+						</>
+					);
+				}
 		case "ai":
 			return (
 				<div className="w-full mx-auto px-0">
@@ -154,17 +153,6 @@ const matchTypeButtons = () => {
 					</button>
 				</div>
 		);
-			// En tiia kumpi naista oli uudempi
-		// case "tournament":
-		// 	return(
-		// 		<>
-		// 		<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-		// 		<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
-		// 		<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-		// 			Ready up!
-		// 		</button>
-		// 		</>
-		// 	);
 		case "normal":
 			return(
 				<>

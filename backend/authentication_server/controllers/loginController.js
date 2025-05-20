@@ -6,20 +6,23 @@ import { nameGenerator, isNameTaken } from '../services/nameGenerator.js'
 const logoutUser = async function(req, reply) {
   const { token } = req.body
   const db = req.server.db
+  const userId = req.user.id
 
   try{
-    const userId = db.prepare('SELECT user_id FROM refresh_tokens WHERE refresh_token = ?')
-      .get(token)
+    const user = db.prepare('SELECT * FROM users WHERE id = ?')
+      .get(userId)
 
-    if (!userId) return reply.code(404).send({ error: "Refresh token not found"})
+    if (!user) return reply.code(404).send({ error: "User not found"})
     
-    db.prepare('DELETE FROM refresh_tokens WHERE refresh_token = ?')
-      .run(token)
+    if (token) {
+      db.prepare('DELETE FROM refresh_tokens WHERE user_id = ? AND refresh_token = ?')
+      .run(userId, token)
+    }
 
     db.prepare('UPDATE users SET online_status = 0 WHERE id = ?')
-      .run(userId.user_id)
-  
-    return reply.code(204).redirect('/')
+      .run(userId)
+
+    return reply.code(303).redirect('/')
   } catch (error) {
     console.log(error)
     return reply.code(500).send({ error: error.message })
@@ -38,17 +41,17 @@ const loginUser = async function (req, reply) {
 
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) return reply.code(401).send({ error: 'Incorrect email or password' })
-    
-	if (!captchaToken) return reply.code(400).send({ error: 'Token is required' })
 
-	const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-	method: 'POST',
-	headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-	body: new URLSearchParams({
-		secret: process.env.CAPTCHA_SECRET,
-		response: captchaToken,
-	}),
-	});
+    if (!captchaToken) return reply.code(400).send({ error: 'Token is required' })
+
+    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      secret: process.env.CAPTCHA_SECRET,
+      response: captchaToken,
+    }),
+    });
 
 	const data = await res.json();
 
