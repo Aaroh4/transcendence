@@ -14,7 +14,7 @@ const Header: React.FC = () => {
 			</h1>
 		  	</div>
 	
-		  	<ul className="flex space-x-8">
+		  	<ul className="flex flex-wrap space-x-8">
 				<Link
 					to="/"
 					className="bg-black px-3 py-2 text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"

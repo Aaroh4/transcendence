@@ -213,6 +213,9 @@ const getTournamentParticipant = async function(req, reply) {
   const userId = req.user.id
   const { tourType } = req.params;
 
+  console.log(">> getTournamentParticipant called");
+  console.log(userId, tourType);
+
   try {
 	let tournament;
 	tournament = db.prepare("SELECT * FROM tournament_players WHERE user_id = ?")

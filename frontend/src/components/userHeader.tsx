@@ -14,7 +14,8 @@ import {
 	friendActionRequest,
 	searchUsers,
 	removeFriend
-} from "../services/api";
+} from "../services/friendApi";
+import { Link, useLocation } from "react-router-dom";
 
 // interface UserHeaderProps {
 // 	userName: string;
@@ -56,6 +57,7 @@ const UserHeader: React.FC = () => {
 	}, []);
 	
 	const toast = useToast();
+	const location = useLocation();
 	
 	const [searchState, setSearchState] = useState<FriendSearchProps>({query: ''});
 	const [userList, setUserList] = useState<userList[]>([]);
@@ -208,7 +210,7 @@ const UserHeader: React.FC = () => {
 
 			if (response3.status < 204 && Array.isArray(response3.data)) {
 				console.log("data from friend request" ,response3.data)
-				// toast.open("we have pending friend request", "info");
+				toast.open("we have pending friend request", "info");
 				setPendingRequests(response3.data);
 			}
 
@@ -220,18 +222,30 @@ const UserHeader: React.FC = () => {
 		<>
 		<header className="flex-wrap w-full bg-black text-white py-10 px-10 shadow-lg flex items-center justify-between">
 
-		  <div className="flex items-center space-x-10">
+		<div className="flex items-center space-x-10">
 			<h1 className="text-5xl font-extrabold tracking-tight text-green-500">
 			  Welcome: {userName}
 			</h1>
-		  </div>
+		</div>
+
+		<div className="flex flex-wrap gap-2">
+			{location.pathname !== '/user' &&(
+			<div className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
+				<Link
+					to="/user"
+					>
+				User page
+				</Link>
+			</div>
+			)}
 
 			<button
 				onClick={handleOpenFriends}
 				className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100"
-			>
+				>
 				Friends
 			</button>
+		</div>
 
 		</header>
 
@@ -341,7 +355,7 @@ const UserHeader: React.FC = () => {
 						<h2 className="text-lg font-semibold mb-2 text-black">Friends:</h2>
 						<div className="space-y-4 pr-2 flex-grow max-h-96 overflow-y-auto">
 							{friendsList.map((req) => (
-							<div key={req.id} className="flex items-center justify-between bg-white p-2 rounded mb-2">
+							<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2">
 								<div className="flex items-center">
 								<img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
 								<span className="text-black">{req.name}</span>
