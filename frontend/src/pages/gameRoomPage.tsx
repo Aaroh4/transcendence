@@ -228,7 +228,7 @@ const matchTypeButtons = () => {
 					<p className="text-center text-gray-600 mb-4">Ball size</p>
 					<input id="ball-size" type="text" placeholder="20" className="block w-full p-2 border border-gray-300 rounded mt-2"/>
 					<p className="text-center text-gray-600 mb-4">Ball speed</p>
-					<input id="ball-speed" type="text" placeholder="3" className="block w-full p-2 border border-gray-300 rounded mt-2"/>
+					<input id="ball-speed" type="text" placeholder="10" className="block w-full p-2 border border-gray-300 rounded mt-2"/>
 				</details>
 			</div>
 
