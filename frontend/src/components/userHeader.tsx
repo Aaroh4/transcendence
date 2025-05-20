@@ -251,11 +251,11 @@ const UserHeader: React.FC = () => {
 
 		{showFriends && (
 			<div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-			 	<div className="bg-white p-6 rounded-lg shadow-lg w-[600px] max-h-[80vh] overflow-y-auto flex flex-col">
+			 	<div className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg shadow-lg w-[600px] max-h-[80vh] overflow-y-auto flex flex-col">
 				
 				<div>
 					<form onSubmit={handleSearch}>
-						<label htmlFor="query" className="block text-sm font-medium text-black">
+						<label htmlFor="query" className="block text-sm font-medium text-white">
 							Add friends by Username
 						</label>
 						<div className="flex gap-2">
@@ -264,8 +264,8 @@ const UserHeader: React.FC = () => {
 								name="query"
 								value={searchState.query}
 								onChange={handleSearchInputChange}
-								className="flex-grow border border-black bg-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-								required //fetches all if this is commented out
+								className="flex-grow border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+								required
 								placeholder="Enter Username ..."
 							/>
 							<button
@@ -275,7 +275,7 @@ const UserHeader: React.FC = () => {
 									setUserList([]);
 								}}
 								
-								className="bg-gray-300 text-black px-2 py-2 rounded-md hover:bg-gray-400"
+								className="bg-gray-400 text-white px-2 py-2 border-2 border-black rounded-md hover:bg-gray-500 transform transition-transform hover:scale-104 duration-100"
 							>
 								Clear
 							</button>
@@ -283,26 +283,26 @@ const UserHeader: React.FC = () => {
 
 						<button
 						type="submit"
-						className="w-full bg-green-500 text-white border border-black py-2 rounded-md hover:bg-green-700 text-center"
+						className="w-full mt-2 bg-green-600 text-white border-2 border-black py-2 rounded-md hover:bg-green-700 text-center transform transition-transform hover:scale-102 duration-100"
 						>
 							Search
 						</button>
 					</form>
 
 					{userList && userList.length > 0 && (
-					<div className="w-full bg-white mt-1 rounded-md shadow-lg border border-gray-300 overflow-hidden z-100">
+					<div className="w-full bg-[#1a1a1a] mt-1 rounded-md shadow-lg border border-gray-700 overflow-hidden">
 					  <div className="space-y-4 pr-2 flex-grow max-h-96 overflow-y-auto">
 						{userList.filter((req) => req.id !== Number(userId) && !friendsList.map(friend => friend.id).includes(req.id))
 						  .map((req) => (
-						  <div key={req.id} className="flex items-center justify-between p-2 hover:bg-gray-100">
+						  <div key={req.id} className="flex items-center justify-between p-2 hover:bg-[#2a2a2a]">
 							<div className="flex items-center space-x-2">
-							  <img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-							  <span className="text-black">{req.name}</span>
+							  <img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border-2 border-black rounded-full mr-2" />
+							  <span className="text-white">{req.name}</span>
 							</div>
 							<div className="flex space-x-2">
 							  <button
 								onClick={() => handleAddFriend(req.id)}
-								className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+								className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700  transform transition-transform hover:scale-102 duration-100"
 							  >
 								Add
 							  </button>
@@ -315,31 +315,31 @@ const UserHeader: React.FC = () => {
 			
 					{pendingRequests && pendingRequests.length > 0 && (
 						<div className="w-full px-4 gap-4">
-							<h2 className="text-lg font-semibold mb-2 text-black">Pending Requests:</h2>
+							<h2 className="text-lg font-semibold mb-2 text-white">Pending Requests:</h2>
 							{pendingRequests.map((req) => (
-								<div key={req.id} className="flex items-center justify-between bg-white p-2 rounded mb-2">
+								<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2 hover:bg-[#2a2a2a]">
 									
 								<div className="flex items-center space-x-2">
-									<img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-									<span className="text-black">{req.name}</span>
+									<img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border-2 border-black rounded-full mr-2" />
+									<span className="text-white">{req.name}</span>
 								</div>
 
 								<div className="flex space-x-2">
 									<button
 										onClick={() => handleAccept(req.id)}
-										className="bg-green-500 text-white border border-black px-2 py-1 rounded hover:bg-green-600"
+										className="bg-green-600 text-white border-2 border-black px-2 py-1 rounded hover:bg-green-700 transform transition-transform hover:scale-103 duration-100"
 									>
 										Accept
 									</button>
 									<button
 										onClick={() => handleDecline(req.id)}
-										className="bg-red-500 text-white border border-black px-2 py-1 rounded hover:bg-red-600"
+										className="bg-red-600 text-white border-2 border-black px-2 py-1 rounded hover:bg-red-700 transform transition-transform hover:scale-103 duration-100"
 									>
 										Decline
 									</button>
 									<button
 										onClick={() => handleBlock(req.id)}
-										className="bg-gray-800 text-white border border-black px-2 py-1 rounded hover:bg-black"
+										className="bg-gray-700 text-white border-2 border-black px-2 py-1 rounded hover:bg-gray-900 transform transition-transform hover:scale-103 duration-100"
 									>
 										Block
 									</button>
@@ -352,25 +352,25 @@ const UserHeader: React.FC = () => {
 
 					{friendsList && friendsList.length > 0 && (
 					<div className="w-full px-4 gap-4">
-						<h2 className="text-lg font-semibold mb-2 text-black">Friends:</h2>
+						<h2 className="text-lg font-semibold mb-2 text-white">Friends:</h2>
 						<div className="space-y-4 pr-2 flex-grow max-h-96 overflow-y-auto">
 							{friendsList.map((req) => (
-							<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2">
+							<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2 hover:bg-[#2a2a2a]">
 								<div className="flex items-center">
-								<img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-								<span className="text-black">{req.name}</span>
+								<img src={`http://localhost:4000/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border-2 border-black rounded-full mr-2" />
+								<span className="text-white">{req.name}</span>
 								</div>
 								
 								<div className="flex items-center space-x-2">
 								<span
-								className={`w-4 h-4 border border-black rounded-full ${
-									req.online_status === 1 ? "bg-green-600" : "bg-red-500"
+								className={`w-4 h-4 border-2 border-black rounded-full ${
+									req.online_status === 1 ? "bg-green-600" : "bg-red-600"
 								} inline-block ml-2`}
 								/>
 
 								<button
 									onClick={() => handleRemove(req.id)}
-									className="bg-red-500 text-white border border-black px-2 py-1 rounded hover:bg-red-600"
+									className="bg-red-600 text-white border-2 border-black px-2 py-1 rounded hover:bg-red-700 transform transition-transform hover:scale-103 duration-100"
 									>
 									Remove
 								</button>
@@ -385,7 +385,7 @@ const UserHeader: React.FC = () => {
 
 				<button
 					onClick={handleOpenFriends}
-					className="border border-black w-full mt-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 self-end"
+					className="border-2 border-black w-full mt-4 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 self-end transform transition-transform hover:scale-102 duration-100"
 				>
 					Close
 				</button>

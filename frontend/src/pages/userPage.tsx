@@ -50,7 +50,7 @@ const UserPage: React.FC = () => {
 					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../singlepong.png" alt="Solo game Icon" className="w-auto h-2/4 mb-2" />
-					<span className="text-xl font-bold mt-2">Demo Singleplayer Game</span>
+					<span className="text-xl font-bold mt-2">Local 1vs1</span>
 				</Link>
 
 				<Link
@@ -58,14 +58,14 @@ const UserPage: React.FC = () => {
 					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
-					<span className="text-xl font-bold mt-2">Demo Game</span>
+					<span className="text-xl font-bold mt-2">Online 1vs1</span>
 				</Link>
 				<Link
 					to="/ai-game"
 					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../AI_board.png" alt="Game Icon" className="w-auto rounded-2xl h-2/4 mb-2" />
-					<span className="text-xl font-bold mt-2">VS AI Game</span>
+					<span className="text-xl font-bold mt-2">Player vs AI</span>
 				</Link>
 				<Link
 					to="/tournaments"

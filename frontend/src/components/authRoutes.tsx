@@ -17,7 +17,7 @@ const ProtectedRoutes: React.FC<{children: React.ReactNode}> = ({children}) => {
 	const refreshToken = sessionData.refreshToken;
 	
 	if (!accessToken && !refreshToken) {
-		toast.open("Unauthorized", "error");
+		// toast.open("Unauthorized", "error");
 		return <Navigate to="/login" replace />;
 	}
 

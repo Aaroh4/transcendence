@@ -8,6 +8,7 @@ import {
 	createrTour,
 	joinTour,
 	getTournaments,
+	leaveTour,
 	// fetchLeaveButton
  } from "../services/tournamentApi";
 
@@ -259,7 +260,22 @@ const TournamentsPage: React.FC = () => {
 					Join
 					</button>) : String(tour.id) === String(myTour) ? (
 
-					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
+					onClick={() => {
+						leaveTour(tour.id).then((response) => {
+							if (response != 200) {
+								toast.open("YOU ARE NOT IN THIS TOURNAMENT!!", "error" );
+								return ;
+							}
+						});						
+						getPlayerAmount(tour.id).then((newAmount) => {
+							setFetchedTournaments((prevTournaments) =>
+							  prevTournaments.map((t) =>
+								t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
+						  });
+						fetchLeaveButton();
+					}}
+					>
 						Leave
 					</button>
 					) : null}
@@ -280,7 +296,7 @@ const TournamentsPage: React.FC = () => {
 		</div>
 		)}
 
-		</>
+	</>
 	);
 };
 

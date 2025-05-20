@@ -11,7 +11,7 @@ const RedirectForLoggedIn: React.FC<{children: React.ReactNode}> = ({children}) 
 	const refreshToken = sessionData.refreshToken;
 	
 	if (accessToken && refreshToken) {
-		toast.open("Already logged in", "info");
+		// toast.open("Already logged in", "info");
 		return <Navigate to="/user" replace />;
 	}
 

@@ -64,6 +64,7 @@ export async function joinTour(tourId: number): Promise<number> {
 	try {
 			const options = {
 				method: 'POST',
+				body: JSON.stringify({}),
 				headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${sessionData.accessToken}`
@@ -75,6 +76,7 @@ export async function joinTour(tourId: number): Promise<number> {
 		if (response.status === 1) {
 			const retryResponse = await fetch('/api/tournament/' + tourId + '/join', {
 				method: 'POST',
+				body: JSON.stringify({}),
 				headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${response.newToken}`
@@ -86,6 +88,42 @@ export async function joinTour(tourId: number): Promise<number> {
 
 	} catch (error) {
 		console.error("joinTour error:", error);
+		return (500);
+	}
+}
+
+export async function leaveTour(tourId : number): Promise<number> {
+	
+	const userId = sessionStorage.getItem('activeUserId');
+	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+
+	try {
+			const options = {
+				method: 'DELETE',
+				body: JSON.stringify({}),
+				headers: {
+				'Content-Type' : 'application/json',
+				'Authorization' : `Bearer ${sessionData.accessToken}`
+				}
+			}
+
+		const response = await authFetch('/api/tournament/' + tourId + '/leave', options);
+
+		if (response.status === 1) {
+			const retryResponse = await fetch('/api/tournament/' + tourId + '/leave', {
+				method: 'DELETE',
+				body: JSON.stringify({}),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			});
+			return (retryResponse.status)
+		}
+		return (response.status)
+	
+	} catch (error) {
+		console.error("leaveTour:", error);
 		return (500);
 	}
 }
@@ -117,51 +155,44 @@ export interface leaveButtonResponse {
 	data: any;
 }
 
-export async function fetchLeaveButton(): Promise<leaveButtonResponse>{
+// export async function fetchLeaveButton(): Promise<leaveButtonResponse>{
 	
-	const userId = sessionStorage.getItem('activeUserId');
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+// 	const userId = sessionStorage.getItem('activeUserId');
+// 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 
-	try {
-			const options = {
-				method: 'GET',
-				headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${sessionData.accessToken}`
-				}
-			}
-
-			const response = await authFetch('/api/tournament/participant/tourPage', options);
-
-			if (response.status === 1) {
-				const retryResponse = await fetch('/api/tournament/participant/tourPage', {
-					method: 'GET',
-					headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${response.newToken}`
-					}
-				});
-
-				const responseData = await retryResponse.json();
-				
-				return (responseData.tournament.id);
-			}
-
-			return ({status: 0, data: response});
-
-
-
-	} catch (error) {
-		console.error("leaveButton error:", error);
-	}
-
-// 		const response = await fetch('/api/tournament/participant/tourPage', {
-// 			method: 'GET',
-// 			headers: {
-// 			'Authorization': `Bearer ${sessionData.accessToken}`
+// 	try {
+// 			const options = {
+// 				method: 'GET',
+// 				headers: {
+// 				'Content-Type': 'application/json',
+// 				'Authorization': `Bearer ${sessionData.accessToken}`
+// 				}
 // 			}
-// 		});
-}
+
+// 			const response = await authFetch('/api/tournament/participant/tourPage', options);
+
+// 			if (response.status === 1) {
+// 				const retryResponse = await fetch('/api/tournament/participant/tourPage', {
+// 					method: 'GET',
+// 					headers: {
+// 					'Content-Type': 'application/json',
+// 					'Authorization': `Bearer ${response.newToken}`
+// 					}
+// 				});
+
+// 				const responseData = await retryResponse.json();
+				
+// 				return (responseData.tournament.id);
+// 			}
+
+// 			return ({status: 0, data: response});
+
+
+
+// 	} catch (error) {
+// 		console.error("leaveButton error:", error);
+// 	}
+// }
 
 
 // this from the tournament page
