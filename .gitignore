@@ -69,3 +69,6 @@ client_secret.json
 **/.env
 .env
 turn.out
+**/database.bc*
+**/database.db
+**/output.css

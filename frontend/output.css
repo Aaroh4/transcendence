@@ -11,7 +11,6 @@
     --color-red-600: oklch(57.7% 0.245 27.325);
     --color-red-700: oklch(50.5% 0.213 27.518);
     --color-green-100: oklch(96.2% 0.044 156.743);
-    --color-green-300: oklch(87.1% 0.15 154.449);
     --color-green-500: oklch(72.3% 0.219 149.579);
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-green-700: oklch(52.7% 0.154 150.069);
@@ -403,6 +402,9 @@
   }
   .justify-center {
     justify-content: center;
+  }
+  .gap-1 {
+    gap: calc(var(--spacing) * 1);
   }
   .gap-4 {
     gap: calc(var(--spacing) * 4);
