@@ -302,7 +302,7 @@ const UserHeader: React.FC = () => {
 							<div className="flex space-x-2">
 							  <button
 								onClick={() => handleAddFriend(req.id)}
-								className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700  transform transition-transform hover:scale-102 duration-100"
+								className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transform transition-transform hover:scale-102 duration-100"
 							  >
 								Add
 							  </button>

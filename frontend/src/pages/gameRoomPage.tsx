@@ -87,9 +87,9 @@ const matchTypeButtons = () => {
 		case "solo":
 			return(
 				<>
-					<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 1/1</p>
-					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Solo Game!</h1>
-					<button id="ready-solo" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+					<p id="size-txt" className="text-center text-gray-300 mb-4">Lobby size: 1/1</p>
+					<h1 className="text-2xl text-white font-bold text-center mb-4">Welcome to the Solo Game!</h1>
+					<button id="ready-solo" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
 						Start!
 					</button>
 					</>
@@ -103,9 +103,9 @@ const matchTypeButtons = () => {
 				{
 					return(
 						<>
-						<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-						<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Tournament!</h1>
-						<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+						<p id="size-txt" className="text-center text-gray-300 mb-4">Lobby size: 0/2</p>
+						<h1 className="text-2xl text-white font-bold text-center mb-4">Welcome to the Tournament!</h1>
+						<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
 							Ready up!
 						</button>
 						</>
@@ -114,8 +114,8 @@ const matchTypeButtons = () => {
 		case "ai":
 			return (
 				<div className="w-full mx-auto px-0">
-					<p className="text-center text-gray-600 mb-4">Lobby size: 1/1</p>
-					<h1 className="text-2xl font-bold text-center mb-4">Welcome to the VS AI Game!</h1>
+					<p className="text-center text-gray-300 mb-4">Lobby size: 1/1</p>
+					<h1 className="text-2xl text-white font-bold text-center mb-4">Welcome to the VS AI Game!</h1>
 
 					<div className="flex w-full mb-4">
 					{difficulties.map(({ level, label }, index) => {
@@ -131,7 +131,7 @@ const matchTypeButtons = () => {
 						return (
 							<button
 								key={level}
-								className={`w-1/5 py-2 text-white text-center ${roundedClass} ${
+								className={`w-1/5 py-2 text-white border-2 border-black transform transition-transform hover:scale-105 duration-100 text-center ${roundedClass} ${
 									difficulty === level
 										? 'bg-green-700'
 										: 'bg-green-900 hover:bg-green-500'
@@ -147,7 +147,7 @@ const matchTypeButtons = () => {
 
 					<button
 						id="ready-ai"
-						className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
+						className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100"
 					>
 						Start!
 					</button>
@@ -156,9 +156,9 @@ const matchTypeButtons = () => {
 		case "normal":
 			return(
 				<>
-				<p id="size-txt" className="text-center text-gray-600 mb-4">Lobby size: 0/2</p>
-				<h1 className="text-2xl font-bold text-center mb-4">Welcome to the Gameroom!</h1>
-				<button id="ready-match" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
+				<p id="size-txt" className="text-center text-gray-300 mb-4">Lobby size: 0/2</p>
+				<h1 className="text-2xl text-white font-bold text-center mb-4">Welcome to the Gameroom!</h1>
+				<button id="ready-match" className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
 					Start Matchmaking!
 				</button>
 				</>
@@ -205,31 +205,33 @@ const matchTypeButtons = () => {
 		<>
 			<Background />
 			<UserHeader />
-			<div id="gameroom-page" className="bg-green-100 p-8 rounded-lg shadow-md w-[820px]">				
-			{matchTypeButtons()}
+			<div className="flex flex-col items-center justify-center gap-6 pt-[10vh] px-[1vw]">
+				<div id="gameroom-page" className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg shadow-lg w-[600px] max-h-[80vh] overflow-y-auto flex flex-col">
+				{matchTypeButtons()}
 
-				<label htmlFor="colorSelect">Choose ball color:</label>
-				<select id="colorSelect" name="mySelect" defaultValue="white">
-					<option value="white" >White</option>
-					<option value="green">Green</option>
-					<option value="blue">Blue</option>
-					<option value="red">Red</option>
-					<option value="purple">Purple</option>
-				</select>
+					<label htmlFor="colorSelect" className="p-2 text-white rounded-md ">Choose padel color:</label>
+					<select id="colorSelect" name="mySelect" defaultValue="white" className="p-2 border-2 border-black bg-[#2a2a2a] text-white focus:outline-none focus:ring-2 focus:ring-green-500 rounded">
+						<option value="white" >White</option>
+						<option value="green">Green</option>
+						<option value="blue">Blue</option>
+						<option value="red">Red</option>
+						<option value="purple">Purple</option>
+					</select>
 
-				<button id="start-btn" hidden className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center">
-					Start The Game
-				</button>
+					<details id="edit-game" hidden>
+						<summary className="mt-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-2 rounded border-2 border-black transform transition-transform hover:scale-102 duration-100">
+							Edit ball settings
+						</summary>
+						<p className="text-center text-white">Ball size</p>
+						<input id="ball-size" type="text" placeholder="20" className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"/>
+						<p className="text-center text-white">Ball speed</p>
+						<input id="ball-speed" type="text" placeholder="3" className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"/>
+					</details>
 
-				<details id="edit-game" hidden>
-					<summary className="cursor-pointer bg-blue-500 text-fuchsia-800 p-2 rounded">
-						Open Input Fields
-					</summary>
-					<p className="text-center text-gray-600 mb-4">Ball size</p>
-					<input id="ball-size" type="text" placeholder="20" className="block w-full p-2 border border-gray-300 rounded mt-2"/>
-					<p className="text-center text-gray-600 mb-4">Ball speed</p>
-					<input id="ball-speed" type="text" placeholder="3" className="block w-full p-2 border border-gray-300 rounded mt-2"/>
-				</details>
+					<button id="start-btn" hidden className="mt-2 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
+						Start The Game
+					</button>
+				</div>
 			</div>
 
 			<div id="game-wrapper" className="w-[820px] hidden mx-auto">
