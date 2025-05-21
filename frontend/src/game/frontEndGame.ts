@@ -6,6 +6,8 @@ import { router } from '../App';
 import { GameAI } from './gameAI';
 import { Renderer2D } from './renderer2d.js';
 import { Renderer3D } from './renderer3d.js';
+import { useToast } from '../components/toastBar/toastContext.js';
+import { useState } from 'react';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -669,6 +671,15 @@ export class frontEndGame {
 					router.navigate("/tournaments");
 				  }, 3000);
 			}
+		});
+
+		socket.on("disconnectWin", () => {
+			//const toast = useToast();
+
+			//toast.open("You win!", "success");
+			setTimeout(() => {
+				router.navigate("/tournaments");
+			  }, 3000);
 		});
 	}
 }

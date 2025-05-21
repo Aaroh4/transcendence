@@ -17,7 +17,6 @@ export default function GameRoom({matchType}) {
 	const [renderMode, setRenderMode] = useState<'2D' | '3D'>(() =>
 		typeof window !== 'undefined' && window.game?.currentMode === '3D' ? '3D' : '2D'
 	);
-
   
 useEffect(() => {
 	sessionStorage.setItem("AIdifficulty", difficulty.toString());

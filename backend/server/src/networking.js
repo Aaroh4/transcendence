@@ -53,7 +53,7 @@ class IDAllocator {
 
 let io;
 const games = {};
-const rooms = {};
+export const rooms = {};
 const roomIds = new IDAllocator(5000); // max room amount
 
 export function setupNetworking(server){
@@ -189,6 +189,7 @@ export function setupNetworking(server){
 				gameStarted: false,
 				hostId: null,
 				type: "tournament", // Games matchmaking type
+				sockets: {},
 				};
 			}
       const player = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
@@ -202,16 +203,19 @@ export function setupNetworking(server){
 
         let hasDisconnected = 0
 
-        if (match && match.player_one_id === userId) {
+        if (match && match.player_one_id == userId) {
           hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
             .get(match.player_two_id)
-        } else if (match && match.player_two_id === userId) {
+			rooms[roomId].sockets[match.player_one_id] = socket;
+        } else if (match && match.player_two_id == userId) {
           hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
             .get(match.player_one_id)
+			rooms[roomId].sockets[match.player_two_id] = socket;
         }
-        if (hasDisconnected.is_ready === 2) {
+        if (hasDisconnected.is_ready == 2) {
           db.prepare('UPDATE matches SET status = ? WHERE id = ?')
             .run('in_progress', match.id)
+			socket.emit("disconnectWin");
           updateBracket(userId, hasDisconnected.user_id, 1, 0)
         } else {
           joinRoom(roomId, socket, userId);

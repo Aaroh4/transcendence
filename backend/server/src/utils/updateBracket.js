@@ -1,4 +1,5 @@
 import db from '../dbInstance.js'
+import { rooms } from '../networking.js'
 
 function updateBracket(winnerId, loserId, winnerScore, loserScore) {
   const updateMatches = db.transaction((winnerId, loserId) => {
@@ -133,10 +134,14 @@ function readyUpTimer(tournamentId) {
     if (opponent.player_one_id === playerIds[i]) {
       db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
         .run('in_progress', playerIds[i], opponent.player_two_id, tournamentId)
+
+		rooms[opponent.room_id].sockets[opponent.player_two_id].emit("disconnectWin");
       updateBracket(opponent.player_two_id, playerIds[i], 1, 0)
     } else {
       db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
         .run('in_progress', opponent.player_one_id, playerIds[i], tournamentId)
+
+		rooms[opponent.room_id].sockets[opponent.player_one_id].emit("disconnectWin");
       updateBracket(opponent.player_one_id, playerIds[i], 1, 0)
     }
   }
