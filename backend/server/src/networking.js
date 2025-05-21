@@ -100,6 +100,15 @@ export function setupNetworking(server){
 						player.peerConnection = null;
 					}
 
+          if (rooms[playerRoom] == 'tournament') {
+            const player = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+              .get(player.dbId)
+            if (player) {
+              db.prepare('UPDATE tournament_players SET is_ready = 0 WHERE user_id = ?')
+                .run(player.dbId)
+            }
+          }
+
 					delete rooms[playerRoom].players[socket.id];
 					log.info(`Player ${socket.id} removed from room ${playerRoom}`);
 					
@@ -117,7 +126,7 @@ export function setupNetworking(server){
 						io.to(playerRoom).emit("playerDisconnected", Object.keys(rooms[playerRoom].players).length);
 						if (games[playerRoom].gameStarted == false)
 							roomIds.openRoomDoors(playerRoom);
-					}	
+					}
 			}
 		});
 
@@ -182,7 +191,32 @@ export function setupNetworking(server){
 				type: "tournament", // Games matchmaking type
 				};
 			}
-			joinRoom(roomId, socket, userId);
+      const player = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+        .get(userId)
+      if (player) {
+        db.prepare('UPDATE tournament_players SET is_ready = 1 WHERE user_id = ?')
+          .run(userId)
+
+        const match = db.prepare('SELECT * FROM matches WHERE player_one_id = ? OR player_two_id = ?')
+          .get(userId, userId)
+
+        let hasDisconnected = 0
+
+        if (match && match.player_one_id === userId) {
+          hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+            .get(match.player_two_id)
+        } else if (match && match.player_two_id === userId) {
+          hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+            .get(match.player_one_id)
+        }
+        if (hasDisconnected.is_ready === 2) {
+          db.prepare('UPDATE matches SET status = ? WHERE id = ?')
+            .run('in_progress', match.id)
+          updateBracket(userId, hasDisconnected.user_id, 1, 0)
+        } else {
+          joinRoom(roomId, socket, userId);
+        }
+      }
 		});
 
 		// Normal matchmaking
@@ -385,9 +419,9 @@ function startGameLoop(roomId) {
 	const room = rooms[roomId];
 	const game = games[roomId];
 	
-	if (!game || !room) return;
-	const playerList = Object.values(room.players);
-	
+	if (!game || !room) return;	
+ 	const playerList = Object.values(room.players)
+
 	const gameLoop = () => {
 
 	const startTime = Date.now();
@@ -398,12 +432,12 @@ function startGameLoop(roomId) {
 
 	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
 		game.stop();
-		const winner = game.getScores()[0] >= 5 ? 0 : 1;
-		const winnerId = playerList[winner].dbId;
-		const loserId = playerList[1 - winner].dbId;
-		const winnerScore = game.getScores()[winner]
-		const loserScore = game.getScores()[1 - winner]
-		
+		const winner = game.getScores()[0] >= 5 ? 0 : 1
+    const winnerId = playerList[winner].dbId;
+    const loserId = playerList[1 - winner].dbId;
+    const winnerScore = game.getScores()[winner]
+    const loserScore = game.getScores()[1 - winner]
+
 		if (room.type === "normal") {
 			updateMatchHistory(winnerId, loserId, winnerScore, loserScore)
 			room.gameStarted = false; // Allow rematch

@@ -1,4 +1,5 @@
 import shuffle from '../utils/shuffle.js'
+import { readyUpTimer } from '../utils/updateBracket.js'
 
 const createTournament = async function(req, reply) {
   const { name, size } = req.body
@@ -164,13 +165,13 @@ const startTournament = async function(req, reply, tournamentId, tournamentName)
 			const roundMatchIds = []
 	
 			for (let match = 0; match < matchesInRound; match++) {
-			if (round > 1) {
-				const prevRoundMatches = allMatchIds.get(round - 1)
-				playerOnePrevMatch = prevRoundMatches[match * 2] || null
-				playerTwoPrevMatch = prevRoundMatches[match * 2 + 1] || null
-			} else {
-				playerOne = playerIds[match * 2] || null
-				playerTwo = playerIds[match * 2 + 1] || null
+        if (round > 1) {
+          const prevRoundMatches = allMatchIds.get(round - 1)
+          playerOnePrevMatch = prevRoundMatches[match * 2] || null
+          playerTwoPrevMatch = prevRoundMatches[match * 2 + 1] || null
+        } else {
+          playerOne = playerIds[match * 2] || null
+          playerTwo = playerIds[match * 2 + 1] || null
 			}
 			const insertStatement = db
 				.prepare(`INSERT INTO matches 
@@ -194,6 +195,10 @@ const startTournament = async function(req, reply, tournamentId, tournamentName)
 			.run('in_progress', tournamentId)
 		})
 		bracketTransaction()
+
+    setTimeout(async() => {
+      readyUpTimer(tournamentId)
+    }, 60000)
 
     return reply.send({ 
       message: `User ${req.user.name} successfully joined tournament ${tournamentName}`,
