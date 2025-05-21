@@ -47,8 +47,6 @@ const getTournaments = async function(req, reply) {
     const tournaments = db.prepare("SELECT * FROM tournaments WHERE status = 'created'")
       .all()
 
-	console.log(tournaments);
-
     if (tournaments.length === 0) return reply.code(404).send({ error: "No tournaments found" })
     
     return reply.send(tournaments)
@@ -101,7 +99,7 @@ const joinTournament = async function(req, reply) {
 		}
 	
 		const hasJoined = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
-		.all(user.id)
+		  .all(user.id)
 		
 		if (hasJoined.length >= 1) return reply.code(409).send({ error: "User has already joined a tournament" })
 		
@@ -109,7 +107,7 @@ const joinTournament = async function(req, reply) {
 		  .run(userId, tournamentId)
 	
 		const players = db.prepare('SELECT user_id FROM tournament_players WHERE tournament_id = ?')
-		.all(tournament.id)
+		  .all(tournament.id)
 
     db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
 		  .run(players.length, tournament.id)
@@ -260,6 +258,9 @@ const leaveTournament = async function(req, reply) {
 
     db.prepare('DELETE FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
       .run(tournamentId, userId)
+
+    db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
+		  .run(tournamentId)
     
 	db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
 	  .run(tournamentId)
