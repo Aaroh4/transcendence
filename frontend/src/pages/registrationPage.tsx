@@ -1,6 +1,7 @@
 import Header, { siteKey } from "../components/headers";
 import { useToast } from "../components/toastBar/toastContext";
-import { RegistrationRequest, registerUser } from "../services/api";
+// import { RegistrationRequest, registerUser } from "../services/api";
+import { RegistrationRequest, registerUser } from "../services/userApi";
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";

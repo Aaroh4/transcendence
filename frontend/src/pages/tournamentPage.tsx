@@ -3,107 +3,19 @@ import { Link } from 'react-router-dom';
 import React from 'react';
 import { useState, useRef } from "react";
 import { useToast } from "../components/toastBar/toastContext";
+import {
+	getPlayerAmount,
+	createrTour,
+	joinTour,
+	getTournaments,
+	leaveTour,
+	// fetchLeaveButton
+ } from "../services/tournamentApi";
 
 
 export interface tournament {
 	name : string;
 	size : number;
-}
-
-export async function getPlayerAmount(tourId : number) : Promise<number> {	
-	try {
-		const response = await fetch('/api/tournament/' + tourId + '/playerAmount', {
-			method: 'GET',
-		});
-
-		const responseData = await response.json();
-
-		return responseData.playerAmount;
-	} catch (error) {
-		console.error("Fetch failed:", error);
-	}
-}
-
-export async function createrTour(tournament): Promise<number> {
-	
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournament/create', {
-			method: 'POST',
-			body: JSON.stringify(tournament),
-			headers: {
-			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
- 
-		return response.status;
-
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
-
-export async function joinTour(tourId : number): Promise<number> {
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournament/' + tourId + '/join', {
-			method: 'POST',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-		return (response.status);
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
-
-export async function leaveTour(tourId : number) {
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-
-	try {
-		const response = await fetch('/api/tournament/' + tourId + '/leave', {
-			method: 'DELETE',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-		return (response.status);
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
-
-export async function getTournaments() 
-{
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournaments', {
-			method: 'GET',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-
-		const responseData = await response.json();
-
-		return responseData;
-
-	} catch (error) {
-		console.error("Login error:", error);
-	}
 }
 
 const TournamentsPage: React.FC = () => {
@@ -116,8 +28,8 @@ const TournamentsPage: React.FC = () => {
 	const toast = useToast();
 
 	const fetchLeaveButton = async () => {
+
 		const userId = sessionStorage.getItem('activeUserId');
-	
 		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 
 		const response = await fetch('/api/tournament/participant/tourPage', {
@@ -155,7 +67,7 @@ const TournamentsPage: React.FC = () => {
 		const name = tourName.current.value.trim() || tourName.current.placeholder;
 		const size = tourSize.current.value.trim() || tourSize.current.placeholder;
 
-		createrTour({name: name, size: size}).then((response) => {
+		createrTour({name: name, size: Number(size)}).then((response) => {
 			if (response == 200) {
 				console.log("Tournament created");
 			} else {
@@ -201,7 +113,7 @@ const TournamentsPage: React.FC = () => {
             <input
               id="tour-name"
               type="text"
-              placeholder="Among us Skibidi fortnite"
+              placeholder="Tournament name..."
 			  ref={tourName}
               className="block w-full p-2 border border-gray-300 rounded mb-4"
             />
@@ -305,7 +217,7 @@ const TournamentsPage: React.FC = () => {
 		</div>
 		)}
 
-		</>
+	</>
 	);
 };
 

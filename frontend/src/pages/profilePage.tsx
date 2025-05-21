@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { DeleteUserRequest, deleteUser } from "../services/api";
+// import { DeleteUserRequest, deleteUser } from "../services/api";
+import { DeleteUserRequest, deleteUser } from "../services/userApi";
 import { useToast } from "../components/toastBar/toastContext";
 import UserHeader from "../components/userHeader";
 
@@ -39,14 +40,6 @@ const ProfilePage: React.FC = () => {
 		<UserHeader />
 
 		<div className="flex flex-col items-center justify-center gap-6 p-101">
-			<div className="bg-white p-6 rounded-lg w-96 flex flex-col gap-4 items-center shadow-md">
-				<Link
-					to="/user"
-					className="w-64 bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center transition duration-100"
-				>
-					Back to user page
-				</Link>
-			</div>
 
 			<div className="bg-black p-6 text-white rounded-lg w-96 flex flex-col gap-4 items-center shadow-md">
 			<button 
