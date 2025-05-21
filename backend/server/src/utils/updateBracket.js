@@ -77,8 +77,8 @@ function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
       user_id,
       opponent_id, 
       user_score, 
-      opponent_score, 
-      tournament_id,
+      opponent_score,
+		winner_id,
       match_type) VALUES (?, ?, ?, ?, ?, ?)
     `).run(winnerId, loserId, winnerScore, loserScore, winnerId, 'single')
 
@@ -87,7 +87,7 @@ function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
       user_id,
       opponent_id, 
       user_score, 
-      opponent_score,  
+      opponent_score,
       winner_id,
       match_type) VALUES (?, ?, ?, ?, ?, ?)
     `).run(loserId, winnerId, loserScore, winnerScore, winnerId, 'single')

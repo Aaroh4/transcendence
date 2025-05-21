@@ -213,6 +213,9 @@ const getTournamentParticipant = async function(req, reply) {
   const userId = req.user.id
   const { tourType } = req.params;
 
+  console.log(">> getTournamentParticipant called");
+  console.log(userId, tourType);
+
   try {
 	let tournament;
 	tournament = db.prepare("SELECT * FROM tournament_players WHERE user_id = ?")
@@ -220,8 +223,16 @@ const getTournamentParticipant = async function(req, reply) {
 	if (tournament.length === 0) return reply.code(404).send({ error: `No tournament found` })
 	if (tourType === 'tourPage')
 	{
-		console.log(tournament[0].id);
 		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'created'")
+		.all(tournament[0].tournament_id)
+		if (realTournament.length === 0) 
+			return reply.code(404).send({ error: `No tournament found` })
+		else 
+			return reply.code(200).send({ tournament: realTournament[0] });
+	}
+	else if (tourType === 'gamePage')
+	{
+		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'in_progress'")
 		.all(tournament[0].tournament_id)
 		if (realTournament.length === 0) 
 			return reply.code(404).send({ error: `No tournament found` })
@@ -250,6 +261,9 @@ const leaveTournament = async function(req, reply) {
     db.prepare('DELETE FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
       .run(tournamentId, userId)
     
+	db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
+	  .run(tournamentId)
+
     return reply.send({ error: `User ${userId} left tournament ${tournamentId}`})
   } catch (error) {
     console.log(error)

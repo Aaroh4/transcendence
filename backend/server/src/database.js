@@ -89,7 +89,7 @@ async function dbInit(fastify, options) {
       opponent_score INTEGER,
       winner_id INTEGER,
       round INTEGER,
-      tournament_id INTEGER,
+      tournament_id INTEGER DEFAULT NULL,
       match_type TEXT CHECK(match_type IN ('single', 'tournament')),
       date DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE SET NULL,

@@ -24,7 +24,7 @@ export class Renderer2D implements GameRenderer{
 	}
 
 	render(state: GameState): void {
-		console.log("Render Renderer2D");
+		// console.log("Render Renderer2D");
 		this.ctx.fillStyle = "#000";
 		this.ctx.fillRect(0, 0, state.canvasWidth, state.canvasHeight);
 		for (var i = 0; i <= state.canvasHeight; i += 30) {

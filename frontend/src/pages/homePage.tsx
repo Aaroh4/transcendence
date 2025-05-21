@@ -49,7 +49,8 @@ const Home: React.FC = () => {
 		<>
 		<Header />
 		<Background/>
-			<div className="flex gap-6 items-center justify-center p-101">
+			<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
+  			<div className="flex flex-wrap gap-6 justify-center">
 		
 				<Link
 					to="/login"
@@ -75,6 +76,7 @@ const Home: React.FC = () => {
 					<span className="text-xl font-bold mt-2">Google sign in</span>
 				</button>
 		
+			</div>
 			</div>
 		</>
 	);

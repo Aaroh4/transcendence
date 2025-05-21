@@ -3,90 +3,15 @@ import { Link } from 'react-router-dom';
 import React from 'react';
 import { useState, useRef } from "react";
 import { useToast } from "../components/toastBar/toastContext";
-
-
-export interface tournament {
-	name : string;
-	size : number;
-}
-
-export async function getPlayerAmount(tourId : number) : Promise<number> {	
-	try {
-		const response = await fetch('/api/tournament/' + tourId + '/playerAmount', {
-			method: 'GET',
-		});
-
-		const responseData = await response.json();
-
-		return responseData.playerAmount;
-	} catch (error) {
-		console.error("Fetch failed:", error);
-	}
-}
-
-export async function createrTour(tournament): Promise<number> {
-	
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournament/create', {
-			method: 'POST',
-			body: JSON.stringify(tournament),
-			headers: {
-			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
- 
-		return response.status;
-
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
-
-export async function joinTour(tourId : number): Promise<number> {
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournament/' + tourId + '/join', {
-			method: 'POST',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-		return (response.status);
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
-
-export async function getTournaments() 
-{
-	const userId = sessionStorage.getItem('activeUserId');
-	
-	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
-	
-	try {
-		const response = await fetch('/api/tournaments', {
-			method: 'GET',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-
-		const responseData = await response.json();
-
-		return responseData;
-
-	} catch (error) {
-		console.error("Login error:", error);
-	}
-}
+import {
+	getPlayerAmount,
+	createTournament,
+	joinTournament,
+	getTournaments,
+	leaveTournament,
+	// fetchLeaveButton
+ } from "../services/tournamentApi";
+import { Tournament } from "../services/api";
 
 const TournamentsPage: React.FC = () => {
 	const [showForm, setShowForm] = useState(false);
@@ -98,8 +23,8 @@ const TournamentsPage: React.FC = () => {
 	const toast = useToast();
 
 	const fetchLeaveButton = async () => {
+
 		const userId = sessionStorage.getItem('activeUserId');
-	
 		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 
 		const response = await fetch('/api/tournament/participant/tourPage', {
@@ -133,11 +58,15 @@ const TournamentsPage: React.FC = () => {
 		}
 	};
 
-	const createTour = () => {
+	const handleCreateTour = () => {
 		const name = tourName.current.value.trim() || tourName.current.placeholder;
 		const size = tourSize.current.value.trim() || tourSize.current.placeholder;
 
-		createrTour({name: name, size: size}).then((response) => {
+		const settings: Tournament = {
+			name: name,
+			size: Number(size)
+		}
+		createTournament(settings).then((response) => {
 			if (response == 200) {
 				console.log("Tournament created");
 			} else {
@@ -183,9 +112,9 @@ const TournamentsPage: React.FC = () => {
             <input
               id="tour-name"
               type="text"
-              placeholder="Among us Skibidi fortnite"
+              placeholder="Tournament name..."
 			  ref={tourName}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
+              className="block w-full p-2 border text-gray-700 border-gray-300 rounded mb-4"
             />
             <p className="text-center text-gray-600 mb-4">Tournament size</p>
             <input
@@ -196,7 +125,7 @@ const TournamentsPage: React.FC = () => {
               className="block w-full p-2 border border-gray-300 rounded mb-4"
             />
 			<button
-			onClick={createTour}
+			onClick={handleCreateTour}
 			className="w-full bg-green-500 text-white p-2 rounded"
             >
               Confirm
@@ -236,7 +165,7 @@ const TournamentsPage: React.FC = () => {
 					{String(tour.id) !== String(myTour) ? (
 					<button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700"
 					onClick={() => {
-						joinTour(tour.id).then((response) => {
+						joinTournament(tour.id).then((response) => {
 							if (response != 200) {
 								toast.open("You are already in a tournament", "error" );
 							}
@@ -252,7 +181,21 @@ const TournamentsPage: React.FC = () => {
 					Join
 					</button>) : String(tour.id) === String(myTour) ? (
 
-					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">
+					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
+					onClick={() => {
+						leaveTournament(tour.id).then((response) => {
+							if (response != 200) {
+								toast.open("YOU ARE NOT IN THIS TOURNAMENT!!", "error" );
+							}
+						});						
+						getPlayerAmount(tour.id).then((newAmount) => {
+							setFetchedTournaments((prevTournaments) =>
+							  prevTournaments.map((t) =>
+								t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
+						  });
+						fetchLeaveButton();
+					}}
+					>
 						Leave
 					</button>
 					) : null}
@@ -273,7 +216,7 @@ const TournamentsPage: React.FC = () => {
 		</div>
 		)}
 
-		</>
+	</>
 	);
 };
 
