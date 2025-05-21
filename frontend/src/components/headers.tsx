@@ -6,7 +6,7 @@ export const siteKey = "6Lf-7hwrAAAAAJfpGT5ZQUZYd-hAZVjLZx6aJEl9";
 const Header: React.FC = () => {
 
 	return (
-		<header className="w-full bg-black text-white py-10 px-10 flex items-center justify-between">
+		<header className="flex-wrap w-full bg-black text-white py-10 px-10 flex items-center justify-between">
 
 		  	<div className="flex items-center">
 			<h1 className="text-5xl font-extrabold tracking-tight text-green-500">

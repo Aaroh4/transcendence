@@ -212,6 +212,7 @@ export async function loginUser(userData: LoginRequest, captchaToken): Promise<L
 
 export interface LogoutRequest {
 	token: string;
+	accToken: string;
 }
 
 interface LogoutResponse {
@@ -222,26 +223,53 @@ interface LogoutResponse {
 export async function logoutUser(userData: LogoutRequest): Promise<LogoutResponse> {
 
 	try {
-		const response = await fetch(`${API_AUTH_URL}/api/logout`, {
-			method: 'DELETE',
-			body: JSON.stringify(userData), 
-			headers: {
-			'Content-Type': 'application/json',
+			const options = {
+				method: 'DELETE',
+				body: JSON.stringify({token: userData.token}),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${userData.accToken}`
+				}
 			}
-		});
 
-		if (!response.ok)
+		const response = await authFetch(`${API_AUTH_URL}/api/logout`, options);
+
+		if (response.status == 1) {
+			const retryResponse = await fetch(`${API_AUTH_URL}/api/logout`, {
+				method: 'DELETE',
+				body: JSON.stringify({token: userData.token}),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			});
+
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+			
+			if (!retryResponse.ok)
+				return {
+				status: retryResponse.status,
+				error: responseData.error || 'Logout failed'
+				}
 			return {
-				status: response.status,
-				error: 'Logout failed'
-			}
+				status: retryResponse.status,
+				error: responseData.error || 'Logout successful'
+			};
+		}
+
+		if (response.status >= 300)
+			return {
+			status: response.status,
+			error: response.error || 'Logout failed'
+		}
 		return {
 			status: response.status,
-			error: 'Logout successful'
+			error: response.error || 'Logout successful'
 		};
 
 	} catch (error) {
-		console.error("Logout error:", error);
+		console.error("Delete user:", error);
 		return {
 			status: 500,
 			error: 'Something went wrong. Please try again.'
@@ -252,7 +280,6 @@ export async function logoutUser(userData: LogoutRequest): Promise<LogoutRespons
 export interface DeleteUserRequest {
 	id: number;
 	accToken: string;
-	token: string; // refreshtoken, name: token to match backend
 }
 
 interface DeleteUserResponse {
@@ -265,7 +292,7 @@ export async function deleteUser(userData: DeleteUserRequest): Promise<DeleteUse
 	try {
 			const options = {
 				method: 'DELETE',
-				body: JSON.stringify({id: userData.id, token: userData.token}),
+				body: JSON.stringify({id: userData.id}),
 				headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${userData.accToken}`
@@ -275,10 +302,10 @@ export async function deleteUser(userData: DeleteUserRequest): Promise<DeleteUse
 		const response = await authFetch(`/api/user/delete` , options);
 
 		if (response.status == 1) {
-			console.log(userData.accToken);
+			console.log(userData.accToken);//delete
 			const retryResponse = await fetch(`/api/user/delete`, {
 				method: 'DELETE',
-				body: JSON.stringify({id: userData.id, token: userData.token}),
+				body: JSON.stringify({id: userData.id}),
 				headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${response.newToken}`

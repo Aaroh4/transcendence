@@ -19,7 +19,6 @@ const ProfilePage: React.FC = () => {
 		const user: DeleteUserRequest = {
 			id: Number(userId),
 			accToken: sessionData.accessToken,
-			token: sessionData.refreshToken
 		};
 	
 		console.log("Calling deleteUser API");

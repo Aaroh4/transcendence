@@ -22,7 +22,7 @@ const logoutUser = async function(req, reply) {
     db.prepare('UPDATE users SET online_status = 0 WHERE id = ?')
       .run(userId)
 
-    return reply.code(303).redirect('/')
+    return reply.code(204).redirect('/')
   } catch (error) {
     console.log(error)
     return reply.code(500).send({ error: error.message })
