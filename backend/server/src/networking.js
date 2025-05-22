@@ -124,7 +124,7 @@ export function setupNetworking(server){
 					} else if (rooms[playerRoom].type == "normal") {
 						// Notify remaining players
 						io.to(playerRoom).emit("playerDisconnected", Object.keys(rooms[playerRoom].players).length);
-						if (games[playerRoom].gameStarted == false)
+						if (rooms[playerRoom].gameStarted == false)
 							roomIds.openRoomDoors(playerRoom);
 					}
 			}
@@ -187,7 +187,6 @@ export function setupNetworking(server){
 				rooms[roomId] = {
 				players: {},
 				gameStarted: false,
-				hostId: null,
 				type: "tournament", // Games matchmaking type
 				sockets: {},
 				};
@@ -253,7 +252,6 @@ export function setupNetworking(server){
 				rooms[roomId] = {
 				players: {},
 				gameStarted: false,
-				hostId: null,
 				type: "normal" // Games matchmaking type
 				};
 			}
@@ -265,7 +263,7 @@ export function setupNetworking(server){
 		// Lets the host of the room start the game
 		socket.on('hostStart', (settings) => {
 			const playerRoom = socket.room;
-			if (!playerRoom || !rooms[playerRoom] || rooms[playerRoom].hostId != socket.id) return;
+			if (!playerRoom || !rooms[playerRoom] || Object.keys(rooms[playerRoom].players)[0].socketId == socket.id) return;
 
 			if (Object.keys(rooms[playerRoom].players).length === 2 && !rooms[playerRoom].gameStarted) {
 				const playerIds = Object.keys(rooms[playerRoom].players);
@@ -514,13 +512,10 @@ function joinRoom(roomId, socket, dbId)
 {
 	console.log("dbid", dbId);
 	const room = rooms[roomId];
-	if (Object.keys(room.players).length < 2) {
-		if (Object.keys(room.players).length === 0 && room.type == "normal") {
-			room.hostId = socket.id;
-		}
-		
+	if (Object.keys(room.players).length < 2) {		
 		room.players[socket.id] = {
 		dbId: dbId,
+		socketId: socket.id,
 		playerPosition: { x: 0, y: 0 },
 		peerConnection: null,
 		dataChannel: null,
