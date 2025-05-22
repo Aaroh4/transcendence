@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { createSocket, getSocket, closeSocket } from "../utils/socket";
 import Background from '../components/background.js';
 import { Logger, LogLevel } from '../utils/logger.js';
+import { useToast } from "../components/toastBar/toastContext";
 
 export default function GameRoom({matchType}) {
+	const toast = useToast();
 	const hasRun1 = useRef(false);
 	const hasRun2 = useRef(false);
 	const leftPage = useRef(false);
@@ -17,7 +19,6 @@ export default function GameRoom({matchType}) {
 	const [renderMode, setRenderMode] = useState<'2D' | '3D'>(() =>
 		typeof window !== 'undefined' && window.game?.currentMode === '3D' ? '3D' : '2D'
 	);
-
   
 useEffect(() => {
 	sessionStorage.setItem("AIdifficulty", difficulty.toString());
@@ -75,7 +76,7 @@ useEffect(() => {
 			createSocket();
 		}
 
-		createNewGame(matchType, getSocket(), userId);
+		createNewGame(matchType, getSocket(), userId, toast);
 		hasRun2.current = true;
 	}
 }, [matchType, tournamentStatus]);
@@ -89,7 +90,7 @@ const matchTypeButtons = () => {
 				<>
 					<p id="size-txt" className="text-center text-gray-300 mb-4">Lobby size: 1/1</p>
 					<h1 className="text-2xl text-white font-bold text-center mb-4">Welcome to the Solo Game!</h1>
-					<button id="ready-solo" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
+					<button id="ready-solo" className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
 						Start!
 					</button>
 					</>
@@ -97,7 +98,7 @@ const matchTypeButtons = () => {
 		case "tournament":
 			if (tournamentStatus != "active")
 				{
-					return (<p>No Tournament Active!</p>);
+					return (<p className="text-2xl font-bold text-center text-white">No Active Tournaments!</p>);
 				}	
 				else
 				{
@@ -105,7 +106,7 @@ const matchTypeButtons = () => {
 						<>
 						<p id="size-txt" className="text-center text-gray-300 mb-4">Lobby size: 0/2</p>
 						<h1 className="text-2xl text-white font-bold text-center mb-4">Welcome to the Tournament!</h1>
-						<button id="ready-tour" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
+						<button id="ready-tour" className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">
 							Ready up!
 						</button>
 						</>

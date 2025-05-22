@@ -81,7 +81,7 @@ const acceptRequest = async function(req, reply) {
       db.prepare('INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)')
         .run(userId, friendId, 'accepted')
     }
-    return reply.send({ error: `Friend request from user ${friendId} was accepted`})
+    return reply.send({ error: `Friend request from user ${friendId} was accepted` })
 
   } catch (error) {
     console.error('Database error:', error)

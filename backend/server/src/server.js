@@ -50,8 +50,8 @@ fastify.register(fastifyStatic, {
 
 // Serve avatars
 fastify.register(fastifyStatic, {
-    root: path.join(__dirname, './avatars'),
-    prefix: '/avatars/',
+    root: path.join(__dirname, '..', 'public'),
+    prefix: '/public/',
     decorateReply: false,
 });
 

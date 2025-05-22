@@ -1,4 +1,5 @@
 import db from '../dbInstance.js'
+import { rooms } from '../networking.js'
 
 function updateBracket(winnerId, loserId, winnerScore, loserScore) {
   const updateMatches = db.transaction((winnerId, loserId) => {
@@ -12,6 +13,8 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
 
     db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
       .run('completed', winnerId, match.id)
+    db.prepare('UPDATE tournament_players SET is_ready = 0 WHERE user_id = ? AND tournament_id = ?')
+      .run(winnerId, match.tournament_id)
 
     db.prepare(`
       INSERT INTO match_history (
@@ -67,6 +70,22 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
         WHERE id = ?
       `).run(winnerId, nextMatch.id)
     }
+
+    if (nextMatch) {
+      const matches = db.prepare('SELECT * FROM matches WHERE tournament_id = ? AND round = ?')
+        .all(match.tournament_id, match.round)
+      
+      if (matches.length > 0) {
+        const notCompleted = matches.filter(item => {
+          return item.status !== 'completed'
+        })
+        if (notCompleted.length === 0) {
+          setTimeout(() => {
+            readyUpTimer(tournamentId)
+          }, 60000)
+        }
+      }
+    }
   })
   updateMatches(winnerId, loserId)
 }
@@ -78,7 +97,7 @@ function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
       opponent_id, 
       user_score, 
       opponent_score,
-		winner_id,
+		  winner_id,
       match_type) VALUES (?, ?, ?, ?, ?, ?)
     `).run(winnerId, loserId, winnerScore, loserScore, winnerId, 'single')
 
@@ -98,4 +117,34 @@ function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
       .run(loserId)
 }
 
-export { updateBracket, updateMatchHistory }
+function readyUpTimer(tournamentId) {
+  const players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND is_ready = ?')
+    .all(tournamentId, 0)
+
+  if (players.length < 1) return
+
+  db.prepare('UPDATE tournament_players SET is_ready = ? WHERE tournament_id = ? AND is_ready = ?')
+    .run(2, tournamentId, 0)
+
+  const playerIds = players.map(player => player.user_id)
+
+  for (let i = 0; i < playerIds.length; i++) {
+    const opponent = db.prepare('SELECT * FROM matches WHERE tournament_id = ? AND (player_one_id = ? OR player_two_id = ?)')
+      .get(tournamentId, playerIds[i], playerIds[i])
+    if (opponent.player_one_id === playerIds[i]) {
+      db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
+        .run('in_progress', playerIds[i], opponent.player_two_id, tournamentId)
+
+		rooms[opponent.room_id].sockets[opponent.player_two_id].emit("disconnectWin");
+      updateBracket(opponent.player_two_id, playerIds[i], 1, 0)
+    } else {
+      db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
+        .run('in_progress', opponent.player_one_id, playerIds[i], tournamentId)
+
+		rooms[opponent.room_id].sockets[opponent.player_one_id].emit("disconnectWin");
+      updateBracket(opponent.player_one_id, playerIds[i], 1, 0)
+    }
+  }
+}
+
+export { updateBracket, updateMatchHistory, readyUpTimer }
