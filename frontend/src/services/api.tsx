@@ -1,4 +1,4 @@
-import { tournament } from "../services/tournamentApi"
+// import { tournament } from "../services/tournamentApi"
 
 interface AuthFetchOptions {
 	method: string;
@@ -16,16 +16,30 @@ interface AuthFetchResponse {
 	users?: User[];
 	request_count?: number;
 	userData?: User[]
-	tourData?: tournament[];
+	tourData?: Tournament;
+	tournaments?: Tournament[];
 }
 
 export interface User {
 	name: string;
+	email?: string;
 	online_status?: number;
 	wins?: number;
 	losses?: number;
 	avatar?: string;
 	id: number;
+}
+
+export interface Tournament {
+	id?: string;
+	name?: string;
+	playerAmount?: number;
+	size?: number;
+	created_by?: number;
+	created_at?: string;
+	status?: string;
+	error?: string;
+	message?: string;
 }
 
 const API_AUTH_URL = 'http://localhost:4000'; //add to .env
@@ -98,7 +112,8 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 		users: responseData,
 		request_count: responseData.request_count,
 		userData: responseData.data,
-		tourData: responseData.tourData
+		tourData: responseData.tourData,
+		tournaments: responseData.Tournament
 	};
 }
 /*

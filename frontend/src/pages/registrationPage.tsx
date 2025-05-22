@@ -1,10 +1,10 @@
 import Header, { siteKey } from "../components/headers";
 import { useToast } from "../components/toastBar/toastContext";
-// import { RegistrationRequest, registerUser } from "../services/api";
 import { RegistrationRequest, registerUser } from "../services/userApi";
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
+import Background from "../components/background";
 
 interface RegistrationProps {
 	username: string;
@@ -92,12 +92,13 @@ const Registration: React.FC = () => {
 	return (
 		<>
 			<Header />
-			<div className="flex flex-col items-center justify-center min-h-screen">
-			<div className="bg-white p-6 rounded-lg w-96 flex flex-col gap-4 items-center shadow-md">
-				<h1 className="text-2xl font-bold text-center mb-4 text-gray-900">Register</h1>
+			<Background />
+			<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
+			<div className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg w-96 flex flex-col gap-4 items-center">
+				<h1 className="text-2xl font-bold text-center text-white">Register</h1>
 				<form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 items-center">
 				<div className="w-64">
-					<label htmlFor="username" className="block text-sm font-medium text-gray-700">
+					<label htmlFor="username" className="block text-sm font-medium text-gray-200">
 						Username
 					</label>
 					<input
@@ -106,13 +107,13 @@ const Registration: React.FC = () => {
 						name="username"
 						value={formState.username}
 						onChange={handleInputChange}
-						className="w-full border border-black rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+						className="w-full border-2 border-black bg-[#2a2a2a] text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 						required
 					/>
 				</div>
 
 				<div className="w-64">
-					<label htmlFor="username" className="block text-sm font-medium text-gray-700">
+					<label htmlFor="username" className="block text-sm font-medium text-gray-200">
 						Email
 					</label>
 					<input
@@ -121,13 +122,13 @@ const Registration: React.FC = () => {
 						name="email"
 						value={formState.email}
 						onChange={handleInputChange}
-						className="w-full border border-black rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+						className="w-full border-2 border-black bg-[#2a2a2a] text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 						required
 					/>
 				</div>
 
 				<div className="w-64">
-					<label htmlFor="password" className="block text-sm font-medium text-gray-700">
+					<label htmlFor="password" className="block text-sm font-medium text-gray-200">
 						Password <span className="text-xs text-gray-500">(minimum 8 characters)</span>
 					</label>
 					<input
@@ -136,13 +137,13 @@ const Registration: React.FC = () => {
 						name="password"
 						value={formState.password}
 						onChange={handleInputChange}
-						className="w-full border border-black rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+						className="w-full border-2 border-black bg-[#2a2a2a] text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 						required
 					/>
 				</div>
 
 				<div className="w-64">
-					<label htmlFor="confirm password" className="block text-sm font-medium text-gray-700">
+					<label htmlFor="confirm password" className="block text-sm font-medium text-gray-200">
 						Confirm password
 					</label>
 					<input
@@ -151,7 +152,7 @@ const Registration: React.FC = () => {
 						name="confirm_password"
 						value={formState.confirm_password}
 						onChange={handleInputChange}
-						className="w-full border border-black rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+						className="w-full border-2 border-black bg-[#2a2a2a] text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 						required
 					/>
 				</div>
@@ -167,7 +168,7 @@ const Registration: React.FC = () => {
 				{captchaError && <p style={{ color: 'red' }}>{captchaError}</p>}
 				<button
 					type="submit"
-					className="w-64 border border-black bg-green-500 text-white py-2 rounded-md hover:bg-green-700 text-center transition duration-100"
+					className="w-64 border-2 border-black bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center transform transition-transform hover:scale-102 duration-100"
 				>
 					Register
 				</button>

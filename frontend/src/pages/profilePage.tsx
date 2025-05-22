@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-// import { DeleteUserRequest, deleteUser } from "../services/api";
 import { DeleteUserRequest, deleteUser } from "../services/userApi";
 import { useToast } from "../components/toastBar/toastContext";
 import UserHeader from "../components/userHeader";
+import Background from "../components/background";
 
 const ProfilePage: React.FC = () => {
 
@@ -26,7 +26,7 @@ const ProfilePage: React.FC = () => {
 		const response = await deleteUser(user);
 		console.log("Returning from deleteUser API with status:", response);
 	
-		if (response.status === 200) {
+		if (response.status === 204) {
 			sessionStorage.clear();
 			toast.open(response.error, "success");
 			navigate("/home");
@@ -38,6 +38,7 @@ const ProfilePage: React.FC = () => {
 	return (
 		<>
 		<UserHeader />
+		<Background />
 
 		<div className="flex flex-col items-center justify-center gap-6 p-101">
 

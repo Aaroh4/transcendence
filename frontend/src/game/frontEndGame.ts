@@ -43,15 +43,49 @@ export class Entity {
 export class Ball extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
-		this.speed = 5;
+		this.speed = 10;
 
 		this.xVel = Math.random() < 0.5 ? 1 : -1;
 		this.yVel = Math.random() < 0.5 ? 1 : -1;
 	}
 
+	resetPosition(scorer: 1 | 2, game) {
+
+		this.yPos = game.canvasHeight / 2 - this.height / 2;
+
+		if (scorer === 1) {
+			// Ball starts near left side, goes right toward P1
+			this.xPos = 50;
+			this.xVel = 1;
+		} else {
+			// Ball starts near right side, goes left toward P2
+			this.xPos = game.canvasWidth - 50 - this.width;
+			this.xVel = -1;
+		}
+
+		this.yVel = Math.random() < 0.5 ? 1 : -1; // random vertical
+	}
+
 	update(player, player2, deltaTime) {
+
+		const length = Math.hypot(this.xVel, this.yVel);
+		this.xVel = (this.xVel / length);
+		this.yVel = (this.yVel / length);
+
 		const nextX = this.xPos + this.xVel * this.speed * deltaTime;
 		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
+
+		const scoreMargin = 5; // adjust to prevent hits with paddle ends
+
+		if (nextX <= scoreMargin) {
+			game.setScore(1, 0);
+			this.resetPosition(2, game);
+			return; // skip position update this frame
+		} else if (nextX + this.width >= game.canvasWidth - scoreMargin) {
+			game.setScore(0, 1);
+			this.resetPosition(1, game);
+			return; // skip position update this frame
+		}
 
 		if (nextY + this.height >= 600) this.yVel = -1;
 		else if (nextY <= 0) this.yVel = 1;
@@ -61,26 +95,42 @@ export class Ball extends Entity {
 			nextY + this.height >= player.yPos &&
 			nextY <= player.yPos + player.height
 		) {
-			this.xVel = 1;
+			//this.xVel = 1;
+				const paddleCenter = player.yPos + player.height / 2;
+				const ballCenter = nextY + this.height / 2;
+
+				const offset = (ballCenter - paddleCenter) / (player.height / 2); // range: -1 to +1
+				const maxBounceAngle = Math.PI / 3; // 60 degrees max
+
+				const angle = offset * maxBounceAngle;
+
+				this.xVel = Math.cos(angle);
+				this.yVel = Math.sin(angle);
+
+				const len = Math.hypot(this.xVel, this.yVel);
+				this.xVel /= len;
+				this.yVel /= len;
 		}
 		if (
 			nextX + this.width >= player2.xPos &&
 			nextY + this.height >= player2.yPos &&
 			nextY <= player2.yPos + player2.height
 		) {
-			this.xVel = -1;
-		}
+			//this.xVel = -1;
+			const paddleCenter = player2.yPos + player2.height / 2;
+			const ballCenter = nextY + this.height / 2;
 
-		if (nextX <= 0) {
-			game.setScore(1, 0);
-			this.xPos = 400 - this.width / 2;
-			this.yVel = Math.random() < 0.5 ? 1 : -1;
-			return; // skip position update this frame
-		} else if (nextX + this.width >= 800) {
-			game.setScore(0, 1);
-			this.xPos = 400 - this.width / 2;
-			this.yVel = Math.random() < 0.5 ? 1 : -1;
-			return; // skip position update this frame
+			const offset = (ballCenter - paddleCenter) / (player2.height / 2);
+			const maxBounceAngle = Math.PI / 6;
+
+			const angle = offset * maxBounceAngle;
+
+			this.xVel = -Math.cos(angle); // negate for leftward motion
+			this.yVel = Math.sin(angle);
+
+			const len = Math.hypot(this.xVel, this.yVel);
+			this.xVel /= len;
+			this.yVel /= len;
 		}
 	
 		this.xPos = nextX;
@@ -99,7 +149,7 @@ export class Ball extends Entity {
 export class Player extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
-		this.speed = 4;
+		this.speed = 8;
 	}
 
 	setvel(velocityY) {
@@ -154,8 +204,8 @@ export interface GameRenderer {
 
 export class frontEndGame {
 	private keysPressed: { [key: string]: boolean } = {};
-	private canvasWidth : number = 800;
-	private canvasHeight : number = 600;
+	public 	canvasWidth : number = 800;
+	public 	canvasHeight : number = 600;
 	private renderer: GameRenderer | null = null;
 	public  currentMode: '2D' | '3D' = '3D';
 	private color : string;

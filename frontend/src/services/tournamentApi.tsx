@@ -1,9 +1,10 @@
-import { authFetch } from "./api";
+// import { tournament } from "../pages/tournamentPage";
+import { authFetch, Tournament } from "./api";
 
-export interface tournament {
-	name: string;
-	size: number;
-}
+// export interface tournament {
+// 	name: string;
+// 	size: number;
+// }
 
 export async function getPlayerAmount(tourId: number) : Promise<number> {	
 	try {
@@ -20,7 +21,7 @@ export async function getPlayerAmount(tourId: number) : Promise<number> {
 	}
 }
 
-export async function createrTour(tournament: tournament): Promise<number> {
+export async function createTournament(tournament: Tournament): Promise<number> {
 	
 	const userId = sessionStorage.getItem('activeUserId');
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
@@ -28,7 +29,7 @@ export async function createrTour(tournament: tournament): Promise<number> {
 	try {
 			const options = {
 				method: 'POST',
-				body: JSON.stringify(tournament),
+				body: JSON.stringify({name: tournament.name, size: tournament.size}),
 				headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${sessionData.accessToken}`
@@ -56,7 +57,7 @@ export async function createrTour(tournament: tournament): Promise<number> {
 	}
 }
 
-export async function joinTour(tourId: number): Promise<number> {
+export async function joinTournament(tourId: number): Promise<number> {
 	
 	const userId = sessionStorage.getItem('activeUserId');
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
@@ -92,7 +93,7 @@ export async function joinTour(tourId: number): Promise<number> {
 	}
 }
 
-export async function leaveTour(tourId : number): Promise<number> {
+export async function leaveTournament(tourId : number): Promise<number> {
 	
 	const userId = sessionStorage.getItem('activeUserId');
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
