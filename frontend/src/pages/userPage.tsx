@@ -1,8 +1,6 @@
 import UserHeader from "../components/userHeader";
 // import React, { useEffect, useState } from 'react'; // useState, add the check
-// import FriendsList from "../components/friendsList";
 import { useNavigate, Link } from "react-router-dom";
-// import { LogoutRequest, logoutUser } from "../services/api";
 import { LogoutRequest, logoutUser } from "../services/userApi";
 import { useToast } from "../components/toastBar/toastContext";
 import Background from "../components/background";
@@ -47,7 +45,7 @@ const UserPage: React.FC = () => {
 
 				<Link 
 					to="/solo-game"
-					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../singlepong.png" alt="Solo game Icon" className="w-auto h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Local 1vs1</span>
@@ -55,21 +53,21 @@ const UserPage: React.FC = () => {
 
 				<Link
 					to="/game"
-					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Online 1vs1</span>
 				</Link>
 				<Link
 					to="/ai-game"
-					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../AI_board.png" alt="Game Icon" className="w-auto rounded-2xl h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Player vs AI</span>
 				</Link>
 				<Link
 					to="/tournaments"
-					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../tournament.png" alt="Tournament Icon" className="w-auto h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Tournament</span>
@@ -77,7 +75,7 @@ const UserPage: React.FC = () => {
 
 				<Link
 					to="/user/profile"
-					className="w-50 h-50 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+					className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 					<img src="../profile.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
 					<span className="text-xl font-bold mt-2">Player Profile</span>
@@ -87,7 +85,7 @@ const UserPage: React.FC = () => {
 
 			<button 
 				onClick={handleLogout} 
-				className="w-120 h-15 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+				className="w-100 h-14 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
 				Logout
 			</button>

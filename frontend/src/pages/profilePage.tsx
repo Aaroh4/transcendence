@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-// import { DeleteUserRequest, deleteUser } from "../services/api";
 import { DeleteUserRequest, deleteUser } from "../services/userApi";
 import { useToast } from "../components/toastBar/toastContext";
 import UserHeader from "../components/userHeader";

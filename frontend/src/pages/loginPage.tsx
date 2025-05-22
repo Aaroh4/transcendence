@@ -1,5 +1,4 @@
 import Header, { siteKey } from "../components/headers";
-// import { LoginRequest, loginUser } from "../services/api";
 import { LoginRequest, loginUser } from "../services/userApi";
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
@@ -75,7 +74,7 @@ const Login: React.FC = () => {
 			<Background />
 		 	 <div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
 				<div className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg w-96 flex flex-col gap-4 items-center">
-			 	<h1 className="text-2xl font-bold text-center mb-4 text-white">Login</h1>
+			 	<h1 className="text-2xl font-bold text-center text-white">Login</h1>
 				<form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 items-center">
 
 					<div className="w-64">

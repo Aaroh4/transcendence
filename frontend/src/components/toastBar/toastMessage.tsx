@@ -9,11 +9,11 @@ const Toast: React.FC<ToastProps> = ({ message, type }) => {
 
 	switch(type) {
 		case "success":
-			bgColor = "#38a169";
+			bgColor = "#028120";
 			break ;
 
 		case "error":
-			bgColor = "#f56565";
+			bgColor = "#c00101";
 			break ;
 
 		case "info":

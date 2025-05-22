@@ -12,6 +12,7 @@ import {
 	// fetchLeaveButton
  } from "../services/tournamentApi";
 import { Tournament } from "../services/api";
+import Background from "../components/background";
 
 const TournamentsPage: React.FC = () => {
 	const [showForm, setShowForm] = useState(false);
@@ -80,59 +81,67 @@ const TournamentsPage: React.FC = () => {
 	return (
 		<>
 		<UserHeader />
+		<Background />
+		<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
+		<div className="flex flex-wrap gap-6 justify-center">
+			<button
+				onClick={() => setShowForm(true)}
+				className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+				>
+				<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
+				<span className="text-xl font-bold mt-2">Create<br/>Tournament</span>
+			</button>
 
-		<Link 
-					to="/tour-game"
-					className="w-64 bg-blue-500 text-white py-2 rounded-md hover:bg-green-700 text-center"
-			  	>
-					Go To Game page
-		</Link>
+			<button
+				onClick={() => {
+				setShowList(true);
+				fetchTournaments();
+				}}
+				className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+				>
+				<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
+				<span className="text-xl font-bold mt-2">Tournament<br/>list</span>
+			</button>
 
-		<button
-        onClick={() => setShowForm(true)}
-        className="px-4 py-2 bg-blue-600 text-white rounded shadow"
-      >
-        Test Create Tournament
-      </button>
-
-	  <button
-          onClick={() => {
-			setShowList(true);
-			fetchTournaments();
-		  }}
-        className="px-4 py-2 bg-blue-600 text-white rounded shadow"
-      >
-        Tournament list
-      </button>
-
+			<Link 
+				to="/tour-game"
+				className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
+				>
+				<img src="../tournamentpng.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
+				<span className="text-xl font-bold mt-2">Tournament<br/>Room</span>
+			</Link>
+		</div>
+		</div>
+	
 		{showForm && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <p className="text-center text-gray-600 mb-4">Tournament name</p>
+          <div className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg shadow-lg w-[600px] max-h-[80vh] overflow-y-auto flex flex-col">
+		  <h1 className="text-2xl text-white font-bold text-center mb-4">Create Tournament</h1>
+            <p className="text-center text-gray-100 mb-1">Tournament name</p>
             <input
               id="tour-name"
               type="text"
               placeholder="Tournament name..."
 			  ref={tourName}
-              className="block w-full p-2 border text-gray-700 border-gray-300 rounded mb-4"
+              className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
             />
-            <p className="text-center text-gray-600 mb-4">Tournament size</p>
+            <p className="text-center text-gray-100 mb-1">Tournament size</p>
             <input
               id="tour-size"
               type="text"
               placeholder="4"
 			  ref={tourSize}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
+              className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
             />
 			<button
 			onClick={handleCreateTour}
-			className="w-full bg-green-500 text-white p-2 rounded"
+			className="border-2 border-black w-full mt-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 self-end transform transition-transform hover:scale-102 duration-100"
             >
-              Confirm
+              Create
             </button>
             <button
               onClick={() => setShowForm(false)}
-              className="w-full bg-red-500 text-white p-2 rounded"
+              className="border-2 border-black w-full mt-3 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 self-end transform transition-transform hover:scale-102 duration-100"
             >
               Close
             </button>
@@ -142,28 +151,28 @@ const TournamentsPage: React.FC = () => {
 
 		{showList && (
 		<div className="absolute inset-0 bg-black/60 flex items-center justify-center z-60">
-			<div className="bg-white p-6 rounded-lg shadow-lg w-[480px] max-h-[80vh] flex flex-col">
-			<p className="text-center text-gray-600 mb-4">Tournaments</p>
+			<div className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg shadow-lg w-[600px] max-h-[80vh] overflow-y-auto flex flex-col">
+			<h1 className="text-2xl text-white font-bold text-center mb-4">Tournaments</h1>
 
 			<div className="overflow-y-auto space-y-4 pr-2 flex-grow">
 				{fetchedTournaments.map((tour) => (
 				<div
 					key={tour.id}
-					className="flex items-center justify-between border p-3 rounded"
+					className="border rounded flex items-center justify-between p-2 mb-2 hover:bg-[#2a2a2a]"
 				>
 					<div className="flex items-center gap-5">
-					<img
-					src="/trophy.png"
-					alt="icon"
-					className="w-12 h-12 mt-1"
-					/>	
-					<div className="flex flex-col">
-					<p className="font-medium">{tour.name}</p>
-					<p className="text-sm text-gray-500">{tour.playerAmount + "/" + tour.size}</p>
-					</div>
+						<img
+						src="/trophy.png"
+						alt="icon"
+						className="w-12 h-12 mt-1 rounded-md"
+						/>	
+						<div className="flex flex-col">
+							<p className="font-medium text-white">{tour.name}</p>
+							<p className="text-sm text-gray-300">{tour.playerAmount + "/" + tour.size}</p>
+						</div>
 					</div>
 					{String(tour.id) !== String(myTour) ? (
-					<button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700"
+					<button className="bg-green-600 border-2 border-black text-white px-3 py-1 rounded hover:bg-green-700 transform transition-transform hover:scale-104 duration-100"
 					onClick={() => {
 						joinTournament(tour.id).then((response) => {
 							if (response != 200) {
@@ -181,7 +190,7 @@ const TournamentsPage: React.FC = () => {
 					Join
 					</button>) : String(tour.id) === String(myTour) ? (
 
-					<button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
+					<button className="bg-red-600 border-2 border-black text-white px-3 py-1 rounded hover:bg-red-700 transform transition-transform hover:scale-104 duration-100"
 					onClick={() => {
 						leaveTournament(tour.id).then((response) => {
 							if (response != 200) {
@@ -208,7 +217,7 @@ const TournamentsPage: React.FC = () => {
 					setShowList(false);
 					setFetchedTournaments([]);
 				}}
-				className="mt-4 w-full bg-red-500 text-white p-2 rounded"
+				className="border-2 border-black w-full mt-4 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 self-end transform transition-transform hover:scale-102 duration-100"
 			>
 				Close
 			</button>

@@ -229,16 +229,20 @@ const UserHeader: React.FC = () => {
 		</div>
 
 		<div className="flex flex-wrap gap-2">
-			{location.pathname !== '/user' &&(
-			<div className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
-				<Link
-					to="/user"
-					>
-				User page
-				</Link>
-			</div>
+			{location.pathname === '/tour-game' && (
+				<div className="bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
+					<Link to="/tournaments">
+						Tournament page
+					</Link>
+				</div>
 			)}
-
+			{location.pathname !== '/user' &&(
+				<div className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
+					<Link to="/user">
+						User page
+					</Link>
+				</div>
+			)}
 			<button
 				onClick={handleOpenFriends}
 				className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100"
@@ -302,7 +306,7 @@ const UserHeader: React.FC = () => {
 							<div className="flex space-x-2">
 							  <button
 								onClick={() => handleAddFriend(req.id)}
-								className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transform transition-transform hover:scale-102 duration-100"
+								className="bg-green-600 border-2 border-black text-white px-2 py-1 rounded hover:bg-green-700 transform transition-transform hover:scale-102 duration-100"
 							  >
 								Add
 							  </button>
