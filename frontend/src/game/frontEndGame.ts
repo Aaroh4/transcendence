@@ -1,13 +1,11 @@
 // @ts-ignore
 import { Logger, LogLevel } from '../utils/logger.js';
-import { TURN_URL, TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-config.js';
+import { TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-config.js';
 import { setupButtons  } from './matchmaking.js';
 import { router } from '../App';
 import { GameAI } from './gameAI';
 import { Renderer2D } from './renderer2d.js';
 import { Renderer3D } from './renderer3d.js';
-import { useToast } from '../components/toastBar/toastContext.js';
-import { useState } from 'react';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -632,9 +630,8 @@ export class frontEndGame {
 		});
 
 		socket.on("disconnectWin", () => {
-			//const toast = useToast();
 
-			//toast.open("You win!", "success");
+			gameToast.open("Other player left You win!", "success");
 			setTimeout(() => {
 				router.navigate("/tournaments");
 			  }, 3000);
@@ -645,9 +642,11 @@ export class frontEndGame {
 
 let game : frontEndGame;
 let animationFrameId: number | null = null;
+let gameToast;
 
-export function createNewGame(matchType : string, socket, userId : string)
+export function createNewGame(matchType : string, socket, userId : string, toast : any)
 {
+	gameToast = toast;
 	console.log("id: ", userId);
 	setupButtons(socket, userId);
 	game = new frontEndGame();
@@ -730,4 +729,3 @@ export function startAIGame()
 	}
 	loopAI();
 }
-

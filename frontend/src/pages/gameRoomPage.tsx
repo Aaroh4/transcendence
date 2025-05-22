@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { createSocket, getSocket, closeSocket } from "../utils/socket";
 import Background from '../components/background.js';
 import { Logger, LogLevel } from '../utils/logger.js';
+import { useToast } from "../components/toastBar/toastContext";
 
 export default function GameRoom({matchType}) {
+	const toast = useToast();
 	const hasRun1 = useRef(false);
 	const hasRun2 = useRef(false);
 	const leftPage = useRef(false);
@@ -74,7 +76,7 @@ useEffect(() => {
 			createSocket();
 		}
 
-		createNewGame(matchType, getSocket(), userId);
+		createNewGame(matchType, getSocket(), userId, toast);
 		hasRun2.current = true;
 	}
 }, [matchType, tournamentStatus]);
