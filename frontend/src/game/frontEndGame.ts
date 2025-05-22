@@ -41,6 +41,7 @@ export class Entity {
 	}
 }
 
+// Ball and the logic for it
 export class Ball extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
@@ -96,6 +97,7 @@ export class Ball extends Entity {
 	}
 }
 
+// Player and the logic for it
 export class Player extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
@@ -186,20 +188,6 @@ export class frontEndGame {
 
 		this.player1 = new Player(60, 10, 300, 10);
 		this.player2 = new Player(60, 10, 300, 780);
-
-		//const ip = this.getExternalIP();
-		//if (ip) {
-		//	log.info("Your external IP is:", ip);
-		//} else {
-		//	log.warn("Could not get external IP.");
-		//}
-
-		//log.info("EXT_IP:", EXT_IP);
-		//log.info("TURN_URL:", TURN_URL);
-		//log.info("TURN_USER:", TURN_USER);
-		//log.info("TURN_PASS:", TURN_PASS);
-		//log.info("STUN_URL:", STUN_URL);
-
 		this.configuration = {
 			iceServers: [
 				{
@@ -212,30 +200,6 @@ export class frontEndGame {
 				}
 			]
 		};
-		
-		//log.info("ICE config loaded:");
-		//log.info(this.configuration);
-		//this.peerConnection = new RTCPeerConnection(this.configuration);
-		//log.info("Peer connection created");
-		//this.setupPeerConnectionEvents();
-	}
-
-	//private async loadIceConfig(): Promise<RTCConfiguration> {
-	//	const response = await fetch('/webrtc-config');
-	//	const data = await response.json();
-	//	return { iceServers: data.iceServers };
-	//}
-
-	private async getExternalIP(): Promise<string | null> {
-		try {
-			log.info("Fetching external IP");
-			const res = await fetch("127.0.0.1:5001" + '/external-ip');
-			const data = await res.json();
-			return data.ip;
-		} catch (err) {
-			log.error("Failed to fetch external IP:", err);
-			return null;
-		}
 	}
 
 	getGameState(): GameState {
@@ -269,7 +233,6 @@ export class frontEndGame {
 	}
 
 	createRenderingContext() {	
-		//this.container = document.getElementById("game-container");
 		if (this.currentMode === '2D') {
 			this.renderer = new Renderer2D();
 		} else {
@@ -453,7 +416,6 @@ export class frontEndGame {
 
 		// Simulate AI player movement
 		this.gameAI.getKeyPresses(this.ball, this.player2.getpos()[0]);
-		// console.log("AI Player Input: ", this.gameAI.aiPlayerInput);
 		this.keysPressed[KeyBindings.SUP] = this.gameAI.aiPlayerInput.SUP;
 		this.keysPressed[KeyBindings.SDOWN] = this.gameAI.aiPlayerInput.SDOWN;
 
@@ -500,8 +462,6 @@ export class frontEndGame {
 		socket.on('offer', async (offer) => {
 			try {
 				if (!this.peerConnection) {
-					// const config = await this.loadIceConfig();
-					// this.configuration = config;
 					this.peerConnection = new RTCPeerConnection(this.configuration);
 					log.info("Peer connection created");
 					this.setupPeerConnectionEvents(socket);
@@ -578,9 +538,8 @@ export class frontEndGame {
 			sizeTxt.textContent = "Lobby size: " + playerAmount + "/2";
 		});
 		
+		// Room is full!
 		socket.on("roomFull", (type) => {
-
-
 			if (type === "normal") {
 				const strtBtn = document.getElementById("start-btn");
 				const gameEdit = document.getElementById("edit-game");
@@ -626,6 +585,7 @@ export class frontEndGame {
 			}
 		})
 		
+		// Socket wants to start the game
 		socket.on("startGame", (roomId : string, settings) => {
 			const select = document.getElementById("colorSelect") as HTMLSelectElement;
 			const color = select.options[select.selectedIndex].value;
@@ -642,8 +602,6 @@ export class frontEndGame {
 			game.settings(settings, color);
 
 			if (this.peerConnection == null) {
-				// const config = await this.loadIceConfig();
-				// this.configuration = config;
 				this.peerConnection = new RTCPeerConnection(this.configuration);
 				log.info("Peer connection created");
 				this.setupPeerConnectionEvents(socket);
