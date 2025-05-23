@@ -35,7 +35,7 @@ class Entity {
 class Ball extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
-		this.speed = 5;
+		this.speed = 10;
 
 		this.xVel = Math.random() < 0.5 ? 1 : -1;
 		this.yVel = Math.random() < 0.5 ? 1 : -1;
@@ -90,7 +90,7 @@ class Ball extends Entity {
 class Player extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
-		this.speed = 4;
+		this.speed = 8;
 		this.keysPressed = {};
 		this.points = 0;
 	}
