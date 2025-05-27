@@ -17,11 +17,10 @@ export async function getPlayerAmount(tourId: number) : Promise<number> {
 		return responseData.playerAmount;
 	} catch (error) {
 		console.error("getPlayerAmount error:", error);
-		return (500);
 	}
 }
 
-export async function createTournament(tournament: Tournament): Promise<number> {
+export async function createTournament(tournament: Tournament) {
 	
 	const userId = sessionStorage.getItem('activeUserId');
 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
@@ -47,13 +46,12 @@ export async function createTournament(tournament: Tournament): Promise<number> 
 				'Authorization': `Bearer ${response.newToken}`
 				}
 			});
-			return (retryResponse.status)
+			return ({status: retryResponse.status});
 		}
-		return response.status;
+		return ({status: response.status, error: response.error});
 
 	} catch (error) {
 		console.error("createrTour error:", error);
-		return (500);
 	}
 }
 
@@ -89,7 +87,6 @@ export async function joinTournament(tourId: number): Promise<number> {
 
 	} catch (error) {
 		console.error("joinTour error:", error);
-		return (500);
 	}
 }
 
@@ -125,7 +122,6 @@ export async function leaveTournament(tourId : number): Promise<number> {
 	
 	} catch (error) {
 		console.error("leaveTour:", error);
-		return (500);
 	}
 }
 
@@ -153,47 +149,54 @@ export async function getTournaments() {
 
 export interface leaveButtonResponse {
 	status: number;
-	data: any;
+	id?: string;
 }
 
-// export async function fetchLeaveButton(): Promise<leaveButtonResponse>{
+export async function fetchLeaveButton(): Promise<leaveButtonResponse>{
 	
-// 	const userId = sessionStorage.getItem('activeUserId');
-// 	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+	const userId = sessionStorage.getItem('activeUserId');
+	const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 
-// 	try {
-// 			const options = {
-// 				method: 'GET',
-// 				headers: {
-// 				'Content-Type': 'application/json',
-// 				'Authorization': `Bearer ${sessionData.accessToken}`
-// 				}
-// 			}
+	try {
+			const options = {
+				method: 'GET',
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${sessionData.accessToken}`
+				}
+			}
 
-// 			const response = await authFetch('/api/tournament/participant/tourPage', options);
+			const response = await authFetch('/api/tournament/participant/tourPage', options);
 
-// 			if (response.status === 1) {
-// 				const retryResponse = await fetch('/api/tournament/participant/tourPage', {
-// 					method: 'GET',
-// 					headers: {
-// 					'Content-Type': 'application/json',
-// 					'Authorization': `Bearer ${response.newToken}`
-// 					}
-// 				});
+			if (response.status === 1) {
+				const retryResponse = await fetch('/api/tournament/participant/tourPage', {
+					method: 'GET',
+					headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${response.newToken}`
+					}
+				});
 
-// 				const responseData = await retryResponse.json();
-				
-// 				return (responseData.tournament.id);
-// 			}
+				const responseData = await retryResponse.json();
 
-// 			return ({status: 0, data: response});
+			return {
+				status: retryResponse.status,
+				id: responseData?.tournament?.id
+			};
+		}
 
+		return {
+			status: response.status,
+			id: response.tourData?.id
+		};
 
-
-// 	} catch (error) {
-// 		console.error("leaveButton error:", error);
-// 	}
-// }
+	} catch (error) {
+		console.error("leaveButton error:", error);
+		return {
+			status: 500,
+		};
+	}
+}
 
 
 // this from the tournament page

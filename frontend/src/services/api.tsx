@@ -112,7 +112,7 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 		users: responseData,
 		request_count: responseData.request_count,
 		userData: responseData.data,
-		tourData: responseData.tourData,
+		tourData: responseData.tournament,
 		tournaments: responseData.Tournament
 	};
 }

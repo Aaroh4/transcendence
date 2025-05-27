@@ -20,7 +20,7 @@ const createTournament = async function(req, reply) {
       }
     }
 
-    // if (size != 4 && size != 8 && size != 16) return reply.code(400).send({ error: "Tournament size has to be 4, 8 or 16" })
+    if (size != 4 && size != 8 && size != 16) return reply.code(400).send({ error: "Tournament size has to be 4, 8 or 16" })
     
     const result = db.prepare('INSERT INTO tournaments (name, created_by, size, status) VALUES (?, ?, ?, ?)')
       .run(name, userId, size, 'created')

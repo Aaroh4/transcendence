@@ -9,7 +9,7 @@ import {
 	joinTournament,
 	getTournaments,
 	leaveTournament,
-	// fetchLeaveButton
+	fetchLeaveButton
  } from "../services/tournamentApi";
 import { Tournament } from "../services/api";
 import Background from "../components/background";
@@ -23,22 +23,13 @@ const TournamentsPage: React.FC = () => {
 	const tourSize = useRef<HTMLInputElement>(null);
 	const toast = useToast();
 
-	const fetchLeaveButton = async () => {
+	const handleFetchLeaveButton = async () => {
 
-		const userId = sessionStorage.getItem('activeUserId');
-		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+		const response = await fetchLeaveButton();
 
-		const response = await fetch('/api/tournament/participant/tourPage', {
-			method: 'GET',
-			headers: {
-			'Authorization': `Bearer ${sessionData.accessToken}`
-			}
-		});
-
-		if (response.ok)
+		if (response.status === 200)
 		{
-			const data = await response.json();
-			setMyTour(data.tournament.id);
+			setMyTour(response.id);
 		}
 		else
 			setMyTour(-1);
@@ -46,14 +37,14 @@ const TournamentsPage: React.FC = () => {
 
 	const fetchTournaments = async () => {
 		try {
-		  await fetchLeaveButton();
+		  await handleFetchLeaveButton();
 		  const data = await getTournaments();
 
 		  if (Array.isArray(data)) {
 			setFetchedTournaments(data);
-		  } else {
-			console.error("Unexpected data format:", data);
-		  }
+		//   } else {
+		// 	console.error("Unexpected data format:", data);
+		  } // is this 'else' neccessary??
 		} catch (error) {
 		  console.error("Failed to fetch tournaments", error);
 		}
@@ -68,10 +59,10 @@ const TournamentsPage: React.FC = () => {
 			size: Number(size)
 		}
 		createTournament(settings).then((response) => {
-			if (response == 200) {
+			if (response.status == 200) {
 				console.log("Tournament created");
 			} else {
-				toast.open("Tournament creation failed", "error");
+				toast.open(response.error, "error");
 			}
 		}
 		);
@@ -88,7 +79,7 @@ const TournamentsPage: React.FC = () => {
 				onClick={() => setShowForm(true)}
 				className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
-				<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
+				<img src="../createTournament.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
 				<span className="text-xl font-bold mt-2">Create<br/>Tournament</span>
 			</button>
 
@@ -99,7 +90,7 @@ const TournamentsPage: React.FC = () => {
 				}}
 				className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
-				<img src="../pong.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
+				<img src="../listTournament.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
 				<span className="text-xl font-bold mt-2">Tournament<br/>list</span>
 			</button>
 
@@ -107,8 +98,8 @@ const TournamentsPage: React.FC = () => {
 				to="/tour-game"
 				className="w-44 h-44 bg-black text-white rounded-md hover:bg-green-700 flex flex-col items-center justify-center text-center text-2xl font-bold border-2 border-green-500 transform transition-transform hover:scale-105 duration-100"
 				>
-				<img src="../tournamentpng.png" alt="Game Icon" className="w-auto h-2/4 mb-2" />
-				<span className="text-xl font-bold mt-2">Tournament<br/>Room</span>
+				<img src="../tournamentbracket.png" alt="Game Icon" className="w-auto h-3/5 mt-1" />
+				<span className="text-xl font-bold">Tournament<br/>Room</span>
 			</Link>
 		</div>
 		</div>
@@ -162,7 +153,7 @@ const TournamentsPage: React.FC = () => {
 				>
 					<div className="flex items-center gap-5">
 						<img
-						src="/trophy.png"
+						src="/tourTrophy.png"
 						alt="icon"
 						className="w-12 h-12 mt-1 rounded-md"
 						/>	
@@ -184,7 +175,7 @@ const TournamentsPage: React.FC = () => {
 							prevTournaments.map((t) =>
 							  t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
 						});
-						fetchLeaveButton();
+						handleFetchLeaveButton();
 					}}
 					>
 					Join
@@ -202,7 +193,7 @@ const TournamentsPage: React.FC = () => {
 							  prevTournaments.map((t) =>
 								t.id === tour.id ? { ...t, playerAmount: newAmount } : t));
 						  });
-						fetchLeaveButton();
+						handleFetchLeaveButton();
 					}}
 					>
 						Leave

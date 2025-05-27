@@ -2,6 +2,8 @@ import db from '../dbInstance.js'
 import { rooms } from '../networking.js'
 
 function updateBracket(winnerId, loserId, winnerScore, loserScore) {
+  console.log("winnerid", winnerId)
+  console.log("loserid", loserId)
   const updateMatches = db.transaction((winnerId, loserId) => {
     const match = db.prepare(`
       SELECT * FROM matches 
@@ -11,6 +13,7 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     
     if (!match) throw new Error('No in-progress match found')
 
+    console.log("-------in UpdateBracket----------");
     db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
       .run('completed', winnerId, match.id)
     db.prepare('UPDATE tournament_players SET is_ready = 0 WHERE user_id = ? AND tournament_id = ?')
@@ -134,14 +137,14 @@ function readyUpTimer(tournamentId) {
     if (opponent.player_one_id === playerIds[i]) {
       db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
         .run('in_progress', playerIds[i], opponent.player_two_id, tournamentId)
-
-		rooms[opponent.room_id].sockets[opponent.player_two_id].emit("disconnectWin");
+        if (rooms[opponent.room_id])
+          rooms[opponent.room_id].sockets[opponent.player_two_id].emit("disconnectWin");
       updateBracket(opponent.player_two_id, playerIds[i], 1, 0)
     } else {
       db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
         .run('in_progress', opponent.player_one_id, playerIds[i], tournamentId)
-
-		rooms[opponent.room_id].sockets[opponent.player_one_id].emit("disconnectWin");
+      if (rooms[opponent.room_id])
+		    rooms[opponent.room_id].sockets[opponent.player_one_id].emit("disconnectWin");
       updateBracket(opponent.player_one_id, playerIds[i], 1, 0)
     }
   }
