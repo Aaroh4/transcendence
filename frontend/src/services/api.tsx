@@ -20,7 +20,7 @@ interface AuthFetchResponse {
 	tournaments?: Tournament[];
 }
 
-/*export interface User {
+export interface User {
 	name: string;
 	email?: string;
 	online_status?: number;
@@ -28,7 +28,7 @@ interface AuthFetchResponse {
 	losses?: number;
 	avatar?: string;
 	id: number;
-}*/
+}
 
 export interface Tournament {
 	id?: string;
@@ -116,7 +116,7 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 		tournaments: responseData.Tournament
 	};
 }
-/*
+
 export interface RegistrationRequest {
 	name: string;
 	email: string;
@@ -1089,4 +1089,4 @@ export async function getFriends(requestData: getFriendsRequest): Promise<getFri
 // 	};
 // 	return ((await apiCall(options)).status);
 // } //i guess we doublecheck in front 
-*/
+
