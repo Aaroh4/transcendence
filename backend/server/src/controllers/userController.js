@@ -191,18 +191,21 @@ const getDashboard = async function(req, reply) {
 
 const uploadAvatar = async function(req, reply) {
   try {
-    const username = req.user.name
+    const userId = req.user.id
+    const db = req.server.db
     const avatar = await req.file()
     const pump = util.promisify(pipeline)
-    const uploadDir = path.join(__dirname, '../avatars')
-    const filePath = path.join(uploadDir, avatar.filename)
-    const db = req.server.db
+    const uploadDir = path.join(__dirname, '../../public/avatars')
+    const uniqueId = crypto.randomBytes(16).toString('hex')
+    const extension = path.extname(avatar.filename)
+    const uniqueFilename = `${uniqueId}${extension}`
+    const filePath = path.join(uploadDir, uniqueFilename)
 
     await pump(avatar.file, fs.createWriteStream(filePath))
 
-    const avatarPath = `/avatars/${avatar.filename}`
-    db.prepare('UPDATE users SET avatar = ? WHERE name = ?')
-      .run(avatarPath, username)
+    const avatarPath = `avatars/${uniqueFilename}`
+    db.prepare('UPDATE users SET avatar = ? WHERE id = ?')
+      .run(avatarPath, userId)
   } catch (error) {
     return reply.code(500).send({ error: error.message })
   }

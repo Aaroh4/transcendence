@@ -1,9 +1,11 @@
 // @ts-ignore
 import { Logger, LogLevel } from '../utils/logger.js';
-import { TURN_URL, TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-config.js';
+import { TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-config.js';
 import { setupButtons  } from './matchmaking.js';
 import { router } from '../App';
 import { GameAI } from './gameAI';
+import { Renderer2D } from './renderer2d.js';
+import { Renderer3D } from './renderer3d.js';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -37,18 +39,53 @@ export class Entity {
 	}
 }
 
+// Ball and the logic for it
 export class Ball extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
-		this.speed = 5;
+		this.speed = 10;
 
 		this.xVel = Math.random() < 0.5 ? 1 : -1;
 		this.yVel = Math.random() < 0.5 ? 1 : -1;
 	}
 
+	resetPosition(scorer: 1 | 2, game) {
+
+		this.yPos = game.canvasHeight / 2 - this.height / 2;
+
+		if (scorer === 1) {
+			// Ball starts near left side, goes right toward P1
+			this.xPos = 50;
+			this.xVel = 1;
+		} else {
+			// Ball starts near right side, goes left toward P2
+			this.xPos = game.canvasWidth - 50 - this.width;
+			this.xVel = -1;
+		}
+
+		this.yVel = Math.random() < 0.5 ? 1 : -1; // random vertical
+	}
+
 	update(player, player2, deltaTime) {
+
+		const length = Math.hypot(this.xVel, this.yVel);
+		this.xVel = (this.xVel / length);
+		this.yVel = (this.yVel / length);
+
 		const nextX = this.xPos + this.xVel * this.speed * deltaTime;
 		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
+
+		const scoreMargin = 5; // adjust to prevent hits with paddle ends
+
+		if (nextX <= scoreMargin) {
+			game.setScore(1, 0);
+			this.resetPosition(2, game);
+			return; // skip position update this frame
+		} else if (nextX + this.width >= game.canvasWidth - scoreMargin) {
+			game.setScore(0, 1);
+			this.resetPosition(1, game);
+			return; // skip position update this frame
+		}
 
 		if (nextY + this.height >= 600) this.yVel = -1;
 		else if (nextY <= 0) this.yVel = 1;
@@ -58,26 +95,42 @@ export class Ball extends Entity {
 			nextY + this.height >= player.yPos &&
 			nextY <= player.yPos + player.height
 		) {
-			this.xVel = 1;
+			//this.xVel = 1;
+				const paddleCenter = player.yPos + player.height / 2;
+				const ballCenter = nextY + this.height / 2;
+
+				const offset = (ballCenter - paddleCenter) / (player.height / 2); // range: -1 to +1
+				const maxBounceAngle = Math.PI / 3; // 60 degrees max
+
+				const angle = offset * maxBounceAngle;
+
+				this.xVel = Math.cos(angle);
+				this.yVel = Math.sin(angle);
+
+				const len = Math.hypot(this.xVel, this.yVel);
+				this.xVel /= len;
+				this.yVel /= len;
 		}
 		if (
 			nextX + this.width >= player2.xPos &&
 			nextY + this.height >= player2.yPos &&
 			nextY <= player2.yPos + player2.height
 		) {
-			this.xVel = -1;
-		}
+			//this.xVel = -1;
+			const paddleCenter = player2.yPos + player2.height / 2;
+			const ballCenter = nextY + this.height / 2;
 
-		if (nextX <= 0) {
-			game.setScore(1, 0);
-			this.xPos = 400 - this.width / 2;
-			this.yVel = Math.random() < 0.5 ? 1 : -1;
-			return; // skip position update this frame
-		} else if (nextX + this.width >= 800) {
-			game.setScore(0, 1);
-			this.xPos = 400 - this.width / 2;
-			this.yVel = Math.random() < 0.5 ? 1 : -1;
-			return; // skip position update this frame
+			const offset = (ballCenter - paddleCenter) / (player2.height / 2);
+			const maxBounceAngle = Math.PI / 6;
+
+			const angle = offset * maxBounceAngle;
+
+			this.xVel = -Math.cos(angle); // negate for leftward motion
+			this.yVel = Math.sin(angle);
+
+			const len = Math.hypot(this.xVel, this.yVel);
+			this.xVel /= len;
+			this.yVel /= len;
 		}
 	
 		this.xPos = nextX;
@@ -92,10 +145,11 @@ export class Ball extends Entity {
 	}
 }
 
-class Player extends Entity {
+// Player and the logic for it
+export class Player extends Entity {
 	constructor(h, w, y, x) {
 		super(h, w, y, x);
-		this.speed = 4;
+		this.speed = 8;
 	}
 
 	setvel(velocityY) {
@@ -123,11 +177,37 @@ enum KeyBindings{
 	SDOWN = 'ArrowDown'
 }
 
+export interface GameState {
+	canvasWidth: number;
+	canvasHeight: number;
+	player1Y: number;
+	player2Y: number;
+	player1Height: number;
+	player2Height: number;
+	ballX: number;
+	ballY: number;
+	ballSize: number;
+	ball: Ball | null;
+	player1Score: number;
+	player2Score: number;
+	color: string;
+	gameAI: GameAI;
+	isAIgame: boolean;
+	AIdebug: boolean;
+}
+
+export interface GameRenderer {
+	init(state: GameState): void;
+	dispose(): void;
+	render(state: GameState): void;
+}
+
 export class frontEndGame {
 	private keysPressed: { [key: string]: boolean } = {};
-	private gameCanvas : HTMLCanvasElement;
-	private container : HTMLElement;
-	private ctx : CanvasRenderingContext2D;
+	public 	canvasWidth : number = 800;
+	public 	canvasHeight : number = 600;
+	private renderer: GameRenderer | null = null;
+	public  currentMode: '2D' | '3D' = '3D';
 	private color : string;
 	private player1Score : number = 0;
 	private player2Score : number = 0;
@@ -143,33 +223,19 @@ export class frontEndGame {
 	private AIdebug: boolean = false;
 
 	private dataChannel: RTCDataChannel | null = null;
-    private peerConnection: RTCPeerConnection | null = null;
+  private peerConnection: RTCPeerConnection | null = null;
 	private configuration: RTCConfiguration;
 
-    // Add a property to store candidates that arrive before remote description
-    private bufferedCandidates: RTCIceCandidateInit[] = [];
+	// Add a property to store candidates that arrive before remote description
+	private bufferedCandidates: RTCIceCandidateInit[] = [];
 
-    private keyDownHandler: (e: KeyboardEvent) => void;
-    private keyUpHandler: (e: KeyboardEvent) => void;
+	private keyDownHandler: (e: KeyboardEvent) => void;
+	private keyUpHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
-		this.container = document.getElementById("game-container");
+
 		this.player1 = new Player(60, 10, 300, 10);
 		this.player2 = new Player(60, 10, 300, 780);
-
-		//const ip = this.getExternalIP();
-		//if (ip) {
-		//	log.info("Your external IP is:", ip);
-		//} else {
-		//	log.warn("Could not get external IP.");
-		//}
-
-		//log.info("EXT_IP:", EXT_IP);
-		//log.info("TURN_URL:", TURN_URL);
-		//log.info("TURN_USER:", TURN_USER);
-		//log.info("TURN_PASS:", TURN_PASS);
-		//log.info("STUN_URL:", STUN_URL);
-
 		this.configuration = {
 			iceServers: [
 				{
@@ -182,30 +248,27 @@ export class frontEndGame {
 				}
 			]
 		};
-		
-		//log.info("ICE config loaded:");
-		//log.info(this.configuration);
-		//this.peerConnection = new RTCPeerConnection(this.configuration);
-		//log.info("Peer connection created");
-		//this.setupPeerConnectionEvents();
 	}
 
-	//private async loadIceConfig(): Promise<RTCConfiguration> {
-	//	const response = await fetch('/webrtc-config');
-	//	const data = await response.json();
-	//	return { iceServers: data.iceServers };
-	//}
-
-	private async getExternalIP(): Promise<string | null> {
-		try {
-			log.info("Fetching external IP");
-			const res = await fetch("127.0.0.1:5001" + '/external-ip');
-			const data = await res.json();
-			return data.ip;
-		} catch (err) {
-			log.error("Failed to fetch external IP:", err);
-			return null;
-		}
+	getGameState(): GameState {
+		return {
+			canvasWidth: this.canvasWidth,
+			canvasHeight: this.canvasHeight,
+			player1Y: this.player1.getpos()[0],
+			player2Y: this.player2.getpos()[0],
+			player1Height: this.player1.height,
+			player2Height: this.player2.height,
+			ball: this.ball,
+			ballX: this.ballX,
+			ballY: this.ballY,
+			ballSize: this.ballSize,
+			player1Score: this.player1Score,
+			player2Score: this.player2Score,
+			color: this.color,
+			gameAI: this.gameAI,
+			isAIgame: this.isAIgame,
+			AIdebug: this.AIdebug
+		};
 	}
 
 	setIsAIgame(isAIgame: boolean) {
@@ -217,19 +280,18 @@ export class frontEndGame {
 		this.player2Score += player2Score;
 	}
 
-	createCanvas()
-	{
-		this.container = document.getElementById("game-container");
-		this.gameCanvas = document.createElement("canvas");
-		this.container.appendChild(this.gameCanvas);
-		this.ctx = this.gameCanvas.getContext("2d")!;
-		this.gameCanvas.width = 800;
-		this.gameCanvas.height = 600;
+	createRenderingContext() {	
+		if (this.currentMode === '2D') {
+			this.renderer = new Renderer2D();
+		} else {
+			this.renderer = new Renderer3D();
+		}
+		this.renderer.init(this.getGameState());
 	}
 
 	setupAI() 
 	{
-		this.gameAI = new GameAI(this.gameCanvas.height, this.player2.xPos, this.player2.height);
+		this.gameAI = new GameAI(this.canvasHeight, this.player2.xPos, this.player2.height);
 	}
 
 	setupPeerConnectionEvents(socket) {
@@ -353,7 +415,7 @@ export class frontEndGame {
 		  this.ballX = positions[2][1];
 		  
 		  // Redraw the game
-		  this.updateGraphics();
+			this.renderer.render(this.getGameState());
 		}
 	}
 
@@ -362,25 +424,28 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
+		const dir = this.currentMode === '3D' ? -1 : 1;
+
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
+			this.player1.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
+			this.player1.setvel(1 * dir);	
 		else
 			this.player1.setvel(0);
 
 		if (this.keysPressed[KeyBindings.SUP]) 
-			this.player2.setvel(-1);
+			this.player2.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.SDOWN])
-			this.player2.setvel(1);
+			this.player2.setvel(1 * dir);
 		else
 			this.player2.setvel(0);
 
 		this.player1.move(deltaTime);
 		this.player2.move(deltaTime);
 		this.ball.update(this.player1, this.player2, deltaTime);
-		this.updateGraphics();
+
+		this.renderer.render(this.getGameState());
 	}
 
 	updateAIGameState()
@@ -388,18 +453,17 @@ export class frontEndGame {
 		const now = Date.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
-		const treshold = 4;
+		const dir = this.currentMode === '3D' ? -1 : 1;
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
+			this.player1.setvel(-1 * dir);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
+			this.player1.setvel(1 * dir);
 		else
 			this.player1.setvel(0);
 
 		// Simulate AI player movement
 		this.gameAI.getKeyPresses(this.ball, this.player2.getpos()[0]);
-		// console.log("AI Player Input: ", this.gameAI.aiPlayerInput);
 		this.keysPressed[KeyBindings.SUP] = this.gameAI.aiPlayerInput.SUP;
 		this.keysPressed[KeyBindings.SDOWN] = this.gameAI.aiPlayerInput.SDOWN;
 
@@ -414,32 +478,8 @@ export class frontEndGame {
 		this.player2.move(deltaTime);
 
 		this.ball.update(this.player1, this.player2, deltaTime);
-		this.updateGraphics();
-	}
-
-	updateGraphics() 
-	{
-		this.ctx.fillStyle = "#000";
-		this.ctx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-		for (var i = 0; i <= this.gameCanvas.height; i += 30) {
-			this.ctx.fillStyle = "white";
-			this.ctx.fillRect(this.gameCanvas.width / 2 - 10, i + 5, 15, 20);
-		}
-		this.ctx.font = "48px 'Comic Sans MS', cursive, sans-serif";
-		this.ctx.fillText(this.player2Score.toString(), this.gameCanvas.width / 2 - 48 * 2, 50);
-		this.ctx.fillText(this.player1Score.toString(), this.gameCanvas.width / 2 + 48, 50);
-		this.ctx.fillStyle = this.color;
-		this.ctx.fillRect(this.ballX, this.ballY, this.ballSize, this.ballSize);
-		this.ctx.fillRect(10, this.player1.getpos()[0], 10, this.player1.height);
-		this.ctx.fillRect(780, this.player2.getpos()[0], 10, this.player2.height);
-		if (this.isAIgame && this.AIdebug)
-		{
-			this.gameAI.drawAIPrediction(this.ctx);
-		}
-		if (this.ball)
-		{
-			this.ball.draw(this.ctx);
-		}
+		
+		this.renderer.render(this.getGameState());
 	}
 
 	settings(settings, color)
@@ -451,14 +491,25 @@ export class frontEndGame {
 		this.lastUpdateTime = Date.now();
 	}
 
+	switchMode(newMode: '2D' | '3D') {
+		if (this.currentMode === newMode) return;
+
+		this.renderer.dispose(); // remove canvas or babylon engine
+		this.currentMode = newMode;
+
+		if (newMode === '2D') {
+			this.renderer = new Renderer2D();
+		} else {
+			this.renderer = new Renderer3D();
+		}
+		this.renderer.init(this.getGameState());
+	}
 
 	socketLogic(socket)
 	{
 		socket.on('offer', async (offer) => {
 			try {
 				if (!this.peerConnection) {
-					// const config = await this.loadIceConfig();
-					// this.configuration = config;
 					this.peerConnection = new RTCPeerConnection(this.configuration);
 					log.info("Peer connection created");
 					this.setupPeerConnectionEvents(socket);
@@ -535,9 +586,8 @@ export class frontEndGame {
 			sizeTxt.textContent = "Lobby size: " + playerAmount + "/2";
 		});
 		
+		// Room is full!
 		socket.on("roomFull", (type) => {
-
-
 			if (type === "normal") {
 				const strtBtn = document.getElementById("start-btn");
 				const gameEdit = document.getElementById("edit-game");
@@ -583,6 +633,7 @@ export class frontEndGame {
 			}
 		})
 		
+		// Socket wants to start the game
 		socket.on("startGame", (roomId : string, settings) => {
 			const select = document.getElementById("colorSelect") as HTMLSelectElement;
 			const color = select.options[select.selectedIndex].value;
@@ -593,18 +644,17 @@ export class frontEndGame {
 			}
 		
 			document.getElementById("gameroom-page").hidden = true;
+			document.getElementById("game-wrapper")?.classList.remove("hidden");
 			log.info("Game started in room:", roomId);
-			game.createCanvas();
+			game.createRenderingContext();
 			game.settings(settings, color);
 
 			if (this.peerConnection == null) {
-				// const config = await this.loadIceConfig();
-				// this.configuration = config;
 				this.peerConnection = new RTCPeerConnection(this.configuration);
 				log.info("Peer connection created");
 				this.setupPeerConnectionEvents(socket);
 			}
-			game.updateGraphics();
+			game.renderer.render(game.getGameState());
 		});
 		
 		socket.on("gameOver", (winner : number, type : string) => {
@@ -628,15 +678,25 @@ export class frontEndGame {
 				  }, 3000);
 			}
 		});
+
+		socket.on("disconnectWin", () => {
+
+			gameToast.open("Other player left You win!", "success");
+			setTimeout(() => {
+				router.navigate("/tournaments");
+			  }, 3000);
+		});
 	}
 }
 
 
 let game : frontEndGame;
 let animationFrameId: number | null = null;
+let gameToast;
 
-export function createNewGame(matchType : string, socket, userId : string)
+export function createNewGame(matchType : string, socket, userId : string, toast : any)
 {
+	gameToast = toast;
 	console.log("id: ", userId);
 	setupButtons(socket, userId);
 	game = new frontEndGame();
@@ -644,6 +704,8 @@ export function createNewGame(matchType : string, socket, userId : string)
 	{
 		game.socketLogic(socket);
 	}
+	// add game to window object for 2D/3D renderer switching
+	window.game = game;
 }
 
 export function cleanGame()
@@ -665,8 +727,10 @@ export function startSoloGame()
 	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
 
 	document.getElementById("gameroom-page").hidden = true;
+	document.getElementById("game-wrapper")?.classList.remove("hidden");
+
 	game.setupSoloKeyListeners();
-	game.createCanvas();
+	game.createRenderingContext();
 	game.settings({
 		ballSettings: {
 			ball: new Ball(20, 20, 400, 300),
@@ -695,8 +759,9 @@ export function startAIGame()
 
 	game.setIsAIgame(true);
 	document.getElementById("gameroom-page").hidden = true;
+	document.getElementById("game-wrapper")?.classList.remove("hidden");
 	game.setupSoloKeyListeners();
-	game.createCanvas();
+	game.createRenderingContext();
 	game.setupAI();
 	game.settings({
 		ballSettings: {

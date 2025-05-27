@@ -35,7 +35,7 @@ export function setupButtons(socket, userId)
 	if (matchBtn)
 	{
 		matchBtn.addEventListener("click", () => {
-			socket.emit("joinRoomQue");
+			socket.emit("joinRoomQue", userId);
 		});
 	}
 

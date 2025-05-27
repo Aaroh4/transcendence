@@ -17,7 +17,7 @@ const friendRequest = async function(req, reply) {
         return reply.code(400).send({ error: "Friend request already sent" })
       } else if (existing.status === 'accepted') {
         return reply.code(400).send({ error: "Users are already friends" })
-      } else if (existing.status === 'blocked') {
+      } else if (existing.status === 'blocked' && userId === existing.friendId) {
         return reply.code(400).send({ error: "User is blocked" })
       } else if (existing.status === 'declined') {
         db.prepare('UPDATE friends SET status = ? WHERE user_id = ? AND friend_id = ?')
@@ -81,12 +81,8 @@ const acceptRequest = async function(req, reply) {
       db.prepare('INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)')
         .run(userId, friendId, 'accepted')
     }
-    return reply.send(`Friend request from user ${friendId} was accepted`)
+    return reply.send({ error: `Friend request from user ${friendId} was accepted` })
 
-    db.prepare('INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)')
-      .run(userId, friendId, 'accepted');
-
-    return reply.send({ error: `Friend request from user ${friendId} was accepted`})
   } catch (error) {
     console.error('Database error:', error)
     return reply.code(500).send({ error: error.message })

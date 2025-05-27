@@ -1,4 +1,5 @@
 import shuffle from '../utils/shuffle.js'
+import { readyUpTimer } from '../utils/updateBracket.js'
 
 const createTournament = async function(req, reply) {
   const { name, size } = req.body
@@ -46,8 +47,6 @@ const getTournaments = async function(req, reply) {
   try {
     const tournaments = db.prepare("SELECT * FROM tournaments WHERE status = 'created'")
       .all()
-
-	console.log(tournaments);
 
     if (tournaments.length === 0) return reply.code(404).send({ error: "No tournaments found" })
     
@@ -101,7 +100,7 @@ const joinTournament = async function(req, reply) {
 		}
 	
 		const hasJoined = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
-		.all(user.id)
+		  .all(user.id)
 		
 		if (hasJoined.length >= 1) return reply.code(409).send({ error: "User has already joined a tournament" })
 		
@@ -109,7 +108,7 @@ const joinTournament = async function(req, reply) {
 		  .run(userId, tournamentId)
 	
 		const players = db.prepare('SELECT user_id FROM tournament_players WHERE tournament_id = ?')
-		.all(tournament.id)
+		  .all(tournament.id)
 
     db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
 		  .run(players.length, tournament.id)
@@ -166,13 +165,13 @@ const startTournament = async function(req, reply, tournamentId, tournamentName)
 			const roundMatchIds = []
 	
 			for (let match = 0; match < matchesInRound; match++) {
-			if (round > 1) {
-				const prevRoundMatches = allMatchIds.get(round - 1)
-				playerOnePrevMatch = prevRoundMatches[match * 2] || null
-				playerTwoPrevMatch = prevRoundMatches[match * 2 + 1] || null
-			} else {
-				playerOne = playerIds[match * 2] || null
-				playerTwo = playerIds[match * 2 + 1] || null
+        if (round > 1) {
+          const prevRoundMatches = allMatchIds.get(round - 1)
+          playerOnePrevMatch = prevRoundMatches[match * 2] || null
+          playerTwoPrevMatch = prevRoundMatches[match * 2 + 1] || null
+        } else {
+          playerOne = playerIds[match * 2] || null
+          playerTwo = playerIds[match * 2 + 1] || null
 			}
 			const insertStatement = db
 				.prepare(`INSERT INTO matches 
@@ -197,6 +196,10 @@ const startTournament = async function(req, reply, tournamentId, tournamentName)
 		})
 		bracketTransaction()
 
+    setTimeout(async() => {
+      readyUpTimer(tournamentId)
+    }, 60000)
+
     return reply.send({ 
       message: `User ${req.user.name} successfully joined tournament ${tournamentName}`,
       status: 'in_progress',
@@ -213,6 +216,9 @@ const getTournamentParticipant = async function(req, reply) {
   const userId = req.user.id
   const { tourType } = req.params;
 
+  console.log(">> getTournamentParticipant called");
+  console.log(userId, tourType);
+
   try {
 	let tournament;
 	tournament = db.prepare("SELECT * FROM tournament_players WHERE user_id = ?")
@@ -220,8 +226,16 @@ const getTournamentParticipant = async function(req, reply) {
 	if (tournament.length === 0) return reply.code(404).send({ error: `No tournament found` })
 	if (tourType === 'tourPage')
 	{
-		console.log(tournament[0].id);
 		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'created'")
+		.all(tournament[0].tournament_id)
+		if (realTournament.length === 0) 
+			return reply.code(404).send({ error: `No tournament found` })
+		else 
+			return reply.code(200).send({ tournament: realTournament[0] });
+	}
+	else if (tourType === 'gamePage')
+	{
+		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'in_progress'")
 		.all(tournament[0].tournament_id)
 		if (realTournament.length === 0) 
 			return reply.code(404).send({ error: `No tournament found` })
@@ -249,7 +263,13 @@ const leaveTournament = async function(req, reply) {
 
     db.prepare('DELETE FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
       .run(tournamentId, userId)
+
+    db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
+		  .run(tournamentId)
     
+	db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
+	  .run(tournamentId)
+
     return reply.send({ error: `User ${userId} left tournament ${tournamentId}`})
   } catch (error) {
     console.log(error)
