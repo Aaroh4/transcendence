@@ -56,39 +56,6 @@ const App = () => {
         ::-webkit-scrollbar-thumb:hover {
           background: #555;
         }
-        
-        #pong-container {
-            position: absolute;
-            width: 100px;
-            height: 60px;
-            background-color: transparent;
-            pointer-events: none;
-            z-index: 9999;
-        }
-        
-        #ball {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background-color: #6f0fbd;
-            border-radius: 50%;
-        }
-        
-        .paddle {
-            position: absolute;
-            width: 4px;
-            height: 20px;
-            background-color: #41fc30;
-            border-radius: 2px;
-        }
-        
-        #paddle-left {
-            left: 5px;
-        }
-        
-        #paddle-right {
-            right: 5px;
-        }  
       `}</style>
       
       <div id="pong-container" ref={containerRef}>
