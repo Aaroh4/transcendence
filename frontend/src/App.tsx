@@ -11,7 +11,6 @@ import TournamentsPage from './pages/tournamentPage.js'
 import ProfilePage from './pages/profilePage'
 import ProtectedRoutes from './components/authRoutes'
 import RedirectForLoggedIn from './components/redirecForLoggedIn'
-import mouseEffect from './components/mouseEffet'
 
 // import "../output.css";
 
@@ -36,8 +35,6 @@ const App = () => {
   const paddleLeftRef = useRef(null);
   const paddleRightRef = useRef(null);
   
-	mouseEffect(containerRef, ballRef, paddleLeftRef, paddleRightRef);
-
   return (
     <>
       <style>{`
