@@ -357,7 +357,6 @@ function initializeWebRTC(roomId) {
 	
 		const dataChannel = peerConnection.createDataChannel("gameData");
 	
-		// ADD THIS LINE CLEARLY:
 		room.players[playerId].dataChannel = dataChannel;
 	
 		dataChannel.onopen = () => {
@@ -432,7 +431,7 @@ function startGameLoop(roomId) {
 		return ;
 	//log.info("Game running: " + roomId);
 
-	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
+	if (game.getScores()[0] >= 10 || game.getScores()[1] >= 10) {
 		game.stop();
 		const winner = game.getScores()[0] >= 5 ? 0 : 1
     const winnerId = playerList[winner].dbId;

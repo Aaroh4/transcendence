@@ -29,10 +29,10 @@ export class Entity {
 		this.xPos = x;
 	}
 
-	draw(ctx) {
-		ctx.fillStyle = "red";
-		ctx.fillRect(this.xPos, this.yPos, this.width, this.height);
-	}
+	// draw(ctx) {
+	// 	ctx.fillStyle = "red";
+	// 	ctx.fillRect(this.xPos, this.yPos, this.width, this.height);
+	// }
 
 	getpos() {
 		return [this.yPos, this.xPos];
@@ -96,20 +96,20 @@ export class Ball extends Entity {
 			nextY <= player.yPos + player.height
 		) {
 			//this.xVel = 1;
-				const paddleCenter = player.yPos + player.height / 2;
-				const ballCenter = nextY + this.height / 2;
+			const paddleCenter = player.yPos + player.height / 2;
+			const ballCenter = nextY + this.height / 2;
 
-				const offset = (ballCenter - paddleCenter) / (player.height / 2); // range: -1 to +1
-				const maxBounceAngle = Math.PI / 3; // 60 degrees max
+			const offset = (ballCenter - paddleCenter) / (player.height / 2); // range: -1 to +1
+			const maxBounceAngle = Math.PI / 3; // 60 degrees max
 
-				const angle = offset * maxBounceAngle;
+			const angle = offset * maxBounceAngle;
 
-				this.xVel = Math.cos(angle);
-				this.yVel = Math.sin(angle);
+			this.xVel = Math.cos(angle);
+			this.yVel = Math.sin(angle);
 
-				const len = Math.hypot(this.xVel, this.yVel);
-				this.xVel /= len;
-				this.yVel /= len;
+			const len = Math.hypot(this.xVel, this.yVel);
+			this.xVel /= len;
+			this.yVel /= len;
 		}
 		if (
 			nextX + this.width >= player2.xPos &&
@@ -121,11 +121,11 @@ export class Ball extends Entity {
 			const ballCenter = nextY + this.height / 2;
 
 			const offset = (ballCenter - paddleCenter) / (player2.height / 2);
-			const maxBounceAngle = Math.PI / 6;
+			const maxBounceAngle = Math.PI / 3;
 
 			const angle = offset * maxBounceAngle;
 
-			this.xVel = -Math.cos(angle); // negate for leftward motion
+			this.xVel = -Math.cos(angle);
 			this.yVel = Math.sin(angle);
 
 			const len = Math.hypot(this.xVel, this.yVel);
@@ -184,8 +184,6 @@ export interface GameState {
 	player2Y: number;
 	player1Height: number;
 	player2Height: number;
-	ballX: number;
-	ballY: number;
 	ballSize: number;
 	ball: Ball | null;
 	player1Score: number;
@@ -259,8 +257,6 @@ export class frontEndGame {
 			player1Height: this.player1.height,
 			player2Height: this.player2.height,
 			ball: this.ball,
-			ballX: this.ballX,
-			ballY: this.ballY,
 			ballSize: this.ballSize,
 			player1Score: this.player1Score,
 			player2Score: this.player2Score,
@@ -411,9 +407,9 @@ export class frontEndGame {
 		  this.player2.setpos(positions[1][0]);
 		  
 		  // Update ball position
-		  this.ballY = positions[2][0];
-		  this.ballX = positions[2][1];
-		  
+		  this.ball.yPos = positions[2][0];
+		  this.ball.xPos = positions[2][1];
+
 		  // Redraw the game
 			this.renderer.render(this.getGameState());
 		}
@@ -645,9 +641,24 @@ export class frontEndGame {
 		
 			document.getElementById("gameroom-page").hidden = true;
 			document.getElementById("game-wrapper")?.classList.remove("hidden");
+
 			log.info("Game started in room:", roomId);
+			
 			game.createRenderingContext();
-			game.settings(settings, color);
+			
+			// Create Ball object locally
+			const networkBall = new Ball(20, 20, 400, 300); // or use ballSize and midpoint logic
+
+			game.settings({
+				ballSettings: {
+					ball: networkBall,
+					ballSize: settings.ballSettings.ballSize,
+					ballSpeed: settings.ballSettings.ballSpeed
+				},
+				playerSettings: settings.playerSettings
+			}, color);
+
+			game.ball = networkBall;
 
 			if (this.peerConnection == null) {
 				this.peerConnection = new RTCPeerConnection(this.configuration);
@@ -688,7 +699,6 @@ export class frontEndGame {
 		});
 	}
 }
-
 
 let game : frontEndGame;
 let animationFrameId: number | null = null;

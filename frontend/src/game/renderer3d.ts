@@ -107,7 +107,7 @@ export class Renderer3D {
 	private paddle2: BABYLON.Mesh;
 	private leftEdge: BABYLON.Mesh;
 	private rightEdge: BABYLON.Mesh;
-	private ball: BABYLON.Mesh;
+	private ballMesh: BABYLON.Mesh;
 	//private scoreText: GUI.TextBlock;
 	private scoreboardRoot: BABYLON.TransformNode | null = null;
 	private digitNodes: BABYLON.TransformNode[] = [];
@@ -272,16 +272,9 @@ export class Renderer3D {
 		this.paddle1.position = new BABYLON.Vector3(-19.5, .5, 0);
 		this.paddle2.position = new BABYLON.Vector3(19.5, .5, 0);
 
-		this.ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: state.ballSize / this.unitScale }, this.scene);
+		this.ballMesh = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: state.ballSize / this.unitScale }, this.scene);
 		console.log("Ball size: ", this.state.ballSize);
-		this.ball.position.y = 1;
-
-		// GUI overlay for scores
-		// this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
-		// this.scoreText = new GUI.TextBlock();
-		// this.scoreText.color = "white";
-		// this.scoreText.fontSize = 24;
-		// this.guiTexture.addControl(this.scoreText);
+		this.ballMesh.position.y = 1;
 
 		var originalUp = this.camera.upVector.clone();
 		var originalRotation = this.camera.rotation.clone();
@@ -332,28 +325,9 @@ export class Renderer3D {
 		this.paddle1.position.z = this.to3dZ(state.player1Y + state.player1Height / 2);
 		this.paddle2.position.z = this.to3dZ(state.player2Y + state.player2Height / 2);
 
-		this.ball.position.x = this.to3dX(state.ball.xPos) + state.ballSize / this.unitScale / 2;
-		this.ball.position.z = this.to3dZ(state.ball.yPos) + state.ballSize / this.unitScale / 2;
+		this.ballMesh.position.x = this.to3dX(state.ball.xPos) + state.ballSize / this.unitScale / 2;
+		this.ballMesh.position.z = this.to3dZ(state.ball.yPos) + state.ballSize / this.unitScale / 2;
 
-		//this.scoreText.text = `${state.player1Score} : ${state.player2Score}`;
-
-		// Clean up old digits
-		// 	this.digitNodes.forEach(node => node.dispose());
-		// 	this.digitNodes = [];
-
-		// 	const scoreStr = `${state.player1Score.toString().padStart(2, "0")}  ${state.player2Score.toString().padStart(2, "0")}`;
-		// 	let startX = -scoreStr.length / 2;
-
-		// 	for (let i = 0; i < scoreStr.length; i++) {
-		// 		const char = scoreStr[i];
-		// 		if (char === " ") continue;
-
-		// 		const digitNode = new BABYLON.TransformNode("digit", this.scene);
-		// 		digitNode.position = new BABYLON.Vector3(startX + i * 1.2, 3, 0); // position above field
-		// 		this.createDigit(digitNode, char, this.scene);
-		// 		this.digitNodes.push(digitNode);
-		// 	}
-		// }
 		const p1ScoreChanged = state.player1Score !== this.lastPlayer1Score;
 		const p2ScoreChanged = state.player2Score !== this.lastPlayer2Score;
 		this.lastPlayer1Score = state.player1Score;
@@ -367,25 +341,6 @@ export class Renderer3D {
 
 		const visibleChars = [...scoreStr].filter(c => c !== " ");
 		const total = visibleChars.length;
-
-		// let displayIndex = 0;
-		// for (let i = 0; i < scoreStr.length; i++) {
-		// 	const char = scoreStr[i];
-		// 	if (char === " ") continue;
-
-		// 	const digitNode = new BABYLON.TransformNode("digit", this.scene);
-		// 	digitNode.parent = this.scoreboardRoot;
-
-		// 	// Flip order: first char gets lowest X
-		// 	const x = (displayIndex - total / 2) * digitSpacing;
-		// 	digitNode.position = new BABYLON.Vector3(x, 0, 0);
-
-		// 	digitNode.rotation = new BABYLON.Vector3(0, 0, 0);
-		// 	this.createGridDigit(digitNode, char, this.scene);
-		// 	this.digitNodes.push(digitNode);
-
-		// 	displayIndex++;
-		// }
 
 		let displayIndex = 0;
 		for (let i = 0; i < scoreStr.length; i++) {

@@ -117,30 +117,6 @@ class Player extends Entity {
 	}
 }
 
-//class Computer extends Entity {
-//	constructor(h, w, y, x) {
-//		super(h, w, y, x);
-//		this.speed = 4;
-//	}
-
-//	setvel(velocityY) {
-//		this.yVel = velocityY;
-//	}
-
-//	move(ball, canvas) {
-//		if (ball.yPos < this.yPos && ball.xVel === 1) {
-//			this.yVel = -1;
-//			if (this.yPos <= 20) this.yVel = 0;
-//		} else if (ball.yPos > this.yPos + this.height && ball.xVel === 1) {
-//			this.yVel = 1;
-//			if (this.yPos + this.height >= canvas.height - 20) this.yVel = 0;
-//		} else {
-//			this.yVel = 0;
-//		}
-//		this.yPos += this.yVel * this.speed;
-//	}
-//}
-
 class Game {
 	constructor(playerOne, playerTwo) {
 		this.running = true;

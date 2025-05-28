@@ -6,12 +6,6 @@ export class Renderer2D implements GameRenderer{
 	private gameCanvas : HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 
-	// constructor() {
-	// 	console.log("Constructor Renderer2D");
-		
-	// 	// this.container = document.getElementById("game-container");
-	// }
-
 	init(state: GameState): void {
 		console.log("Init Renderer2D");
 		this.container = this.container = document.getElementById("game-container");
@@ -35,19 +29,14 @@ export class Renderer2D implements GameRenderer{
 		this.ctx.fillText(state.player2Score.toString(), state.canvasWidth / 2 - 48 * 2, 50);
 		this.ctx.fillText(state.player1Score.toString(), state.canvasWidth / 2 + 48, 50);
 		this.ctx.fillStyle = state.color;
-		this.ctx.fillRect(state.ballX, state.ballY, state.ballSize, state.ballSize);
+		this.ctx.fillRect(state.ball.xPos, state.ball.yPos, state.ball.height, state.ball.width);
 		this.ctx.fillRect(10, state.player1Y, 10, state.player1Height);
 		this.ctx.fillRect(780, state.player2Y, 10, state.player2Height);
 		if (state.isAIgame && state.AIdebug)
 		{
 			state.gameAI.drawAIPrediction(this.ctx);
 		}
-		if (state.ball)
-		{
-			state.ball.draw(this.ctx);
-		}
 	}
-
 
 	dispose(): void {
 		if (this.gameCanvas?.parentElement) {
