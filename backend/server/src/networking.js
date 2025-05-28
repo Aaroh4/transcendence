@@ -420,12 +420,19 @@ function startGameLoop(roomId) {
 	const room = rooms[roomId];
 	const game = games[roomId];
 	
-	if (!game || !room) return;	
+	if (!game || !room) return;
+
+	// Clear any running gameloop timer before starting new one
+	if (game.gameLoopTimer) {
+		clearTimeout(game.gameLoopTimer);
+		game.gameLoopTimer = null;
+	}
+
  	const playerList = Object.values(room.players)
 
 	const gameLoop = () => {
 
-	const startTime = Date.now();
+	const startTime = performance.now();
 
 	if (!game.isRunning())
 		return ;
@@ -451,6 +458,7 @@ function startGameLoop(roomId) {
       } catch (error) {
           console.log(error)
       }
+			room.gameStarted = false; // Allow rematch, should we clear this here?
 		}
 
 		io.to(roomId).emit('gameOver', winner + 1, room.type);
@@ -474,6 +482,7 @@ function startGameLoop(roomId) {
 	game.update();
 	
 	const positions = game.getPos();
+	const velocities = game.getVel();
 	
 	// Send game state to all players via their data channels
 	for (const playerId in room.players) {
@@ -485,6 +494,7 @@ function startGameLoop(roomId) {
 			dataChannel.send(JSON.stringify({
 			type: 'gameState',
 			positions: positions,
+			velocities: velocities,
 			scores: game.getScores()
 			}));
 		} catch (err) {
@@ -493,7 +503,7 @@ function startGameLoop(roomId) {
 		}
 	}
 
-	const endTime = Date.now();
+	const endTime = performance.now();
 	const elapsed = endTime - startTime;
 	const nextFrameDelay = Math.max(0, (1000 / 60) - elapsed);
 	
@@ -550,7 +560,7 @@ function joinRoom(roomId, socket, dbId)
 			const settings = { // there might be a better way to do this oh well
 				ballSettings: {
 					ballSize: 20,
-					ballSpeed: 3
+					ballSpeed: 10
 				},
 				playerSettings: {
 	

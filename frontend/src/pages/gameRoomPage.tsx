@@ -6,6 +6,8 @@ import Background from '../components/background.js';
 import { Logger, LogLevel } from '../utils/logger.js';
 import { useToast } from "../components/toastBar/toastContext";
 
+let totalGames = 0;
+
 export default function GameRoom({matchType}) {
 	const toast = useToast();
 	const hasRun1 = useRef(false);
@@ -226,7 +228,7 @@ const matchTypeButtons = () => {
 						<p className="text-center text-white">Ball size</p>
 						<input id="ball-size" type="text" placeholder="20" className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"/>
 						<p className="text-center text-white">Ball speed</p>
-						<input id="ball-speed" type="text" placeholder="3" className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"/>
+						<input id="ball-speed" type="text" placeholder="10" className="block w-full p-2 border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"/>
 					</details>
 
 					<button id="start-btn" hidden className="mt-2 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center border-2 border-black transform transition-transform hover:scale-103 duration-100">

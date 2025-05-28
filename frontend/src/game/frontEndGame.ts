@@ -11,6 +11,8 @@ const log = new Logger(LogLevel.INFO);
 
 log.info("UI ready")
 
+let totalGameCount = 0;
+
 export class Entity {
 	public yVel: number;
 	public xVel: number;
@@ -29,13 +31,12 @@ export class Entity {
 		this.xPos = x;
 	}
 
-	// draw(ctx) {
-	// 	ctx.fillStyle = "red";
-	// 	ctx.fillRect(this.xPos, this.yPos, this.width, this.height);
-	// }
-
 	getpos() {
 		return [this.yPos, this.xPos];
+	}
+
+	lerp(a: number, b: number, t: number): number {
+		return a + (b - a) * t;
 	}
 }
 
@@ -160,7 +161,7 @@ export class Player extends Entity {
 		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
 		
 		if (nextY + this.height >= 600) return;
-		else if (nextY + this.yVel <= 0) return;
+		else if (nextY + this.height <= 0) return;
 
 		this.yPos += this.yVel * this.speed * deltaTime;
 	}
@@ -211,8 +212,6 @@ export class frontEndGame {
 	private player2Score : number = 0;
 	private player1 : Player | null = null;
 	private player2 : Player | null = null;
-	private ballY : number;
-	private ballX : number;
 	private ballSize : number;
 	private ball: Ball | null = null;
 	private lastUpdateTime: number;
@@ -321,7 +320,7 @@ export class frontEndGame {
 				try {
 					const data = JSON.parse(e.data);
 					if (data.type === 'gameState') {
-						this.updateGameState(data.positions, data.scores);
+						this.updateFromBackend(data.positions, data.velocities, data.scores);
 						log.debug(" Game state updated");
 					}
 				} catch (err) {
@@ -358,6 +357,7 @@ export class frontEndGame {
 			this.peerConnection.close();
 			this.peerConnection = null;
 		}
+		log.info("Cleaned up game resources");
 	}
 
 	setupKeyListeners(dataChannel) {
@@ -395,33 +395,74 @@ export class frontEndGame {
         document.addEventListener('keyup', this.keyUpHandler);
 	}
 
-	updateGameState(positions, scores) {
+	updateFromBackend(positions, velocities, scores) {
+
+		log.info("Updating game state from backend");
+
 		this.player1Score = scores[0];
 		this.player2Score = scores[1];
 
-		if (positions && positions.length >= 3) {
+		if (positions && positions.length >= 3 &&
+				velocities && velocities.length >= 3
+		) {
 		  // Update player 1 position
 		  this.player1.setpos(positions[0][0]);
+			this.player1.setvel(velocities[0][0]);
 		  
 		  // Update player 2 position
 		  this.player2.setpos(positions[1][0]);
+			this.player2.setvel(velocities[1][0]);
 		  
 		  // Update ball position
 		  this.ball.yPos = positions[2][0];
 		  this.ball.xPos = positions[2][1];
 
-		  // Redraw the game
+			// Update ball position with lerp
+			//this.ball.xPos = this.ball.lerp(this.ball.xPos, positions[2][1], 0.2);
+			//this.ball.yPos = this.ball.lerp(this.ball.yPos, positions[2][0], 0.2);
+
+			// Update ball velocity
+		  this.ball.yVel = velocities[2][0];
+		  this.ball.xVel = velocities[2][1];
+
+		  // Decoupled rendering from backend updates
 			this.renderer.render(this.getGameState());
+		} else {
+			log.error("Invalid positions or velocities received from backend, shit happens.");
 		}
+	}
+
+	updateNetworkGameState() {
+		const now = performance.now();
+		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
+		this.lastUpdateTime = now;
+		// const dir = this.currentMode === '3D' ? -1 : 1;
+
+		// if (this.keysPressed[KeyBindings.UP])
+		// 	this.player1.setvel(-1 * dir);
+		// else if (this.keysPressed[KeyBindings.DOWN])
+		// 	this.player1.setvel(1 * dir);	
+		// else
+		// 	this.player1.setvel(0);
+
+		// if (this.keysPressed[KeyBindings.SUP]) 
+		// 	this.player2.setvel(-1 * dir);
+		// else if (this.keysPressed[KeyBindings.SDOWN])
+		// 	this.player2.setvel(1 * dir);
+		// else
+		// 	this.player2.setvel(0);
+
+		this.player1.move(deltaTime);
+		this.player2.move(deltaTime);
+		this.ball.update(this.player1, this.player2, deltaTime);	
 	}
 
 	updateSoloGameState()
 	{
-		const now = Date.now();
+		const now = performance.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
 		const dir = this.currentMode === '3D' ? -1 : 1;
-
 
 		if (this.keysPressed[KeyBindings.UP])
 			this.player1.setvel(-1 * dir);
@@ -446,7 +487,7 @@ export class frontEndGame {
 
 	updateAIGameState()
 	{
-		const now = Date.now();
+		const now = performance.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
 		const dir = this.currentMode === '3D' ? -1 : 1;
@@ -484,7 +525,7 @@ export class frontEndGame {
 		const {ballSettings, playerSettings} = settings;
 		this.ballSize = ballSettings.ballSize;
 		this.ball = ballSettings.ball;
-		this.lastUpdateTime = Date.now();
+		this.lastUpdateTime = performance.now();
 	}
 
 	switchMode(newMode: '2D' | '3D') {
@@ -665,7 +706,12 @@ export class frontEndGame {
 				log.info("Peer connection created");
 				this.setupPeerConnectionEvents(socket);
 			}
-			game.renderer.render(game.getGameState());
+
+			function loopNetwork() {
+				game.updateNetworkGameState();
+				animationFrameId = requestAnimationFrame(loopNetwork);
+			}
+			loopNetwork();
 		});
 		
 		socket.on("gameOver", (winner : number, type : string) => {
@@ -710,6 +756,8 @@ export function createNewGame(matchType : string, socket, userId : string, toast
 	console.log("id: ", userId);
 	setupButtons(socket, userId);
 	game = new frontEndGame();
+	totalGameCount++;
+	log.info("Creating new game instance, total count:", totalGameCount);
 	if (matchType != "solo" && matchType != "ai")
 	{
 		game.socketLogic(socket);
@@ -720,11 +768,14 @@ export function createNewGame(matchType : string, socket, userId : string, toast
 
 export function cleanGame()
 {
+	log.info("Cleaning up game resources");
+	totalGameCount--;
 	if (animationFrameId != null)
 		cancelAnimationFrame(animationFrameId);
 	if (game)
 		game.cleanUp();
 	game = null;
+	log.info("Total game count:", totalGameCount);
 } 
 
 export function startSoloGame()
