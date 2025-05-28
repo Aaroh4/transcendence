@@ -1,7 +1,26 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function mouseEffect(containerRef, ballRef, paddleLeftRef, paddleRightRef)
 {
+	const [windowSize, setWindowSize] = useState({
+		width: window.innerWidth,
+		height: window.innerHeight,
+	  });
+
+	useEffect(() => {
+		function handleResize() {
+		  setWindowSize({
+			width: window.innerWidth,
+			height: window.innerHeight,
+		  });
+		}
+	
+		window.addEventListener('resize', handleResize);
+		handleResize();
+	
+		return () => window.removeEventListener('resize', handleResize);
+	  }, []);
+
 	useEffect(() => {
 		const container = containerRef.current;
 		const ball = ballRef.current;
@@ -31,8 +50,10 @@ export default function mouseEffect(containerRef, ballRef, paddleLeftRef, paddle
 		  state.mouseX = e.clientX;
 		  state.mouseY = e.clientY;
 		  
-		  container.style.left = `${state.mouseX + state.offset.x}px`;
-		  container.style.top = `${state.mouseY + state.offset.y}px`;
+		  if (windowSize.width - state.containerWidth - state.offset.x > state.mouseX)
+		  	container.style.left = `${state.mouseX + state.offset.x}px`;
+		  if (windowSize.height - state.containerHeight - state.offset.y > state.mouseY)
+		 	container.style.top = `${state.mouseY + state.offset.y}px`;
 		};
 		
 		document.addEventListener('mousemove', handleMouseMove);
