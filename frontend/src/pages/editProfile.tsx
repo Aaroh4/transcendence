@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getUser, User } from "../services/api";
+import { deleteUser } from '../services/api';
+import { useNavigate } from "react-router-dom";
+import { uploadAvatar } from '../services/api'; 
+import { updateUser } from '../services/api';
 
 const EditProfile: React.FC = () => {
 	const [message, setMessage] = useState('');
 	const [changeMode, setChangeMode] = useState<'username' | 'password' | null>(null);
 	const [newValue, setNewValue] = useState('');
-	const [oldPassword, setOldPassword] = useState('');
+	// const [oldPassword, setOldPassword] = useState('');
 	const [confirmValue, setConfirmValue] = useState('');
 	const [isGoogleUser, setIsGoogleUser] = useState(false);
 	const [user, setUser] = useState<User | null>(null);
 
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const googleId = sessionStorage.getItem('googleId');
@@ -32,8 +37,11 @@ const EditProfile: React.FC = () => {
 	if (!user) 
 		return <div>Loading...</div>;
 
-	const handleSubmitChange = (e: React.FormEvent) => {
+	const handleSubmitChange = async (e: React.FormEvent) => {
 		e.preventDefault();
+		const userId = sessionStorage.getItem('activeUserId');
+		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+		const accToken = sessionData.accessToken;
 
 		setMessage('');
 		
@@ -43,22 +51,93 @@ const EditProfile: React.FC = () => {
 		}
 
 		if (changeMode === 'username') {
-			setMessage('Placeholder before making API call');
+			
+			try {
+			const response = await updateUser({
+				accToken,
+				name: newValue,
+				email: user.email,
+				number: "0", //?
+				password: "0", //?
+			}, userId);
+
+			if (response.status >= 200 && response.status < 300) {
+				setMessage('Username updated successfully!');
+				setChangeMode(null);
+				setNewValue('');
+				setConfirmValue('');
+			} else {
+				setMessage('Failed to update username. Please try again.');
+			}
+			} catch (error) {
+				setMessage('Error updating username. Please try again.');
+				console.error(error);
+			}
 			return;
 		}
 
 		if (changeMode === 'password') {
-			setMessage('Placeholder before making API call');
+			
+			if (isGoogleUser) {
+				setMessage("YOU CAN'T!!!");
+				setChangeMode(null);
+				setNewValue('');
+				setConfirmValue('');
+				return;
+			}
+			
+			try {
+			const response = await updateUser({
+				accToken,
+				name: newValue,
+				email: user.email,
+				number: "0", //?
+				password: newValue,
+			}, userId);
+
+			if (response.status >= 200 && response.status < 300) {
+				setMessage('Password updated successfully!');
+				setChangeMode(null);
+				setNewValue('');
+				setConfirmValue('');
+			} else {
+				setMessage('Failed to update username. Please try again.');
+			}
+			} catch (error) {
+				setMessage('Error updating password. Please try again.');
+				console.error(error);
+			}
 			return;
 		}
 
 		setChangeMode(null);
 		setNewValue('');
 		setConfirmValue('');
+		// setOldPassword(''); 
 	};
 
-	const handleDeleteAccount = () => {
-		setMessage('Placeholder');
+	const handleDeleteAccount = async () => {
+		const userId = sessionStorage.getItem('activeUserId');
+		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+		const accToken = sessionData.accessToken;
+
+		if (!userId || !accToken) {
+			setMessage('User not authenticated.');
+			return;
+		}
+
+		const confirmed = window.confirm('Are you sure you want to delete your account? This action cannot be undone.');
+		if (!confirmed) 
+			return;
+
+		try {
+			await deleteUser({ id: Number(userId), accToken });
+			sessionStorage.clear();
+			navigate('/'); 
+		} catch (err) {
+			console.error(err);
+			setMessage('Failed to delete account.');
+		}
 	};
 
 	const handleFileButtonClick = () => {
@@ -67,19 +146,19 @@ const EditProfile: React.FC = () => {
 
 	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
-		if (!file) return;
+		if (!file) 
+			return;
+
+		const userId = sessionStorage.getItem('activeUserId');
+		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
+		const accToken = sessionData.accessToken;
 
 		try {
-			const formData = new FormData();
-			formData.append('avatar', file);
+			const response = await uploadAvatar({ file, accToken });
 
-			const response = await fetch('/api/upload-avatar', {
-				method: 'POST',
-				body: formData,
-				//place_huld
-			});
-
-			if (!response.ok) throw new Error('Upload failed');
+			if (response.status >= 300) {
+				throw new Error(response.error || 'Upload failed');
+			}
 
 			setMessage('Avatar updated successfully!');
 		} catch (error) {
@@ -170,18 +249,18 @@ const EditProfile: React.FC = () => {
 								/>
 							</div>
 
-							{(changeMode === 'username' || changeMode === 'password') && (
-								<div>
-									<label className="block text-sm font-medium text-gray-700">Current Password</label>
-									<input
-										type="password"
-										value={oldPassword}
-										onChange={(e) => setOldPassword(e.target.value)}
-										required
-										className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-									/>
-								</div>
-							)}
+							{/* 
+							<div>
+								<label className="block text-sm font-medium text-gray-700">Current Password</label>
+								<input
+									type="password"
+									value={oldPassword}
+									onChange={(e) => setOldPassword(e.target.value)}
+									required
+									className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+								/>
+							</div>
+							*/}
 
 							<div className="pt-2">
 								<button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition">

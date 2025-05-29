@@ -52,7 +52,7 @@ const ProfilePage: React.FC = () => {
             className="w-32 h-32 rounded-full border-4 border-blue-500 shadow"
           />
           <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-          <p className="text-sm text-gray-500 mt-2">Sirkuspelle.</p>
+          {/*<p className="text-sm text-gray-500 mt-2">Sirkuspelle.</p>*/}
 
           <p
             className={`text-sm font-semibold mt-2 ${
