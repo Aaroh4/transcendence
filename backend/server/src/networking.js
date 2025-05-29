@@ -211,7 +211,7 @@ export function setupNetworking(server){
             .get(match.player_one_id)
 			rooms[roomId].sockets[match.player_two_id] = socket;
         }
-        if (hasDisconnected.is_ready == 2) {
+        if (hasDisconnected && hasDisconnected.is_ready == 2) {
           db.prepare('UPDATE matches SET status = ? WHERE id = ?')
             .run('in_progress', match.id)
 			socket.emit("disconnectWin");

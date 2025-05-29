@@ -127,6 +127,7 @@ async function dbInit(fastify, options) {
       tournament_id INTEGER NOT NULL,
       user_id INTEGER NOT NULL,
       is_ready INTEGER NOT NULL DEFAULT 0 CHECK(is_ready IN (0 ,1, 2)),
+	  won_previous INTEGER DEFAULT 0,
       FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
       UNIQUE(tournament_id, user_id)
