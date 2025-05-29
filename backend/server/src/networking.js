@@ -262,21 +262,26 @@ export function setupNetworking(server){
 
 		// Lets the host of the room start the game
 		socket.on('hostStart', (settings) => {
-			const playerRoom = socket.room;
-			if (!playerRoom || !rooms[playerRoom] || Object.keys(rooms[playerRoom].players)[0].socketId == socket.id) return;
+			const roomId = socket.room;
+			if (!roomId || !rooms[roomId] || Object.keys(rooms[roomId].players)[0].socketId == socket.id) return;
 
-			if (Object.keys(rooms[playerRoom].players).length === 2 && !rooms[playerRoom].gameStarted) {
-				const playerIds = Object.keys(rooms[playerRoom].players);
-				rooms[playerRoom].gameStarted = true;
+			if (Object.keys(rooms[roomId].players).length === 2 && !rooms[roomId].gameStarted) {
+				const playerIds = Object.keys(rooms[roomId].players);
+				rooms[roomId].gameStarted = true;
 
-				games[playerRoom] = new Game(playerIds[0], playerIds[1]);
-				games[playerRoom].settings(settings);		
-				initializeWebRTC(playerRoom);
-				log.info("HOSTSROOM: " + playerRoom);
-				const socketsInRoomAdapter = io.sockets.adapter.rooms.get(playerRoom);
-				log.info(`Adapter state for room ${playerRoom} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
+				games[roomId] = new Game(playerIds[0], playerIds[1]);
+				games[roomId].settings(settings);		
+				initializeWebRTC(roomId);
+				log.info("HOSTSROOM: " + roomId);
+				const socketsInRoomAdapter = io.sockets.adapter.rooms.get(roomId);
+				log.info(`Adapter state for room ${roomId} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
 				
-				io.to(playerRoom).emit("startGame", playerRoom, settings);
+				io.to(roomId).emit("startGame", {
+					roomId,
+					settings,
+					player1Id: playerIds[0],
+					player2Id: playerIds[1]
+				});
 			}
 		});
 
@@ -571,7 +576,14 @@ function joinRoom(roomId, socket, dbId)
 			const socketsInRoomAdapter = io.sockets.adapter.rooms.get(roomId);
 			log.info(`Adapter state for room ${roomId} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
 			
-			io.to(roomId).emit("startGame", roomId, settings);
+			// Identify player in frontend
+
+			io.to(roomId).emit("startGame", {
+				roomId,
+				settings,
+				player1Id: playerIds[0],
+				player2Id: playerIds[1]
+			});
 		}, 10000); }
 	}
 }

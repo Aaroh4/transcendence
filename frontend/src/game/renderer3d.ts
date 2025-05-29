@@ -115,6 +115,8 @@ export class Renderer3D {
 	private digitMaterialP1: BABYLON.StandardMaterial;
 	private digitMaterialP2: BABYLON.StandardMaterial;
 	private digitMaterialColon: BABYLON.StandardMaterial;
+	private originalUp: BABYLON.Vector3;
+	private originalRotation: BABYLON.Vector3;
 	private lastPlayer1Score = -1;
 	private lastPlayer2Score = -1;
 	private unitScale = 20;
@@ -169,6 +171,55 @@ export class Renderer3D {
 		animation.setKeys(keys);
 		material.animations = [animation];
 		this.scene.beginAnimation(material, 0, 45, false);
+	}
+
+	setSideView(): void {
+		this.camera.rotation = this.originalRotation;
+		this.camera.position = new BABYLON.Vector3(0, 15, -45);
+		this.camera.setTarget(BABYLON.Vector3.Zero());
+		this.camera.upVector = this.originalUp;
+		this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
+	}
+
+	setTopDownView(): void {
+		this.camera.position = new BABYLON.Vector3(0, 40, 0);
+		this.camera.setTarget(BABYLON.Vector3.Zero());
+		this.camera.upVector = this.originalUp;
+
+		this.camera.rotation.y = Math.PI / -2;
+		const forward = this.camera.getForwardRay().direction;
+		const rotationMatrix = BABYLON.Matrix.RotationAxis(forward, Math.PI / -2);
+		const newUp = BABYLON.Vector3.TransformNormal(this.camera.upVector, rotationMatrix);
+		this.camera.upVector = newUp;
+
+		this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 9); // floating above field
+	}
+
+	setPlayerPerspectiveView(): void {
+		this.camera.rotation = this.originalRotation;
+		this.camera.position = this.state.activePlayerId === 1
+			? new BABYLON.Vector3(-45, 15, 0)
+			: new BABYLON.Vector3(45, 15, 0);
+		console.log("Setting player perspective view for player", this.state.activePlayerId);
+		this.camera.setTarget(BABYLON.Vector3.Zero());
+		this.camera.upVector = this.originalUp;
+		this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
+	}
+
+	handleCameraKey(key: string): void {
+		switch (key) {
+			case "1":
+				this.setSideView();
+				break;
+			case "2":
+				this.setTopDownView();
+				break;
+			case "3":
+				this.setPlayerPerspectiveView();
+				break;
+			default:
+				console.log("Unhandled camera key:", key);
+		}
 	}
 
 	init(state: GameState): void {
@@ -247,42 +298,46 @@ export class Renderer3D {
 		console.log("Ball size: ", this.state.ballSize);
 		this.ballMesh.position.y = 1;
 
-		var originalUp = this.camera.upVector.clone();
-		var originalRotation = this.camera.rotation.clone();
-		this.scene.onKeyboardObservable.add((kbInfo) => {
-			switch (kbInfo.type) {
-				case BABYLON.KeyboardEventTypes.KEYDOWN:
-					if (kbInfo.event.key === "1") {
-						this.camera.rotation = originalRotation;
-						this.camera.position = new BABYLON.Vector3(0, 15, -45);
-						this.camera.setTarget(BABYLON.Vector3.Zero());
-						this.camera.upVector = originalUp;
-						this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
-					}
-					if (kbInfo.event.key === "2") {
-						this.camera.position = new BABYLON.Vector3(0, 40, 0);
-						this.camera.setTarget(BABYLON.Vector3.Zero());
-						this.camera.upVector = originalUp;
-						this.camera.rotation.y = Math.PI / -2;
-						var forward = this.camera.getForwardRay().direction;
-						var rotationMatrix = BABYLON.Matrix.RotationAxis(forward, Math.PI / -2);
-						var newUp = BABYLON.Vector3.TransformNormal(this.camera.upVector, rotationMatrix);
-						this.camera.upVector = newUp;
-						this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 9); // floating above field
-					}
-					if (kbInfo.event.key === "3") {
-						this.camera.rotation = originalRotation;
-						this.camera.position = new BABYLON.Vector3(-45, 15, 0);
-						this.camera.setTarget(BABYLON.Vector3.Zero());
-						this.camera.upVector = originalUp;
-						this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0); // floating above field
-					}
-					break;
-			}
-		});
+		this.originalRotation = this.camera.rotation.clone();
+		this.originalUp = this.camera.upVector.clone();
+		// this.scene.onKeyboardObservable.add((kbInfo) => {
+		// 	switch (kbInfo.type) {
+		// 		case BABYLON.KeyboardEventTypes.KEYDOWN:
+		// 			if (kbInfo.event.key === "1") {
+		// 				this.camera.rotation = originalRotation;
+		// 				this.camera.position = new BABYLON.Vector3(0, 15, -45);
+		// 				this.camera.setTarget(BABYLON.Vector3.Zero());
+		// 				this.camera.upVector = originalUp;
+		// 				this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
+		// 			}
+		// 			if (kbInfo.event.key === "2") {
+		// 				this.camera.position = new BABYLON.Vector3(0, 40, 0);
+		// 				this.camera.setTarget(BABYLON.Vector3.Zero());
+		// 				this.camera.upVector = originalUp;
+		// 				this.camera.rotation.y = Math.PI / -2;
+		// 				var forward = this.camera.getForwardRay().direction;
+		// 				var rotationMatrix = BABYLON.Matrix.RotationAxis(forward, Math.PI / -2);
+		// 				var newUp = BABYLON.Vector3.TransformNormal(this.camera.upVector, rotationMatrix);
+		// 				this.camera.upVector = newUp;
+		// 				this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 9); // floating above field
+		// 			}
+		// 			if (kbInfo.event.key === "3") {
+		// 				this.camera.rotation = originalRotation;
+		// 				if (state.activePlayerId === 1) {
+		// 					this.camera.position = new BABYLON.Vector3(-45, 15, 0);
+		// 				} else {
+		// 					this.camera.position = new BABYLON.Vector3(45, 15, 0);
+		// 				}
+		// 				this.camera.setTarget(BABYLON.Vector3.Zero());
+		// 				this.camera.upVector = originalUp;
+		// 				this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0); // floating above field
+		// 			}
+		// 			break;
+		// 	}
+		// });
 
 		this.engine.runRenderLoop(() => {
-			this.scene.render();
+		 	this.scene.render();
 		});
 	}
 

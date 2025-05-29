@@ -96,7 +96,6 @@ export class Ball extends Entity {
 			nextY + this.height >= player.yPos &&
 			nextY <= player.yPos + player.height
 		) {
-			//this.xVel = 1;
 			const paddleCenter = player.yPos + player.height / 2;
 			const ballCenter = nextY + this.height / 2;
 
@@ -117,7 +116,6 @@ export class Ball extends Entity {
 			nextY + this.height >= player2.yPos &&
 			nextY <= player2.yPos + player2.height
 		) {
-			//this.xVel = -1;
 			const paddleCenter = player2.yPos + player2.height / 2;
 			const ballCenter = nextY + this.height / 2;
 
@@ -181,6 +179,7 @@ enum KeyBindings{
 export interface GameState {
 	canvasWidth: number;
 	canvasHeight: number;
+	activePlayerId: number;
 	player1Y: number;
 	player2Y: number;
 	player1Height: number;
@@ -216,6 +215,7 @@ export class frontEndGame {
 	private player2Score : number = 0;
 	private player1 : Player | null = null;
 	private player2 : Player | null = null;
+	private activePlayerId: number = 1; // 1 for player1, 2 for player2
 	private ballSize : number;
 	private ball: Ball | null = null;
 	private lastUpdateTime: number;
@@ -233,6 +233,7 @@ export class frontEndGame {
 
 	private keyDownHandler: (e: KeyboardEvent) => void;
 	private keyUpHandler: (e: KeyboardEvent) => void;
+	private cameraKeyHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
 
@@ -256,6 +257,7 @@ export class frontEndGame {
 		return {
 			canvasWidth: this.canvasWidth,
 			canvasHeight: this.canvasHeight,
+			activePlayerId: this.activePlayerId,
 			player1Y: this.player1.getpos()[0],
 			player2Y: this.player2.getpos()[0],
 			player1Height: this.player1.height,
@@ -339,7 +341,8 @@ export class frontEndGame {
 			  
 			this.dataChannel.onopen = () => {
 				log.info("Data channel explicitly OPENED");
-				this.setupKeyListeners(this.dataChannel);
+				this.setupOnlineKeyListeners(this.dataChannel);
+				this.setupCameraKeyListeners();
 			};
 			  
 			this.dataChannel.onclose = () => log.info("Data channel closed");
@@ -369,15 +372,21 @@ export class frontEndGame {
 	}
 
 	cleanUp() {
-        if (this.keyDownHandler) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            this.keyDownHandler = null;
-        }
-        
-        if (this.keyUpHandler) {
-            document.removeEventListener('keyup', this.keyUpHandler);
-            this.keyUpHandler = null;
-        }
+
+		if (this.keyDownHandler) {
+				document.removeEventListener('keydown', this.keyDownHandler);
+				this.keyDownHandler = null;
+		}
+		
+		if (this.keyUpHandler) {
+				document.removeEventListener('keyup', this.keyUpHandler);
+				this.keyUpHandler = null;
+		}
+
+		if (this.cameraKeyHandler) {
+			window.removeEventListener("keydown", this.cameraKeyHandler);
+			this.cameraKeyHandler = null;
+		}	
 
 		if (this.dataChannel) {
 			this.dataChannel.close();
@@ -398,7 +407,7 @@ export class frontEndGame {
 		log.info("Cleaned up game resources");
 	}
 
-	setupKeyListeners(dataChannel) {
+	setupOnlineKeyListeners(dataChannel) {
 		log.info("Setting up key listeners");
         this.keyDownHandler = (e) => {
             if (e.code === KeyBindings.UP || e.code === KeyBindings.DOWN) {
@@ -420,7 +429,7 @@ export class frontEndGame {
         document.addEventListener('keyup', this.keyUpHandler);
 	}
 
-	setupSoloKeyListeners() {
+	setupLocalKeyListeners() {
         this.keyDownHandler = (e) => {
             this.keysPressed[e.code] = true;
         };
@@ -433,9 +442,21 @@ export class frontEndGame {
         document.addEventListener('keyup', this.keyUpHandler);
 	}
 
-	updateFromBackend(positions, velocities, scores) {
+	setupCameraKeyListeners() {
+		this.cameraKeyHandler = (e: KeyboardEvent) => {
+			if (!this.renderer3D || this.currentMode !== "3D") return;
 
-		log.info("Updating game state from backend");
+			if (e.key === "1" || e.key === "2" || e.key === "3") {
+				console.log("Camera key pressed:", e.key, " by player", this.activePlayerId);
+				this.renderer3D.handleCameraKey(e.key);
+			}
+		};
+
+		window.addEventListener("keydown", this.cameraKeyHandler);
+	}
+
+
+	updateFromBackend(positions, velocities, scores) {
 
 		this.player1Score = scores[0];
 		this.player2Score = scores[1];
@@ -716,10 +737,17 @@ export class frontEndGame {
 		})
 		
 		// Socket wants to start the game
-		socket.on("startGame", (roomId : string, settings) => {
+		socket.on("startGame", ({ roomId, settings, player1Id, player2Id }) => {
+			const mySocketId = socket.id;
+
+			this.activePlayerId = mySocketId === player1Id ? 1 :
+														mySocketId === player2Id ? 2 : null;
+
+			console.log("Assigned activePlayerId:", this.activePlayerId);
+
 			const select = document.getElementById("colorSelect") as HTMLSelectElement;
-			const color = select.options[select.selectedIndex].value;
-		
+			const color = select?.options[select.selectedIndex]?.value ?? "white";
+
 			const winnerElement = document.getElementById("winner-text");
 			if (winnerElement) {
 				winnerElement.remove();
@@ -766,11 +794,7 @@ export class frontEndGame {
 			winnerElement.id = "winner-text";
 			winnerElement.textContent = "Winner: " + winner;
 			const container = document.getElementById("game-container");
-		
-			//var canvas = container.querySelector("canvas");
-		
-			//canvas.remove();
-		
+				
 			container.prepend(winnerElement);
 			game.cleanUp();
 			if (type == "tournament")
@@ -836,7 +860,8 @@ export function startSoloGame()
 	document.getElementById("game-wrapper")?.classList.remove("hidden");
 
 	game.setIsLocalGame(true);
-	game.setupSoloKeyListeners();
+	game.setupLocalKeyListeners();
+	game.setupCameraKeyListeners();
 	game.createRenderingContext();
 	game.settings({
 		ballSettings: {
@@ -868,7 +893,8 @@ export function startAIGame()
 	game.setIsLocalGame(true);
 	document.getElementById("gameroom-page").hidden = true;
 	document.getElementById("game-wrapper")?.classList.remove("hidden");
-	game.setupSoloKeyListeners();
+	game.setupLocalKeyListeners();
+	game.setupCameraKeyListeners();
 	game.createRenderingContext();
 	game.setupAI();
 	game.settings({
