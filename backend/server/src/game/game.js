@@ -143,6 +143,7 @@ class Player extends Entity {
 		this.speed = 8;
 		this.keysPressed = {};
 		this.points = 0;
+		this.invertKeys = false; // For future use, if needed
 	}
 
 	setvel(velocityY) {
@@ -152,7 +153,7 @@ class Player extends Entity {
 	move(deltaTime) {
 		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
 		
-		if (nextY + this.height >= 600) return;
+		if (nextY + this.height - this.yVel >= 600) return;
 		else if (nextY + this.yVel <= 0) return;
 
 		this.yPos += this.yVel * this.speed * deltaTime;
@@ -223,6 +224,7 @@ class Game {
 			} else {
 				player.setvel(0);
 			}
+			//log.info(`Key input from ${playerId}, P1=${this.player1Id}, P2=${this.player2Id}`);
 			player.move(deltaTime);
 		});
 

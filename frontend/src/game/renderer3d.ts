@@ -108,7 +108,6 @@ export class Renderer3D {
 	private leftEdge: BABYLON.Mesh;
 	private rightEdge: BABYLON.Mesh;
 	private ballMesh: BABYLON.Mesh;
-	//private scoreText: GUI.TextBlock;
 	private scoreboardRoot: BABYLON.TransformNode | null = null;
 	private digitNodes: BABYLON.TransformNode[] = [];
 	private digitColor: BABYLON.Color3;
@@ -118,59 +117,17 @@ export class Renderer3D {
 	private digitMaterialColon: BABYLON.StandardMaterial;
 	private lastPlayer1Score = -1;
 	private lastPlayer2Score = -1;
-	//private guiTexture: GUI.AdvancedDynamicTexture;
 	private unitScale = 20;
+	private zFlipFactor = -1;
 
 	private state: GameState;
 	
-
 	private to3dX(px: number): number {
 		return (px - this.state.canvasWidth / 2) / this.unitScale;
 	}
 
 	private to3dZ(py: number): number {
-		return (py - this.state.canvasHeight / 2) / this.unitScale;
-	}
-
-	private createDigit(parent: BABYLON.TransformNode, digit: string, scene: BABYLON.Scene, segmentSize = 0.4): void {
-		const on = DIGIT_SEGMENTS[digit];
-		if (!on) return;
-
-		const segLength = segmentSize;
-		const segThickness = segmentSize / 4;
-
-		const createSegment = (x: number, y: number, rotation: number) => {
-			const box = BABYLON.MeshBuilder.CreateBox("segment", {
-				height: segThickness,
-				width: segLength,
-				depth: segThickness / 2 // thin Z
-			}, scene);
-
-			box.rotation.z = rotation; // rotate in XY plane
-			box.position.set(x, y, 0); // Z stays constant (floating)
-			box.parent = parent;
-
-			const mat = new BABYLON.StandardMaterial("mat", scene);
-			mat.diffuseColor = this.digitColor;
-			box.material = mat;
-
-			return box;
-		};
-		
-
-		const segments = [
-			createSegment(0, 1, 0),                    // A - top
-			createSegment(0.5, 0.5, Math.PI / 2),      // B - top right
-			createSegment(0.5, -0.5, Math.PI / 2),     // C - bottom right
-			createSegment(0, -1, 0),                   // D - bottom
-			createSegment(-0.5, -0.5, Math.PI / 2),    // E - bottom left
-			createSegment(-0.5, 0.5, Math.PI / 2),     // F - top left
-			createSegment(0, 0, 0),                    // G - middle
-		];
-
-		segments.forEach((seg, idx) => {
-			if (!on[idx]) seg.setEnabled(false);
-		});
+		return (py - this.state.canvasHeight / 2) / this.unitScale * this.zFlipFactor;
 	}
 
 	private createGridDigit(parent: BABYLON.TransformNode, digit: string, scene: BABYLON.Scene, material: BABYLON.StandardMaterial, cubeSize = 0.3): void {
@@ -214,12 +171,18 @@ export class Renderer3D {
 		this.scene.beginAnimation(material, 0, 45, false);
 	}
 
-
 	init(state: GameState): void {
+		console.log("Init Renderer3D");
 		this.container = document.getElementById("game-container");
-		this.container.innerHTML = ""; // Clear the container
-		this.gameCanvas = document.createElement("canvas");
-		this.gameCanvas.id = "babylon-canvas";
+		//this.container.innerHTML = ""; // Clear the container
+		let existing = this.container.querySelector("#babylon-canvas") as HTMLCanvasElement;
+		if (existing) {
+			this.gameCanvas = existing;
+		} else {
+			this.gameCanvas = document.createElement("canvas");
+			this.gameCanvas.id = "babylon-canvas";
+			this.container.appendChild(this.gameCanvas);
+		}
 		this.state = state;
 		this.gameCanvas.style.width = this.state.canvasWidth + "px";
 		this.gameCanvas.style.height = this.state.canvasHeight + "px";
@@ -231,6 +194,12 @@ export class Renderer3D {
 		this.camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -45), this.scene);
 		this.camera.setTarget(BABYLON.Vector3.Zero());
 		this.camera.attachControl(this.gameCanvas, true);
+
+		// Disable camera movement keys
+		this.camera.keysUp = [];
+		this.camera.keysDown = [];
+		this.camera.keysLeft = [];
+		this.camera.keysRight = [];
 
 		const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.scene);
 
@@ -244,8 +213,10 @@ export class Renderer3D {
 		ground.material = groundMat;
 
 		this.scoreboardRoot = new BABYLON.TransformNode("scoreboardRoot", this.scene);
-		this.scoreboardRoot.position = new BABYLON.Vector3(0, 5, 0);
-		this.scoreboardRoot.rotation = new BABYLON.Vector3(0, 0, 0);
+		this.scoreboardRoot.billboardMode = BABYLON.TransformNode.BILLBOARDMODE_ALL;
+
+		this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
+		// billboardmode handles rotation
 
 		this.digitColor = BABYLON.Color3.FromHexString("#00cccc")
 		this.digitFlashColor = BABYLON.Color3.FromHexString("#ffffff")
@@ -286,7 +257,6 @@ export class Renderer3D {
 						this.camera.position = new BABYLON.Vector3(0, 15, -45);
 						this.camera.setTarget(BABYLON.Vector3.Zero());
 						this.camera.upVector = originalUp;
-						this.scoreboardRoot.rotation = new BABYLON.Vector3(0, 0, 0);
 						this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
 					}
 					if (kbInfo.event.key === "2") {
@@ -298,17 +268,14 @@ export class Renderer3D {
 						var rotationMatrix = BABYLON.Matrix.RotationAxis(forward, Math.PI / -2);
 						var newUp = BABYLON.Vector3.TransformNormal(this.camera.upVector, rotationMatrix);
 						this.camera.upVector = newUp;
-						this.scoreboardRoot.rotation = new BABYLON.Vector3( Math.PI / 2, 0, 0);
 						this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 9); // floating above field
 					}
 					if (kbInfo.event.key === "3") {
-
 						this.camera.rotation = originalRotation;
 						this.camera.position = new BABYLON.Vector3(-45, 15, 0);
 						this.camera.setTarget(BABYLON.Vector3.Zero());
 						this.camera.upVector = originalUp;
-						this.scoreboardRoot.rotation = new BABYLON.Vector3(0, Math.PI / 2, 0);
-						this.scoreboardRoot.position = new BABYLON.Vector3(0, 8, 0); // floating above field
+						this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0); // floating above field
 					}
 					break;
 			}
@@ -367,6 +334,20 @@ export class Renderer3D {
 			this.digitNodes.push(digitNode);
 			displayIndex++;
 		}
+	}
+
+	setActive(): void {
+		console.log("Activating Renderer3D");
+		//this.engine.runRenderLoop(() => {
+		//	this.scene.render();
+		//});
+		this.gameCanvas.style.display = "block";
+	}
+
+	setInactive(): void {
+		console.log("Inactivating Renderer2D");
+		//this.engine.stopRenderLoop();
+		this.gameCanvas.style.display = "none";
 	}
 
 	dispose(): void {

@@ -1,24 +1,32 @@
 import { GameState, GameRenderer } from "./frontEndGame";
-import { Ball } from "./frontEndGame";
 
 export class Renderer2D implements GameRenderer{
 	private container : HTMLElement;
 	private gameCanvas : HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
+	private running = false;
 
 	init(state: GameState): void {
 		console.log("Init Renderer2D");
-		this.container = this.container = document.getElementById("game-container");
-		this.container.innerHTML = ""; // new
-		this.gameCanvas = document.createElement("canvas");
-		this.gameCanvas.height = state.canvasHeight;
-		this.gameCanvas.width = state.canvasWidth;
-		this.container.appendChild(this.gameCanvas);
+		this.container = document.getElementById("game-container");
+		//this.container.innerHTML = ""; // new
+		// Reuse if canvas already exists
+		let existing = this.container.querySelector("#canvas-2d") as HTMLCanvasElement;
+		if (existing) {
+			this.gameCanvas = existing;
+		} else {
+			this.gameCanvas = document.createElement("canvas");
+			this.gameCanvas.height = state.canvasHeight;
+			this.gameCanvas.width = state.canvasWidth;
+			this.gameCanvas.id = "canvas-2d";
+			this.container.appendChild(this.gameCanvas);
+		}
 		this.ctx = this.gameCanvas.getContext("2d")!;
 	}
 
 	render(state: GameState): void {
-		// console.log("Render Renderer2D");
+		//console.log("Rendering 2D frame", state.ball.xPos, state.player1Y);
+		//if (!this.running) return;
 		this.ctx.fillStyle = "#000";
 		this.ctx.fillRect(0, 0, state.canvasWidth, state.canvasHeight);
 		for (var i = 0; i <= state.canvasHeight; i += 30) {
@@ -38,8 +46,18 @@ export class Renderer2D implements GameRenderer{
 		}
 	}
 
+	setActive(): void {
+		console.log("Activating Renderer2D");
+		this.gameCanvas.style.display = "block";
+	}
+
+	setInactive(): void {
+		console.log("Inactivating Renderer2D");
+		this.gameCanvas.style.display = "none";
+	}
+
 	dispose(): void {
-		if (this.gameCanvas?.parentElement) {
+		if (this.gameCanvas && this.gameCanvas.parentElement) {
 			this.gameCanvas.remove();
 		}
 	}

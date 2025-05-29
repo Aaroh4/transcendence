@@ -160,8 +160,8 @@ export class Player extends Entity {
 	move(deltaTime) {
 		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
 		
-		if (nextY + this.height >= 600) return;
-		else if (nextY + this.height <= 0) return;
+		if (nextY + this.height - this.yVel >= 600) return;
+		else if (nextY + this.yVel <= 0) return;
 
 		this.yPos += this.yVel * this.speed * deltaTime;
 	}
@@ -199,14 +199,18 @@ export interface GameRenderer {
 	init(state: GameState): void;
 	dispose(): void;
 	render(state: GameState): void;
+	setActive(): void;
+	setInactive(): void;
 }
 
 export class frontEndGame {
 	private keysPressed: { [key: string]: boolean } = {};
 	public 	canvasWidth : number = 800;
 	public 	canvasHeight : number = 600;
-	private renderer: GameRenderer | null = null;
-	public  currentMode: '2D' | '3D' = '3D';
+	private renderer2D: Renderer2D | null = null;
+	private renderer3D: Renderer3D | null = null;
+	private activeRenderer: GameRenderer | null = null;
+	public  currentMode: '2D' | '3D' = '2D';
 	private color : string;
 	private player1Score : number = 0;
 	private player2Score : number = 0;
@@ -218,6 +222,7 @@ export class frontEndGame {
 	private isAIgame: boolean = false;
 	private gameAI: GameAI | null = null;
 	private AIdebug: boolean = false;
+	private isLocalGame: boolean = false;
 
 	private dataChannel: RTCDataChannel | null = null;
   private peerConnection: RTCPeerConnection | null = null;
@@ -262,7 +267,7 @@ export class frontEndGame {
 			color: this.color,
 			gameAI: this.gameAI,
 			isAIgame: this.isAIgame,
-			AIdebug: this.AIdebug
+			AIdebug: this.AIdebug,
 		};
 	}
 
@@ -270,19 +275,44 @@ export class frontEndGame {
 		this.isAIgame = isAIgame;
 	}
 
+	setIsLocalGame(isLocalGame: boolean) {
+		this.isLocalGame = isLocalGame;
+	}
+
 	setScore(player1Score, player2Score) {
 		this.player1Score += player1Score;
 		this.player2Score += player2Score;
 	}
 
-	createRenderingContext() {	
-		if (this.currentMode === '2D') {
-			this.renderer = new Renderer2D();
-		} else {
-			this.renderer = new Renderer3D();
+	createRenderingContext() {
+
+		if (!this.renderer2D) {
+			this.renderer2D = new Renderer2D();
+			this.renderer2D.init(this.getGameState());
+			this.renderer2D.setInactive();
 		}
-		this.renderer.init(this.getGameState());
+		if (!this.renderer3D) {
+			this.renderer3D = new Renderer3D();
+			this.renderer3D.init(this.getGameState());
+			this.renderer3D.setInactive();
+		}
+
+		// Deactivate current
+		// if (this.activeRenderer) {
+		// 	this.activeRenderer.setInactive();
+		// }
+
+		// Set new renderer
+		if (this.currentMode === '2D') {
+			this.activeRenderer = this.renderer2D;
+		} else {
+			this.activeRenderer = this.renderer3D;
+		}
+
+		// Activate
+		this.activeRenderer.setActive();
 	}
+
 
 	setupAI() 
 	{
@@ -357,6 +387,14 @@ export class frontEndGame {
 			this.peerConnection.close();
 			this.peerConnection = null;
 		}
+		if (this.renderer2D) {
+			this.renderer2D.dispose();
+			this.renderer2D = null;
+		}	
+		if (this.renderer3D) {
+			this.renderer3D.dispose();
+			this.renderer3D = null;
+		}
 		log.info("Cleaned up game resources");
 	}
 
@@ -413,20 +451,26 @@ export class frontEndGame {
 		  this.player2.setpos(positions[1][0]);
 			this.player2.setvel(velocities[1][0]);
 		  
-		  // Update ball position
-		  this.ball.yPos = positions[2][0];
-		  this.ball.xPos = positions[2][1];
+			// let lerp_treshold = 10;
+			// if ((Math.abs(positions[2][0] - this.ball.yPos) < lerp_treshold) &&
+			// (Math.abs(positions[2][1] - this.ball.xPos) < lerp_treshold))
+			// {
+			// 	this.ball.xPos = this.ball.lerp(this.ball.xPos, positions[2][1], 0.2);
+			// 	this.ball.yPos = this.ball.lerp(this.ball.yPos, positions[2][0], 0.2);
+			// } else { // too big chaneg dont lerp
+			// 	this.ball.yPos = positions[2][0];
+			// 	this.ball.xPos = positions[2][1];
+			// }
 
-			// Update ball position with lerp
-			//this.ball.xPos = this.ball.lerp(this.ball.xPos, positions[2][1], 0.2);
-			//this.ball.yPos = this.ball.lerp(this.ball.yPos, positions[2][0], 0.2);
+			this.ball.yPos = positions[2][0];
+			this.ball.xPos = positions[2][1];
 
 			// Update ball velocity
 		  this.ball.yVel = velocities[2][0];
 		  this.ball.xVel = velocities[2][1];
 
 		  // Decoupled rendering from backend updates
-			this.renderer.render(this.getGameState());
+			this.activeRenderer.render(this.getGameState());
 		} else {
 			log.error("Invalid positions or velocities received from backend, shit happens.");
 		}
@@ -438,20 +482,6 @@ export class frontEndGame {
 		this.lastUpdateTime = now;
 		// const dir = this.currentMode === '3D' ? -1 : 1;
 
-		// if (this.keysPressed[KeyBindings.UP])
-		// 	this.player1.setvel(-1 * dir);
-		// else if (this.keysPressed[KeyBindings.DOWN])
-		// 	this.player1.setvel(1 * dir);	
-		// else
-		// 	this.player1.setvel(0);
-
-		// if (this.keysPressed[KeyBindings.SUP]) 
-		// 	this.player2.setvel(-1 * dir);
-		// else if (this.keysPressed[KeyBindings.SDOWN])
-		// 	this.player2.setvel(1 * dir);
-		// else
-		// 	this.player2.setvel(0);
-
 		this.player1.move(deltaTime);
 		this.player2.move(deltaTime);
 		this.ball.update(this.player1, this.player2, deltaTime);	
@@ -462,19 +492,18 @@ export class frontEndGame {
 		const now = performance.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
-		const dir = this.currentMode === '3D' ? -1 : 1;
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1 * dir);
+			this.player1.setvel(-1);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1 * dir);	
+			this.player1.setvel(1);	
 		else
 			this.player1.setvel(0);
 
 		if (this.keysPressed[KeyBindings.SUP]) 
-			this.player2.setvel(-1 * dir);
+			this.player2.setvel(-1);
 		else if (this.keysPressed[KeyBindings.SDOWN])
-			this.player2.setvel(1 * dir);
+			this.player2.setvel(1);
 		else
 			this.player2.setvel(0);
 
@@ -482,7 +511,7 @@ export class frontEndGame {
 		this.player2.move(deltaTime);
 		this.ball.update(this.player1, this.player2, deltaTime);
 
-		this.renderer.render(this.getGameState());
+		this.activeRenderer.render(this.getGameState());
 	}
 
 	updateAIGameState()
@@ -490,12 +519,12 @@ export class frontEndGame {
 		const now = performance.now();
 		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
 		this.lastUpdateTime = now;
-		const dir = this.currentMode === '3D' ? -1 : 1;
+		//const dir = this.currentMode === '3D' ? -1 : 1;
 
 		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1 * dir);
+			this.player1.setvel(-1);
 		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1 * dir);
+			this.player1.setvel(1);
 		else
 			this.player1.setvel(0);
 
@@ -516,7 +545,7 @@ export class frontEndGame {
 
 		this.ball.update(this.player1, this.player2, deltaTime);
 		
-		this.renderer.render(this.getGameState());
+		this.activeRenderer.render(this.getGameState());
 	}
 
 	settings(settings, color)
@@ -531,16 +560,32 @@ export class frontEndGame {
 	switchMode(newMode: '2D' | '3D') {
 		if (this.currentMode === newMode) return;
 
-		this.renderer.dispose(); // remove canvas or babylon engine
+		// Inactivate current renderer
+		if (this.activeRenderer) {
+			this.activeRenderer.setInactive();
+		}
+
 		this.currentMode = newMode;
 
+		// Create lazily if needed
 		if (newMode === '2D') {
-			this.renderer = new Renderer2D();
+			if (!this.renderer2D) {
+				this.renderer2D = new Renderer2D();
+				this.renderer2D.init(this.getGameState());
+			}
+			this.activeRenderer = this.renderer2D;
 		} else {
-			this.renderer = new Renderer3D();
+			if (!this.renderer3D) {
+				this.renderer3D = new Renderer3D();
+				this.renderer3D.init(this.getGameState());
+			}
+			this.activeRenderer = this.renderer3D;
 		}
-		this.renderer.init(this.getGameState());
+
+		// Reactivate
+		this.activeRenderer.setActive();
 	}
+
 
 	socketLogic(socket)
 	{
@@ -722,9 +767,9 @@ export class frontEndGame {
 			winnerElement.textContent = "Winner: " + winner;
 			const container = document.getElementById("game-container");
 		
-			var canvas = container.querySelector("canvas");
+			//var canvas = container.querySelector("canvas");
 		
-			canvas.remove();
+			//canvas.remove();
 		
 			container.prepend(winnerElement);
 			game.cleanUp();
@@ -790,6 +835,7 @@ export function startSoloGame()
 	document.getElementById("gameroom-page").hidden = true;
 	document.getElementById("game-wrapper")?.classList.remove("hidden");
 
+	game.setIsLocalGame(true);
 	game.setupSoloKeyListeners();
 	game.createRenderingContext();
 	game.settings({
@@ -819,6 +865,7 @@ export function startAIGame()
 	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
 
 	game.setIsAIgame(true);
+	game.setIsLocalGame(true);
 	document.getElementById("gameroom-page").hidden = true;
 	document.getElementById("game-wrapper")?.classList.remove("hidden");
 	game.setupSoloKeyListeners();
