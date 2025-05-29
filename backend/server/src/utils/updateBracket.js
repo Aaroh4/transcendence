@@ -40,14 +40,15 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
       match_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(loserId, winnerId, loserScore, winnerScore, winnerId, match.round, match.tournament_id, 'tournament')
     
-    db.prepare('UPDATE users SET wins = wins + 1 WHERE id = ?')
-      .run(winnerId)
+	db.prepare('UPDATE users SET wins = wins + 1 WHERE id = ?')
+	.run(winnerId)
+
     db.prepare('UPDATE users SET losses = losses + 1 WHERE id = ?')
       .run(loserId)
     
 	console.log("LOSERID::::::::: " + loserId);
-    db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
-      .run(loserId, match.tournament_id)
+	db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
+	.run(loserId, match.tournament_id)
 
     const nextMatch = db.prepare(`
       SELECT * FROM matches
@@ -119,7 +120,7 @@ function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
 }
 
 function readyUpTimer(tournamentId) {
-  const players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND is_ready = ? AND won_previous = 0')
+  let players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND is_ready = ? AND won_previous = 0')
     .all(tournamentId, 0)
 
   if (players.length < 1) return
