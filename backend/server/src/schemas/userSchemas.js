@@ -6,11 +6,12 @@ import {
   deleteUser,
   updateUser,
   updatePassword,
-  getDashboard,
-  uploadAvatar
+  uploadAvatar,
+  getMatchHistory
 } from '../controllers/userController.js'
 import authenticateToken from '../middleware/authentication.js'
 import User from '../models/userModel.js'
+import MatchHistory from '../models/matchHistoryModel.js'
 
 const getUsersOpts = {
   schema: {
@@ -126,12 +127,6 @@ const updatePasswordOpts = {
   handler: updatePassword,
 }
 
-const dashboardOpts = {
-  schema: {},
-  preHandler: authenticateToken,
-  handler: getDashboard,
-}
-
 const uploadOpts = {
   schema: {
     response: {
@@ -161,6 +156,18 @@ const searchUsersOpts = {
   handler: searchUsers,
 }
 
+const getMatchHistoryOpts = {
+  schema: {
+    response: {
+      200: {
+        type: 'array',
+        items: MatchHistory,
+      },
+    },
+  },
+  handler: getMatchHistory,
+}
+
 export {
   getUserOpts,
   getUsersOpts,
@@ -168,7 +175,7 @@ export {
   deleteUserOpts,
   updateUserOpts,
   updatePasswordOpts,
-  dashboardOpts,
   uploadOpts,
-  searchUsersOpts
+  searchUsersOpts,
+  getMatchHistoryOpts
 }
