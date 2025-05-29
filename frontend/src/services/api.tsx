@@ -1212,9 +1212,6 @@ export async function updatePassword(userData: UpdateUserRequest, id: string): P
 			const retryOptions = {
 				method: 'PUT',
 				body: JSON.stringify({
-				name: userData.name,
-				email: userData.email,
-				number: userData.number,
 				password: userData.password,
 				}),
 				headers: {
