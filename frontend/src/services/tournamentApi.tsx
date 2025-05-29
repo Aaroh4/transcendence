@@ -197,29 +197,3 @@ export async function fetchLeaveButton(): Promise<leaveButtonResponse>{
 		};
 	}
 }
-
-
-// this from the tournament page
-
-	// const fetchTournaments = async () => {
-	// 	try {
-	// 	  const myTour = await fetchLeaveButton();
-
-	// 	console.log(myTour)
-	// 	  if (myTour.status === 200)
-	// 		{
-	// 			setMyTour(myTour.data);
-	// 		}
-	// 		else
-	// 			setMyTour(-1);
-	// 	  const data = await getTournaments();
-
-	// 	  if (Array.isArray(data)) {
-	// 		setFetchedTournaments(data);
-	// 	  } else {
-	// 		console.error("Unexpected data format:", data);
-	// 	  }
-	// 	} catch (error) {
-	// 	  console.error("Failed to fetch tournaments", error);
-	// 	}
-	// };

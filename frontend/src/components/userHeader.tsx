@@ -17,10 +17,6 @@ import {
 } from "../services/friendApi";
 import { Link, useLocation } from "react-router-dom";
 
-// interface UserHeaderProps {
-// 	userName: string;
-// };
-
 interface FriendSearchProps {
 	query: string;
 }
@@ -47,12 +43,14 @@ interface friendsList {
 const UserHeader: React.FC = () => {
 
 	const [userName, setUserName] = useState('');
+	const [userAvatar, setUserAvatar] = useState<string | null>(null); //default path for 404 fix
 
 	useEffect(() => {
 		const userId = sessionStorage.getItem('activeUserId');
 		if (userId) {
 			const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}');
 			setUserName(sessionData.name);
+			setUserAvatar(sessionData.avatar);
 		}
 	}, []);
 	
@@ -223,9 +221,14 @@ const UserHeader: React.FC = () => {
 		<header className="flex-wrap w-full bg-black text-white py-10 px-10 shadow-lg flex items-center justify-between">
 
 		<div className="flex items-center space-x-10">
+			<img
+				src={`http://localhost:5001/public/${userAvatar ?? 'avatars/default_avatar.jpg'}`}
+				alt="User Avatar"
+				className="w-16 h-16 rounded-full object-cover"
+			/>
 			<h1 className="text-5xl font-extrabold tracking-tight text-green-500">
-			  Welcome: {userName}
-			</h1>
+				{userName}
+  			</h1>
 		</div>
 
 		<div className="flex flex-wrap gap-2">

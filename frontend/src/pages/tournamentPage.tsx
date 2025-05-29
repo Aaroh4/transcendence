@@ -37,11 +37,13 @@ const TournamentsPage: React.FC = () => {
 
 	const fetchTournaments = async () => {
 		try {
-		  await handleFetchLeaveButton();
-		  const data = await getTournaments();
-
-		  if (Array.isArray(data)) {
-			setFetchedTournaments(data);
+			const data = await getTournaments();
+			
+			if (Array.isArray(data)) {
+				setFetchedTournaments(data);
+				if (data.length > 0) {
+					await handleFetchLeaveButton();
+				}
 		//   } else {
 		// 	console.error("Unexpected data format:", data);
 		  } // is this 'else' neccessary??
@@ -73,7 +75,7 @@ const TournamentsPage: React.FC = () => {
 		<>
 		<UserHeader />
 		<Background />
-		<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
+		<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw] pb-[30vh]">
 		<div className="flex flex-wrap gap-6 justify-center">
 			<button
 				onClick={() => setShowForm(true)}

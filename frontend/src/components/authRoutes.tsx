@@ -3,7 +3,7 @@ import { useToast } from "./toastBar/toastContext";
 
 const ProtectedRoutes: React.FC<{children: React.ReactNode}> = ({children}) => {
 
-	const toast = useToast();
+	// const toast = useToast();
 	
 	const userId = sessionStorage.getItem("activeUserId");
 
