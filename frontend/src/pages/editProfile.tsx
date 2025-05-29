@@ -4,6 +4,7 @@ import { deleteUser } from '../services/api';
 import { useNavigate } from "react-router-dom";
 import { uploadAvatar } from '../services/api'; 
 import { updateUser } from '../services/api';
+import { updatePassword } from '../services/api';
 
 const EditProfile: React.FC = () => {
 	const [message, setMessage] = useState('');
@@ -67,10 +68,10 @@ const EditProfile: React.FC = () => {
 				setNewValue('');
 				setConfirmValue('');
 			} else {
-				setMessage('Failed to update username. Please try again.');
+				throw new Error(response.error || 'Update failed');
 			}
 			} catch (error) {
-				setMessage('Error updating username. Please try again.');
+				setMessage('Failed updating username. Please try again.');
 				console.error(error);
 			}
 			return;
@@ -87,9 +88,9 @@ const EditProfile: React.FC = () => {
 			}
 			
 			try {
-			const response = await updateUser({
+			const response = await updatePassword({
 				accToken,
-				name: newValue,
+				name: user.name,
 				email: user.email,
 				number: "0", //?
 				password: newValue,
@@ -101,10 +102,10 @@ const EditProfile: React.FC = () => {
 				setNewValue('');
 				setConfirmValue('');
 			} else {
-				setMessage('Failed to update username. Please try again.');
+				throw new Error(response.error || 'Update failed');
 			}
 			} catch (error) {
-				setMessage('Error updating password. Please try again.');
+				setMessage('Failed updating password. Please try again.');
 				console.error(error);
 			}
 			return;
