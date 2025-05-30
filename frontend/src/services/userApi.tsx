@@ -62,7 +62,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
 	userId: number;
-	name: string,
+	name: string;
+	avatar: string;
 	accessToken: string;
 	refreshToken: string;
 	status: number;
@@ -87,6 +88,7 @@ export async function loginUser(userData: LoginRequest, captchaToken): Promise<L
 		if (!response.ok)
 			return { userId: 0,
 				name: '',
+				avatar: '',
 				accessToken: '',
 				refreshToken: '',
 				status: response.status,
@@ -95,6 +97,7 @@ export async function loginUser(userData: LoginRequest, captchaToken): Promise<L
 		return {
 			userId: responseData.userId,
 			name: responseData.name,
+			avatar: responseData.avatar,
 			accessToken: responseData.accessToken,
 			refreshToken: responseData.refreshToken,
 			status: response.status,
@@ -106,6 +109,7 @@ export async function loginUser(userData: LoginRequest, captchaToken): Promise<L
 		return {
 			userId: 0,
 			name: '',
+			avatar: '',
 			accessToken: '',
 			refreshToken: '',
 			status: 500,

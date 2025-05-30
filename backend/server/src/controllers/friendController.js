@@ -40,7 +40,7 @@ const checkPending = async function(req, reply) {
 
   try {
     const friendRequests = db.prepare(`
-      SELECT users.name, users.id
+      SELECT users.name, users.id, users.avatar
       FROM friends 
       JOIN users ON users.id = friends.user_id
       WHERE friend_id = ? AND status = ?
