@@ -320,3 +320,47 @@ export async function updatePassword(userData: UpdateUserRequest, id: string): P
 		};
 	}
 }
+
+export async function getUser(id: string): Promise<User> {
+
+	try {
+		const response = await fetch(`/api/user/${id}`, {
+			method: 'GET',
+			headers: {
+			'Content-Type': 'application/json',
+			}
+		});
+
+		const responseData = await response.json();
+
+		if (!response.ok)
+			return { name: '',
+				online_status: 0,
+				wins: 0,
+				losses: 0,
+				avatar: '',
+				email: '',
+				id: 0
+		}
+		return { name: responseData.name,
+			online_status: responseData.status,
+			wins: responseData.wins,
+			losses: responseData.losses,
+			avatar: responseData.avatar,
+			email: responseData.email,
+			id: responseData.id
+		}
+		
+	} catch (error) {
+		error.console.log();
+		console.error("Login error:", error);
+		return { name: '',
+			online_status: 0,
+			wins: 0,
+			losses: 0,
+			avatar: '',
+			email: '',
+			id: 0
+		};
+	}
+}

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getUser, User } from "../services/api";
-import { deleteUser } from '../services/api';
+import { deleteUser } from '../services/userApi';
 import { useNavigate } from "react-router-dom";
 import { uploadAvatar } from '../services/api'; 
 import { updateUser } from '../services/api';
 import { updatePassword } from '../services/api';
+import Background from '../components/background';
+import UserHeader from '../components/userHeader';
 
 const EditProfile: React.FC = () => {
 	const [message, setMessage] = useState('');
@@ -170,37 +172,42 @@ const EditProfile: React.FC = () => {
 
 	return (
 		<>
-			<div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg flex flex-col md:flex-row gap-8">
-				
-				{/* Left Panel */}
-				<div className="md:w-1/3 space-y-4 border-r pr-6">
+		<UserHeader />
+      	<Background />
+        	<div className="flex gap-2 items-center justify-center mt-10 mx-10">
+			<div className="w-full max-w-5xl mx-auto border-2 border-black rounded-lg flex flex-col md:flex-row gap-8 bg-[#2a2a2a] p-4">
+
+			<div className="md:w-1/3 space-y-4 border-r pr-6">
 					<div>
-						<h3 className="font-semibold text-gray-700">Username</h3>
-						<p className="text-gray-800">{user.name}</p>
-						<button onClick={() => setChangeMode('username')} className="text-blue-600 hover:underline text-sm mt-1">
-							Change Username
-						</button>
+						<h3 className="font-semibold text-white">Username</h3>
+						<p className="text-white">{user.name}</p>
 					</div>
 					<div>
-						<h3 className="font-semibold text-gray-700">Email</h3>
-						<p className="text-gray-800">{user.email}</p>
+						<h3 className="font-semibold text-white">Email</h3>
+						<p className="text-white">{user.email}</p>
 					</div>
-					<div className="pt-4 space-y-2">
-						<div className="space-y-2">
+					<div className="pt-4">
+						
+						<div className="space-y-3">
+							<button onClick={() => setChangeMode('username')}
+								className="w-full bg-gray-400 text-white border-2 border-black py-3 rounded-md hover:bg-gray-500 text-center transform transition-transform hover:scale-102 duration-100"
+							>
+								Change Username
+							</button>
+							<button
+								onClick={handleFileButtonClick}
+								className="w-full bg-gray-400 text-white border-2 border-black py-3 rounded-md hover:bg-gray-500 text-center transform transition-transform hover:scale-102 duration-100"
+							>
+								Change Avatar
+							</button>
 							{!isGoogleUser && (
 								<button
 									onClick={() => setChangeMode('password')}
-									className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+									className="w-full bg-gray-400 text-white border-2 border-black py-3 rounded-md hover:bg-gray-500 text-center transform transition-transform hover:scale-102 duration-100"
 								>
 									Change Password
 								</button>
 							)}
-							<button
-								onClick={handleFileButtonClick}
-								className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
-							>
-								Change Avatar
-							</button>
 							<input
 								type="file"
 								accept="image/*"
@@ -210,22 +217,23 @@ const EditProfile: React.FC = () => {
 							/>
 							<button
 								onClick={handleDeleteAccount}
-								className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+								className="w-full bg-red-600 text-white border-2 border-black py-3 rounded-md hover:bg-red-700 text-center transform transition-transform hover:scale-102 duration-100"
 							>
 								Delete Account
 							</button>
 						</div>
+
 					</div>
 				</div>
 
 				{/* Center Panel */}
 				<div className="md:w-2/3">
-					<h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
+					<h2 className="text-2xl text-white font-bold mb-4">Edit Profile</h2>
 
 					{changeMode && (
 						<form onSubmit={handleSubmitChange} className="space-y-4 max-w-md">
 							<div>
-								<label className="block text-sm font-medium text-gray-700">
+								<label className="block text-sm font-medium text-gray-200">
 									{changeMode === 'username' ? 'New Username' : 'New Password'}
 								</label>
 								<input
@@ -233,12 +241,12 @@ const EditProfile: React.FC = () => {
 									value={newValue}
 									onChange={(e) => setNewValue(e.target.value)}
 									required
-									className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									className="w-full border-2 border-black bg-[#2a2a2a] text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 								/>
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700">
+								<label className="block text-sm font-medium text-gray-200">
 									Confirm {changeMode === 'username' ? 'New Username' : 'New Password'}
 								</label>
 								<input
@@ -246,7 +254,7 @@ const EditProfile: React.FC = () => {
 									value={confirmValue}
 									onChange={(e) => setConfirmValue(e.target.value)}
 									required
-									className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									className="w-full border-2 border-black bg-[#2a2a2a] text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 								/>
 							</div>
 
@@ -264,8 +272,8 @@ const EditProfile: React.FC = () => {
 							*/}
 
 							<div className="pt-2">
-								<button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-									Submit Changes
+								<button type="submit" className="rounded-md p-2 mt-2 bg-green-600 text-white border-2 border-black py-2 hover:bg-green-700 text-center transform transition-transform hover:scale-102 duration-100">
+									Submit
 								</button>
 							</div>
 						</form>
@@ -273,8 +281,6 @@ const EditProfile: React.FC = () => {
 				</div>
 			</div>
 
-			<div className="mt-6 text-center">
-				{message && <p className="text-red-500 font-medium">{message}</p>}
 			</div>
 		</>
 	);

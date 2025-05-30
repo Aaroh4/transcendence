@@ -226,12 +226,26 @@ const UserHeader: React.FC = () => {
 				alt="User Avatar"
 				className="w-16 h-16 rounded-full object-cover"
 			/>
-			<h1 className="text-5xl font-extrabold tracking-tight text-green-500">
+			<h1 className="text-6xl font-extrabold tracking-tight text-green-500">
 				{userName}
   			</h1>
 		</div>
 
 		<div className="flex flex-wrap gap-2">
+			{location.pathname === '/user/profile' && (
+				<div className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
+					<Link to="/user/edit">
+						Edit Profile
+					</Link>
+				</div>
+			)}
+			{location.pathname === '/user/edit' && (
+				<div className=" bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
+					<Link to="/user/profile">
+						Player Profile
+					</Link>
+				</div>
+			)}
 			{location.pathname === '/tour-game' && (
 				<div className="bg-black text-white rounded-md hover:bg-green-700 text-2xl font-bold border-2 border-green-500 px-3 py-2 transform transition-transform hover:scale-105 duration-100">
 					<Link to="/tournaments">
