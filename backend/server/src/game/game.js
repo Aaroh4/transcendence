@@ -1,5 +1,7 @@
 "use strict";
 import { Logger, LogLevel } from '../utils/logger.js';
+import { logCreate, logDispose } from '../utils/debugTracker.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -185,6 +187,10 @@ class Game {
 		this.ball = new Ball(20, 20, this.canvasHeight / 2, this.canvasWidth / 2 - 10);
 
 		this.lastUpdateTime = performance.now();
+
+		// debug
+		this.uid = uuidv4();
+		logCreate("Game", this.uid);
 	}
 
 	settings(settings)
@@ -238,6 +244,7 @@ class Game {
 			clearTimeout(this.gameLoopTimer);
 			this.gameLoopTimer = null;
 		}
+		logDispose("Game", this.uid);
 	}
 
 	isRunning()

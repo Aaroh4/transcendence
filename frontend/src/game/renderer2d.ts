@@ -1,4 +1,5 @@
 import { GameState, GameRenderer } from "./frontEndGame";
+import { debugTracker } from '../utils/debugTracker';
 
 export class Renderer2D implements GameRenderer{
 	private container : HTMLElement;
@@ -8,6 +9,7 @@ export class Renderer2D implements GameRenderer{
 
 	init(state: GameState): void {
 		console.log("Init Renderer2D");
+		debugTracker.logCreate("Renderer2D");
 		this.container = document.getElementById("game-container");
 		//this.container.innerHTML = ""; // new
 		// Reuse if canvas already exists
@@ -58,6 +60,7 @@ export class Renderer2D implements GameRenderer{
 
 	dispose(): void {
 		if (this.gameCanvas && this.gameCanvas.parentElement) {
+			debugTracker.logDispose("Renderer2D");
 			this.gameCanvas.remove();
 		}
 	}

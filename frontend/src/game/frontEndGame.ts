@@ -6,6 +6,7 @@ import { router } from '../App';
 import { GameAI } from './gameAI';
 import { Renderer2D } from './renderer2d.js';
 import { Renderer3D } from './renderer3d.js';
+import { debugTracker } from '../utils/debugTracker';
 
 const log = new Logger(LogLevel.INFO);
 
@@ -236,7 +237,6 @@ export class frontEndGame {
 	private cameraKeyHandler: (e: KeyboardEvent) => void;
 
 	constructor() {
-
 		this.player1 = new Player(60, 10, 300, 10);
 		this.player2 = new Player(60, 10, 300, 780);
 		this.configuration = {
@@ -251,6 +251,7 @@ export class frontEndGame {
 				}
 			]
 		};
+		debugTracker.logCreate("frontEndGame");
 	}
 
 	getGameState(): GameState {
@@ -844,7 +845,7 @@ export function cleanGame()
 	if (game)
 		game.cleanUp();
 	game = null;
-	log.info("Total game count:", totalGameCount);
+	debugTracker.logDispose("frontEndGame");
 } 
 
 export function startSoloGame()
