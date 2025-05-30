@@ -51,12 +51,12 @@ const Login: React.FC = () => {
 
 		const response = await loginUser(user, captchaToken);
 
-		const { userId, name, accessToken, refreshToken, error} = response;
+		const { userId, name, avatar, accessToken, refreshToken, error} = response;
 		sessionStorage.setItem('activeUserId', userId.toString());
 
 		if (response.status == 200) {
-			console.log(response);
-			sessionStorage.setItem(userId.toString(), JSON.stringify({name, accessToken, refreshToken, error}));
+			// console.log(response);
+			sessionStorage.setItem(userId.toString(), JSON.stringify({name, avatar, accessToken, refreshToken, error}));
 			navigate("/user");
 			toast.open(response.error, "success");
 		} else {

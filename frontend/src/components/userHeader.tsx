@@ -17,10 +17,6 @@ import {
 } from "../services/friendApi";
 import { Link, useLocation } from "react-router-dom";
 
-// interface UserHeaderProps {
-// 	userName: string;
-// };
-
 interface FriendSearchProps {
 	query: string;
 }
@@ -47,12 +43,14 @@ interface friendsList {
 const UserHeader: React.FC = () => {
 
 	const [userName, setUserName] = useState('');
+	const [userAvatar, setUserAvatar] = useState<string | null>(null); //default path for 404 fix
 
 	useEffect(() => {
 		const userId = sessionStorage.getItem('activeUserId');
 		if (userId) {
 			const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}');
 			setUserName(sessionData.name);
+			setUserAvatar(sessionData.avatar);
 		}
 	}, []);
 	
@@ -223,9 +221,14 @@ const UserHeader: React.FC = () => {
 		<header className="flex-wrap w-full bg-black text-white py-10 px-10 shadow-lg flex items-center justify-between">
 
 		<div className="flex items-center space-x-10">
+			<img
+				src={`http://localhost:5001/public/${userAvatar ?? 'avatars/default_avatar.jpg'}`}
+				alt="User Avatar"
+				className="w-16 h-16 rounded-full object-cover"
+			/>
 			<h1 className="text-5xl font-extrabold tracking-tight text-green-500">
-			  Welcome: {userName}
-			</h1>
+				{userName}
+  			</h1>
 		</div>
 
 		<div className="flex flex-wrap gap-2">
@@ -294,14 +297,14 @@ const UserHeader: React.FC = () => {
 					</form>
 
 					{userList && userList.length > 0 && (
-					<div className="w-full bg-[#1a1a1a] mt-1 rounded-md shadow-lg border border-gray-700 overflow-hidden">
+					<div className="w-full bg-[#1a1a1a] mt-1 rounded-md shadow-lg overflow-hidden">
 					  <div className="space-y-4 pr-2 flex-grow max-h-96 overflow-y-auto">
 						{userList.filter((req) => req.id !== Number(userId) && !friendsList.map(friend => friend.id).includes(req.id))
 						  .map((req) => (
-						  <div key={req.id} className="flex items-center justify-between p-2 hover:bg-[#2a2a2a]">
+						  <div key={req.id} className="flex items-center rounded-md justify-between p-2 hover:bg-[#2a2a2a]">
 							<div className="flex items-center space-x-2">
 							  <img src={`http://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-							  <span className="text-black">{req.name}</span>
+							  <span className="text-white">{req.name}</span>
 							</div>
 							<div className="flex space-x-2">
 							  <button
@@ -325,7 +328,7 @@ const UserHeader: React.FC = () => {
 									
 								<div className="flex items-center space-x-2">
 									<img src={`http://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-									<span className="text-black">{req.name}</span>
+									<span className="text-white">{req.name}</span>
 								</div>
 
 								<div className="flex space-x-2">
@@ -362,7 +365,7 @@ const UserHeader: React.FC = () => {
 							<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2 hover:bg-[#2a2a2a]">
 								<div className="flex items-center">
 								<img src={`http://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-								<span className="text-black">{req.name}</span>
+								<span className="text-white">{req.name}</span>
 								</div>
 								
 								<div className="flex items-center space-x-2">

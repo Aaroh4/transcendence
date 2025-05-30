@@ -20,7 +20,7 @@ const createTournament = async function(req, reply) {
       }
     }
 
-    // if (size != 4 && size != 8 && size != 16) return reply.code(400).send({ error: "Tournament size has to be 4, 8 or 16" })
+    if (size != 4 && size != 8 && size != 16) return reply.code(400).send({ error: "Tournament size has to be 4, 8 or 16" })
     
     const result = db.prepare('INSERT INTO tournaments (name, created_by, size, status) VALUES (?, ?, ?, ?)')
       .run(name, userId, size, 'created')
@@ -48,7 +48,7 @@ const getTournaments = async function(req, reply) {
     const tournaments = db.prepare("SELECT * FROM tournaments WHERE status = 'created'")
       .all()
 
-    if (tournaments.length === 0) return reply.code(404).send({ error: "No tournaments found" })
+    if (tournaments.length === 0) return reply.send(tournaments)
     
     return reply.send(tournaments)
   } catch (error) {
@@ -216,14 +216,14 @@ const getTournamentParticipant = async function(req, reply) {
   const userId = req.user.id
   const { tourType } = req.params;
 
-  console.log(">> getTournamentParticipant called");
-  console.log(userId, tourType);
+  console.log(">> getTournamentParticipant called"); //delete
+  console.log(userId, tourType); //delete
 
   try {
 	let tournament;
 	tournament = db.prepare("SELECT * FROM tournament_players WHERE user_id = ?")
 	.all(userId)
-	if (tournament.length === 0) return reply.code(404).send({ error: `No tournament found` })
+	if (tournament.length === 0) return reply.code(404).send({ error: `No tournament found` }) // Toomi!! voisko 204 olla parempi palautus jos se on tyhja?? ei tuu error.log sillo
 	if (tourType === 'tourPage')
 	{
 		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'created'")
