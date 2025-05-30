@@ -43,7 +43,7 @@ export class Logger {
 
 			// Send log to backend
 			// needs a way to be disabled so I can use one socket
-			return ;
+			//return ;
 			//socket.emit('frontend-log', {
 			//	level: this.levelName(level),
 			//	args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)

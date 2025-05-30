@@ -262,21 +262,26 @@ export function setupNetworking(server){
 
 		// Lets the host of the room start the game
 		socket.on('hostStart', (settings) => {
-			const playerRoom = socket.room;
-			if (!playerRoom || !rooms[playerRoom] || Object.keys(rooms[playerRoom].players)[0].socketId == socket.id) return;
+			const roomId = socket.room;
+			if (!roomId || !rooms[roomId] || Object.keys(rooms[roomId].players)[0].socketId == socket.id) return;
 
-			if (Object.keys(rooms[playerRoom].players).length === 2 && !rooms[playerRoom].gameStarted) {
-				const playerIds = Object.keys(rooms[playerRoom].players);
-				rooms[playerRoom].gameStarted = true;
+			if (Object.keys(rooms[roomId].players).length === 2 && !rooms[roomId].gameStarted) {
+				const playerIds = Object.keys(rooms[roomId].players);
+				rooms[roomId].gameStarted = true;
 
-				games[playerRoom] = new Game(playerIds[0], playerIds[1]);
-				games[playerRoom].settings(settings);		
-				initializeWebRTC(playerRoom);
-				log.info("HOSTSROOM: " + playerRoom);
-				const socketsInRoomAdapter = io.sockets.adapter.rooms.get(playerRoom);
-				log.info(`Adapter state for room ${playerRoom} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
+				games[roomId] = new Game(playerIds[0], playerIds[1]);
+				games[roomId].settings(settings);		
+				initializeWebRTC(roomId);
+				log.info("HOSTSROOM: " + roomId);
+				const socketsInRoomAdapter = io.sockets.adapter.rooms.get(roomId);
+				log.info(`Adapter state for room ${roomId} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
 				
-				io.to(playerRoom).emit("startGame", playerRoom, settings);
+				io.to(roomId).emit("startGame", {
+					roomId,
+					settings,
+					player1Id: playerIds[0],
+					player2Id: playerIds[1]
+				});
 			}
 		});
 
@@ -357,7 +362,6 @@ function initializeWebRTC(roomId) {
 	
 		const dataChannel = peerConnection.createDataChannel("gameData");
 	
-		// ADD THIS LINE CLEARLY:
 		room.players[playerId].dataChannel = dataChannel;
 	
 		dataChannel.onopen = () => {
@@ -421,18 +425,25 @@ function startGameLoop(roomId) {
 	const room = rooms[roomId];
 	const game = games[roomId];
 	
-	if (!game || !room) return;	
+	if (!game || !room) return;
+
+	// Clear any running gameloop timer before starting new one
+	if (game.gameLoopTimer) {
+		clearTimeout(game.gameLoopTimer);
+		game.gameLoopTimer = null;
+	}
+
  	const playerList = Object.values(room.players)
 
 	const gameLoop = () => {
 
-	const startTime = Date.now();
+	const startTime = performance.now();
 
 	if (!game.isRunning())
 		return ;
 	//log.info("Game running: " + roomId);
 
-	if (game.getScores()[0] >= 5 || game.getScores()[1] >= 5) {
+	if (game.getScores()[0] >= 10 || game.getScores()[1] >= 10) {
 		game.stop();
 		const winner = game.getScores()[0] >= 5 ? 0 : 1
     const winnerId = playerList[winner].dbId;
@@ -452,6 +463,7 @@ function startGameLoop(roomId) {
       } catch (error) {
           console.log(error)
       }
+			room.gameStarted = false; // Allow rematch, should we clear this here?
 		}
 
 		io.to(roomId).emit('gameOver', winner + 1, room.type);
@@ -475,6 +487,7 @@ function startGameLoop(roomId) {
 	game.update();
 	
 	const positions = game.getPos();
+	const velocities = game.getVel();
 	
 	// Send game state to all players via their data channels
 	for (const playerId in room.players) {
@@ -486,6 +499,7 @@ function startGameLoop(roomId) {
 			dataChannel.send(JSON.stringify({
 			type: 'gameState',
 			positions: positions,
+			velocities: velocities,
 			scores: game.getScores()
 			}));
 		} catch (err) {
@@ -494,7 +508,7 @@ function startGameLoop(roomId) {
 		}
 	}
 
-	const endTime = Date.now();
+	const endTime = performance.now();
 	const elapsed = endTime - startTime;
 	const nextFrameDelay = Math.max(0, (1000 / 60) - elapsed);
 	
@@ -551,7 +565,7 @@ function joinRoom(roomId, socket, dbId)
 			const settings = { // there might be a better way to do this oh well
 				ballSettings: {
 					ballSize: 20,
-					ballSpeed: 3
+					ballSpeed: 10
 				},
 				playerSettings: {
 	
@@ -562,7 +576,14 @@ function joinRoom(roomId, socket, dbId)
 			const socketsInRoomAdapter = io.sockets.adapter.rooms.get(roomId);
 			log.info(`Adapter state for room ${roomId} right before emit: Size=${socketsInRoomAdapter?.size}, IDs=${[...socketsInRoomAdapter || []]}`);
 			
-			io.to(roomId).emit("startGame", roomId, settings);
+			// Identify player in frontend
+
+			io.to(roomId).emit("startGame", {
+				roomId,
+				settings,
+				player1Id: playerIds[0],
+				player2Id: playerIds[1]
+			});
 		}, 10000); }
 	}
 }

@@ -38,7 +38,7 @@ export class GameAI {
 
 	public getKeyPresses(ball: Ball, yPos: number) {
 		// Get the predicted path of the ball
-		const now = Date.now();
+		const now = performance.now();
 		const treshold = 4; // Adjust this value as needed
 
 		// console.log("Ball Y Position: ", ball.yPos);
