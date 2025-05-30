@@ -21,6 +21,10 @@ export function logDispose(label, uid) {
 	writeLog(`[${timestamp()}] [-1] ${label} [uid=${uid}] — count: ${instanceCounts[label]}`);
 }
 
+export function logMessage(label, message, uid = '-') {
+	writeLog(`[${timestamp()}] [${uid}] ${label}: ${message}`);
+}
+
 function writeLog(message) {
 	fs.appendFileSync(LOG_PATH, message + '\n');
 	console.log(message);

@@ -1,7 +1,7 @@
 // BabylonRenderer.ts
 import { GameState } from "./frontEndGame";
 import * as BABYLON from "@babylonjs/core";
-import * as GUI from "@babylonjs/gui";
+import { debugTracker } from '../utils/debugTracker';
 
 const DIGIT_SEGMENTS: { [digit: string]: boolean[] } = {
 	"0": [true, true, true, true, true, true, false],
@@ -224,6 +224,7 @@ export class Renderer3D {
 
 	init(state: GameState): void {
 		console.log("Init Renderer3D");
+		debugTracker.logCreate("Renderer3D");
 		this.container = document.getElementById("game-container");
 		//this.container.innerHTML = ""; // Clear the container
 		let existing = this.container.querySelector("#babylon-canvas") as HTMLCanvasElement;
@@ -300,41 +301,6 @@ export class Renderer3D {
 
 		this.originalRotation = this.camera.rotation.clone();
 		this.originalUp = this.camera.upVector.clone();
-		// this.scene.onKeyboardObservable.add((kbInfo) => {
-		// 	switch (kbInfo.type) {
-		// 		case BABYLON.KeyboardEventTypes.KEYDOWN:
-		// 			if (kbInfo.event.key === "1") {
-		// 				this.camera.rotation = originalRotation;
-		// 				this.camera.position = new BABYLON.Vector3(0, 15, -45);
-		// 				this.camera.setTarget(BABYLON.Vector3.Zero());
-		// 				this.camera.upVector = originalUp;
-		// 				this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
-		// 			}
-		// 			if (kbInfo.event.key === "2") {
-		// 				this.camera.position = new BABYLON.Vector3(0, 40, 0);
-		// 				this.camera.setTarget(BABYLON.Vector3.Zero());
-		// 				this.camera.upVector = originalUp;
-		// 				this.camera.rotation.y = Math.PI / -2;
-		// 				var forward = this.camera.getForwardRay().direction;
-		// 				var rotationMatrix = BABYLON.Matrix.RotationAxis(forward, Math.PI / -2);
-		// 				var newUp = BABYLON.Vector3.TransformNormal(this.camera.upVector, rotationMatrix);
-		// 				this.camera.upVector = newUp;
-		// 				this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 9); // floating above field
-		// 			}
-		// 			if (kbInfo.event.key === "3") {
-		// 				this.camera.rotation = originalRotation;
-		// 				if (state.activePlayerId === 1) {
-		// 					this.camera.position = new BABYLON.Vector3(-45, 15, 0);
-		// 				} else {
-		// 					this.camera.position = new BABYLON.Vector3(45, 15, 0);
-		// 				}
-		// 				this.camera.setTarget(BABYLON.Vector3.Zero());
-		// 				this.camera.upVector = originalUp;
-		// 				this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0); // floating above field
-		// 			}
-		// 			break;
-		// 	}
-		// });
 
 		this.engine.runRenderLoop(() => {
 		 	this.scene.render();
@@ -409,5 +375,6 @@ export class Renderer3D {
 		if (this.scene) this.scene.dispose();
 		if (this.engine) this.engine.dispose();
 		if (this.gameCanvas && this.gameCanvas.parentElement) this.gameCanvas.remove();
+		debugTracker.logDispose("Renderer3D");
 	}
 }

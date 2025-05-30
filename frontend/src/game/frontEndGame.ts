@@ -844,8 +844,8 @@ export function cleanGame()
 		cancelAnimationFrame(animationFrameId);
 	if (game)
 		game.cleanUp();
-	game = null;
 	debugTracker.logDispose("frontEndGame");
+	game = null;
 } 
 
 export function startSoloGame()
