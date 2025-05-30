@@ -1,5 +1,9 @@
-[2025-05-30T09:09:16.595Z] [+1] Game [uid=338fe080-cc8e-4acf-a30a-4979bf0ba192] — count: 1
-[2025-05-30T09:09:49.341Z] [-1] Game [uid=338fe080-cc8e-4acf-a30a-4979bf0ba192] — count: 0
-[2025-05-30T09:09:52.411Z] [+1] Game [uid=ad879460-13bb-4bb8-ace1-ca7fd6416a63] — count: 1
-[2025-05-30T09:10:11.991Z] [-1] Game [uid=ad879460-13bb-4bb8-ace1-ca7fd6416a63] — count: 0
-[2025-05-30T09:10:14.848Z] [-1] Game [uid=ad879460-13bb-4bb8-ace1-ca7fd6416a63] — count: -1
+[2025-05-30T11:22:57.548Z] [+1] frontEndGame [uid=952f9b86-406a-45cf-958d-718ac24e401c] — count: 1
+[2025-05-30T11:23:11.854Z] [+1] Game [uid=57515e45-c80d-4827-be02-e6c845d1c908] — count: 1
+[2025-05-30T11:23:11.879Z] [+1] Renderer2D [uid=952f9b86-406a-45cf-958d-718ac24e401c] — count: 1
+[2025-05-30T11:23:30.630Z] [-1] Game [uid=57515e45-c80d-4827-be02-e6c845d1c908] — count: 0
+[2025-05-30T11:23:30.653Z] [-1] Renderer2D [uid=952f9b86-406a-45cf-958d-718ac24e401c] — count: 0
+[2025-05-30T11:26:41.900Z] [+1] Game [uid=3454e726-1f89-413c-9218-e29c293769fa] — count: 1
+[2025-05-30T11:26:41.914Z] [+1] Renderer2D [uid=952f9b86-406a-45cf-958d-718ac24e401c] — count: 1
+[2025-05-30T11:27:31.159Z] [-1] Game [uid=3454e726-1f89-413c-9218-e29c293769fa] — count: 0
+[2025-05-30T11:27:31.178Z] [-1] Renderer2D [uid=952f9b86-406a-45cf-958d-718ac24e401c] — count: 0

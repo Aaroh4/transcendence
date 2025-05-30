@@ -10,6 +10,7 @@
         "concurrently": "^9.1.2"
     },
     "dependencies": {
+        "@fastify/cors": "^11.0.1",
         "uuid": "^11.1.0"
     }
 }
