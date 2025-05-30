@@ -9,6 +9,7 @@ import UserPage from './pages/userPage'
 import NoPage from './pages/noPage'
 import TournamentsPage from './pages/tournamentPage.js'
 import ProfilePage from './pages/profilePage'
+import EditProfile from './pages/editProfile'
 import ProtectedRoutes from './components/authRoutes'
 import RedirectForLoggedIn from './components/redirecForLoggedIn'
 import mouseEffect from './components/mouseEffet'
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
   {path: "/tournaments", element: <ProtectedRoutes><TournamentsPage /></ProtectedRoutes> },
   {path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes> },
   {path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes> },
+  {path: "/user/edit", element: <ProtectedRoutes><EditProfile /></ProtectedRoutes>},
   {path: "*", element: <NoPage />},
 ]);
 

@@ -180,15 +180,6 @@ const updatePassword = async function (req, reply) {
   }
 }
 
-const getDashboard = async function(req, reply) {
-  try {
-    const username = req.user.name
-    return reply.view('../public/dashboard.ejs', { username })
-  } catch (error) {
-    console.log(error)
-  }
-}
-
 const uploadAvatar = async function(req, reply) {
   try {
     const userId = req.user.id
@@ -227,6 +218,23 @@ const searchUsers = async function(req, reply) {
   }
 }
 
+const getMatchHistory = async function (req, reply) {
+  const db = req.server.db
+  const { id } = req.params
+
+  try {
+    const matchHistory = db.prepare("SELECT * FROM match_history WHERE user_id = ?")
+      .all(id)
+
+    if (matchHistory.length === 0) {
+      return reply.code(404).send({ error: "User has no match history" })
+    }
+    return reply.send(matchHistory)
+  } catch (error) {
+      return reply.code(500).send({ error: error.message })
+  }
+}
+
 export { 
   getUser,
   addUser,
@@ -234,7 +242,7 @@ export {
   deleteUser,
   updateUser,
   updatePassword,
-  getDashboard,
+  getMatchHistory,
   uploadAvatar,
   searchUsers
 }
