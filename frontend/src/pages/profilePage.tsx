@@ -137,7 +137,7 @@ const [user, setUser] = useState<User | null>(null);
       <>
       <UserHeader />
       <Background />
-          <div className="flex gap-2 mt-10 mx-10">
+          <div className="flex gap-2 mt-10 mx-15">
             
             <div className="w-2/5 border-2 border-black rounded-lg bg-[#2a2a2a] p-4">
               <h2 className="text-2xl font-semibold text-white mb-2">Match History</h2>
@@ -169,11 +169,11 @@ const [user, setUser] = useState<User | null>(null);
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 w-full">
-                <div className="flex-1 p-4 border-2 border-black rounded-xl shadow-md h-120">
+                <div className="w-full md:w-[48%] p-4 border-2 border-black rounded-xl shadow-md h-72">
                   <Doughnut data={donutData} options={donutOptions} />
                 </div>
 
-                <div className="flex-1 p-4 border-2 border-black rounded-xl shadow-md h-120 bg-[#2a2a2a]">
+                <div className="w-full md:w-[48%] p-4 border-2 border-black rounded-xl shadow-md h-72 bg-[#2a2a2a]">
                   <Bar data={barData} options={barOptions} />
                 </div>
               </div>

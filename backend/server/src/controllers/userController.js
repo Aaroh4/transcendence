@@ -2,7 +2,12 @@ import bcrypt from 'bcrypt'
 import fs from 'fs'
 import util from 'util'
 import { pipeline } from 'stream'
-import path from 'path'
+import path from 'path';
+import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const getUsers = async function (req, reply) {
   const db = req.server.db
@@ -186,7 +191,17 @@ const uploadAvatar = async function(req, reply) {
     const db = req.server.db
     const avatar = await req.file()
     const pump = util.promisify(pipeline)
+    
     const uploadDir = path.join(__dirname, '../../public/avatars')
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/png']
+    if (!allowedTypes.includes(avatar.mimetype)) {
+      return reply.code(400).send({ error: 'Invalid file type' })
+    }
+
     const uniqueId = crypto.randomBytes(16).toString('hex')
     const extension = path.extname(avatar.filename)
     const uniqueFilename = `${uniqueId}${extension}`
@@ -197,6 +212,8 @@ const uploadAvatar = async function(req, reply) {
     const avatarPath = `avatars/${uniqueFilename}`
     db.prepare('UPDATE users SET avatar = ? WHERE id = ?')
       .run(avatarPath, userId)
+    
+    return reply.code(200).send({ avatar: avatarPath })
   } catch (error) {
     return reply.code(500).send({ error: error.message })
   }

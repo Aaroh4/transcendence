@@ -142,7 +142,7 @@ export async function logoutUser(userData: LogoutRequest): Promise<LogoutRespons
 
 		const response = await authFetch(`${API_AUTH_URL}/api/logout`, options);
 
-		if (response.status == 1) {
+		if (response.status === 1) {
 			const retryResponse = await fetch(`${API_AUTH_URL}/api/logout`, {
 				method: 'DELETE',
 				body: JSON.stringify({token: userData.token}),
@@ -177,7 +177,7 @@ export async function logoutUser(userData: LogoutRequest): Promise<LogoutRespons
 		};
 
 	} catch (error) {
-		console.error("Delete user:", error);
+		console.error("Logout user:", error);
 		return {
 			status: 500,
 			error: 'Something went wrong. Please try again.'
@@ -209,7 +209,7 @@ export async function deleteUser(userData: DeleteUserRequest): Promise<DeleteUse
 
 		const response = await authFetch(`/api/user/delete` , options);
 
-		if (response.status == 1) {
+		if (response.status === 1) {
 			console.log(userData.accToken);//delete
 			const retryResponse = await fetch(`/api/user/delete`, {
 				method: 'DELETE',

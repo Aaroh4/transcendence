@@ -7,6 +7,7 @@ import { updateUser } from '../services/api';
 import { updatePassword } from '../services/api';
 import Background from '../components/background';
 import UserHeader from '../components/userHeader';
+import { useToast } from '../components/toastBar/toastContext';
 
 const EditProfile: React.FC = () => {
 	const [message, setMessage] = useState('');
@@ -19,6 +20,7 @@ const EditProfile: React.FC = () => {
 
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const navigate = useNavigate();
+	const toast = useToast();
 
 	useEffect(() => {
 		const googleId = sessionStorage.getItem('googleId');
@@ -40,41 +42,48 @@ const EditProfile: React.FC = () => {
 	if (!user) 
 		return <div>Loading...</div>;
 
-	const handleSubmitChange = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const handleSubmitChange = async (event: React.FormEvent) => {
+		event.preventDefault();
+		
 		const userId = sessionStorage.getItem('activeUserId');
 		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 		const accToken = sessionData.accessToken;
+		const refreshToken = sessionData.refreshToken;
 
 		setMessage('');
 		
 		if (newValue !== confirmValue) {
 			setMessage(changeMode === 'password' ? 'Passwords do not match!' : 'Usernames do not match!');
+			toast.open(changeMode === 'password' ? 'Passwords do not match!' : 'Usernames do not match!', "error");
 			return;
 		}
 
 		if (changeMode === 'username') {
 			
 			try {
-			const response = await updateUser({
-				accToken,
-				name: newValue,
-				email: user.email,
-				number: "0", //?
-				password: "0", //?
-			}, userId);
+				const response = await updateUser({
+					accToken,
+					name: newValue,
+					email: user.email,
+				}, userId);
 
-			if (response.status >= 200 && response.status < 300) {
-				setMessage('Username updated successfully!');
-				setChangeMode(null);
-				setNewValue('');
-				setConfirmValue('');
-			} else {
-				throw new Error(response.error || 'Update failed');
-			}
-			} catch (error) {
-				setMessage('Failed updating username. Please try again.');
-				console.error(error);
+				if (response.status >= 200 && response.status < 300) {
+					setMessage(response.error || 'Username updated successfully!');
+					setChangeMode(null);
+					setNewValue('');
+					setConfirmValue('');
+					toast.open(response.error || 'Username updated successfully', "success");
+					sessionStorage.removeItem(userId);
+					sessionStorage.setItem('activeUserId', userId.toString());
+					sessionStorage.setItem(userId.toString(), JSON.stringify({...sessionData, name: newValue, accessToken: accToken, refreshToken: refreshToken}));
+				} else {
+					toast.open(response.error || 'Username updated failed', "error");
+					// throw new Error(response.error || 'Update failed');
+					
+				}
+				} catch (error) {
+					setMessage('Failed updating username. Please try again.');
+					console.error(error);
 			}
 			return;
 		}
@@ -86,15 +95,13 @@ const EditProfile: React.FC = () => {
 				setChangeMode(null);
 				setNewValue('');
 				setConfirmValue('');
+				toast.open("Not possible", "error");
 				return;
 			}
 			
 			try {
 			const response = await updatePassword({
 				accToken,
-				name: user.name,
-				email: user.email,
-				number: "0", //?
 				password: newValue,
 			}, userId);
 
@@ -103,8 +110,10 @@ const EditProfile: React.FC = () => {
 				setChangeMode(null);
 				setNewValue('');
 				setConfirmValue('');
+				toast.open('Password updated successfully', "success");
 			} else {
-				throw new Error(response.error || 'Update failed');
+				toast.open(response.error || 'Update failed', "error");
+				// throw new Error(response.error || 'Update failed');
 			}
 			} catch (error) {
 				setMessage('Failed updating password. Please try again.');
@@ -139,6 +148,7 @@ const EditProfile: React.FC = () => {
 			navigate('/'); 
 		} catch (err) {
 			console.error(err);
+			toast.open("Failed to delete account!", "error");
 			setMessage('Failed to delete account.');
 		}
 	};
@@ -164,9 +174,12 @@ const EditProfile: React.FC = () => {
 			}
 
 			setMessage('Avatar updated successfully!');
+			toast.open("Avatar updated successfully!", "success")
 		} catch (error) {
 			console.error(error);
 			setMessage('Failed to upload avatar.');
+			toast.open("Failed to upload avatar", "error")
+
 		}
 	};
 

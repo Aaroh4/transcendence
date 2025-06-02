@@ -2,9 +2,9 @@
 
 interface AuthFetchOptions {
 	method: string;
-	body?: string;
+	body?: string | FormData;
 	headers: {
-		'Content-Type': string;
+		'Content-Type'?: string;
 		'Authorization': string;
 	};
 }
@@ -130,61 +130,57 @@ interface UploadImageResponse {
 }
 
 export async function uploadAvatar(uploadData: UploadImageRequest): Promise<UploadImageResponse> {
+
 	try {
-		const formData = new FormData();
-		formData.append('image', uploadData.file);
+			const formData = new FormData();
+			formData.append('avatar', uploadData.file);
 
-		const response = await fetch('/api/upload', {
-			method: 'PUT',
-			body: formData,
-			headers: {
-				'Authorization': `Bearer ${uploadData.accToken}`
+			const options = {
+				method: 'PUT',
+				body: formData,
+				headers: {
+					'Authorization': `Bearer ${uploadData.accToken}`
+				}
 			}
-		});
 
-		const responseData = await response.json();
+		const response = await authFetch('/api/upload', options)
 
-		if (responseData.status === 1 && responseData.newToken) {
-			const retryFormData = new FormData();
-			retryFormData.append('image', uploadData.file);
-
+		if (response.status === 1) {
 			const retryResponse = await fetch('/api/upload', {
 				method: 'PUT',
-				body: retryFormData,
+				body: formData,
 				headers: {
-					'Authorization': `Bearer ${responseData.newToken}`
+					'Authorization': `Bearer ${response.newToken}`
 				}
 			});
 
-			const retryData = await retryResponse.json();
-
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+		
 			if (!retryResponse.ok) {
 				return {
 					status: retryResponse.status,
-					error: retryData.error || 'Image upload failed'
+					error: responseData.error || 'Avatar upload failed'
 				};
 			}
-
 			return {
 				status: retryResponse.status,
-				error: retryData.error || 'Image upload successful',
+				error: responseData.error || 'Avatar upload successful',
 			};
 		}
 
-		if (!response.ok) {
+		if (response.status >= 300)
 			return {
-				status: response.status,
-				error: responseData.error || 'Image upload failed'
-			};
+			status: response.status,
+			error: response.error || 'Avatar upload failed'
 		}
-
 		return {
 			status: response.status,
-			error: responseData.error || 'Image upload successful',
+			error: response.error || 'Avatar upload successful'
 		};
 
 	} catch (error) {
-		console.error("Upload image error:", error);
+		console.error("Avatar upload:", error);
 		return {
 			status: 500,
 			error: 'Something went wrong. Please try again.'
@@ -196,8 +192,6 @@ export interface UpdateUserRequest {
   accToken: string;
   name: string;
   email: string;
-  number: string;
-  password: string;
 }
 
 export interface UpdateUserResponse {
@@ -206,117 +200,124 @@ export interface UpdateUserResponse {
 }
 
 export async function updateUser(userData: UpdateUserRequest, id: string): Promise<UpdateUserResponse> {
+	console.log(userData.name, userData.email);
 	try {
-		const requestBody = JSON.stringify({
-			name: userData.name,
-			email: userData.email,
-			number: userData.number,
-			password: userData.password,
-		});
-
-		console.log(userData.name, userData.email, userData.number, userData.password);
-		const response = await fetch(`/api/user/${id}`, {
+			const options = {
 			method: 'PUT',
+			body: JSON.stringify({name: userData.name, email: userData.email}),
 			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${userData.accToken}`
-			},
-			body: requestBody
-		});
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${userData.accToken}`
+			}
+		}
 
-		const responseData = await response.json();
+		const response = await authFetch(`/api/user/${id}`, options);
 
-		if (responseData.status === 1 && responseData.newToken) {
+		if (response.status === 1) {
 			const retryResponse = await fetch(`/api/user/${id}`, {
 				method: 'PUT',
+				body: JSON.stringify({name: userData.name, email: userData.email}),
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${responseData.newToken}`
-				},
-				body: requestBody
-			});
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			})
 
-			const retryData = await retryResponse.json();
-
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+			
+			if (!retryResponse.ok)
+				return {
+				status: retryResponse.status,
+				error: responseData.error || 'Update failed'
+				}
 			return {
 				status: retryResponse.status,
-				error: retryData.error || 'Update successful'
+				error: responseData.error || 'Update successful'
 			};
 		}
 
-		if (!response.ok) {
+		if (response.status >= 300)
 			return {
-				status: response.status,
-				error: responseData.error || 'Update failed',
-			};
+			status: response.status,
+			error: response.error || 'Update failed'
 		}
-
 		return {
 			status: response.status,
-			error: responseData.error || 'Update successful',
+			error: response.error || 'Update successful'
 		};
 
 	} catch (error) {
 		console.error("Update user:", error);
 		return {
 			status: 500,
-			error: 'Something went wrong. Please try again.',
+			error: 'Something went wrong. Please try again.'
 		};
 	}
 }
 
-export async function updatePassword(userData: UpdateUserRequest, id: string): Promise<UpdateUserResponse> {
+export interface UpdatePasswordRequest {
+	accToken: string;
+	password: string;
+}
+  
+export interface UpdatePasswordResponse {
+	status: number;
+	error?: string;
+}
+  
+export async function updatePassword(userData: UpdatePasswordRequest, id: string): Promise<UpdatePasswordResponse> {
 	try {
-		const requestBody = JSON.stringify({
-			password: userData.password,
-		});
-
-		const response = await fetch(`/api/user/pwd/${id}`, {
-			method: 'PUT',
-			headers: {
+			const options = {
+				method: 'PUT',
+				body: JSON.stringify({password: userData.password}),
+				headers: {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${userData.accToken}`
-			},
-			body: requestBody
-		});
+				}
+			}
 
-		const responseData = await response.json();
+		const response = await authFetch(`/api/user/pwd/${id}`, options);
 
-		if (responseData.status === 1 && responseData.newToken) {
+		if (response.status === 1) {
 			const retryResponse = await fetch(`/api/user/pwd/${id}`, {
 				method: 'PUT',
+				body: JSON.stringify({password: userData.password}),
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${responseData.newToken}`
-				},
-				body: requestBody
-			});
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			})
 
-			const retryData = await retryResponse.json();
-
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+			
+			if (!retryResponse.ok)
+				return {
+				status: retryResponse.status,
+				error: responseData.error || 'Update failed'
+				}
 			return {
 				status: retryResponse.status,
-				error: retryData.error || 'Update successful'
+				error: responseData.error || 'Update successful'
 			};
 		}
 
-		if (!response.ok) {
+		if (response.status >= 300)
 			return {
-				status: response.status,
-				error: responseData.error || 'Update failed',
-			};
+			status: response.status,
+			error: response.error || 'Update failed'
 		}
-
 		return {
 			status: response.status,
-			error: responseData.error || 'Update successful',
+			error: response.error || 'Update successful'
 		};
 
 	} catch (error) {
-		console.error("Update user:", error);
+		console.error("Update password:", error);
 		return {
 			status: 500,
-			error: 'Something went wrong. Please try again.',
+			error: 'Something went wrong. Please try again.'
 		};
 	}
 }

@@ -78,14 +78,10 @@ const updateUserOpts = {
     },
     body: {
       type: 'object',
-      required: ['name', 'email', 'number'],
+      required: ['name', 'email'],
       properties: {
         name: { type: 'string' },
         email: { type: 'string', format: 'email' },
-        number: {
-          type: 'string',
-          pattern: "^\\+\\d{6,15}$",
-        },
       },
     },
     response: {

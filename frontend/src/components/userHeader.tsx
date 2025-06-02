@@ -285,6 +285,7 @@ const UserHeader: React.FC = () => {
 								name="query"
 								value={searchState.query}
 								onChange={handleSearchInputChange}
+								minLength={2}
 								className="flex-grow border-2 border-black bg-[#2a2a2a] text-white placeholder-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
 								required
 								placeholder="Enter Username ..."
