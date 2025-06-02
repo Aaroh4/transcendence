@@ -1433,3 +1433,85 @@ export async function updatePassword(userData: UpdateUserRequest, id: string): P
 	}
 }*/
 
+export interface MatchHistory {
+	id: number;
+	user_id: number;
+	opponent_id: number;
+	user_score: number;
+	opponent_score: number;
+	winner_id: number;
+	round: string;
+	tournament_id: number;
+	match_type: string;
+	date: string;
+}
+
+export interface GetMatchHistoryRequest {
+	accToken: string;
+}
+
+export interface GetMatchHistoryResponse {
+	status: number;
+	data?: MatchHistory[];
+	error?: string;
+}
+
+export async function getMatchHistory(requestData: GetMatchHistoryRequest, userId: string): Promise<GetMatchHistoryResponse> {
+	try {
+		const response = await fetch(`/api/user/${userId}/match_history`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${requestData.accToken}`,
+			},
+		});
+
+		const responseData = await response.json();
+
+		if (responseData.status === 1 && responseData.newToken) {
+			const retryResponse = await fetch(`/api/user/${userId}/match_history`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${responseData.newToken}`,
+				},
+			});
+
+			const retryData = await retryResponse.json();
+
+			if (!retryResponse.ok) {
+				return {
+					status: retryResponse.status,
+					error: retryData.error || 'Failed to fetch match history (retry)',
+				};
+			}
+
+			return {
+				status: retryResponse.status,
+				data: retryData as MatchHistory[],
+			};
+		}
+
+		if (!response.ok) {
+			return {
+				status: response.status,
+				error: responseData.error || 'Failed to fetch match history',
+			};
+		}
+
+		return {
+			status: response.status,
+			data: responseData as MatchHistory[],
+		};
+
+	} catch (error) {
+		console.error("Fetch match history:", error);
+		return {
+			status: 500,
+			error: 'Something went wrong. Please try again.',
+		};
+	}
+}
+
+
+

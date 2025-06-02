@@ -5,9 +5,11 @@ import UserHeader from "../components/userHeader";
 import Background from "../components/background";
 import { getUser, User } from "../services/api";
 import React, { useEffect, useState } from 'react';
+import { getMatchHistory, MatchHistory } from '../services/api';
 
 
-type Match = {
+
+/*type Match = {
   id: number;
   opponent: string;
   result: 'Win' | 'Loss';
@@ -18,22 +20,55 @@ const mockMatches: Match[] = [
   { id: 1, opponent: 'PlayerOne', result: 'Win', date: '2025-04-21' },
   { id: 2, opponent: 'PlayerTwo', result: 'Loss', date: '2025-04-20' },
   { id: 3, opponent: 'PlayerThree', result: 'Win', date: '2025-04-18' },
-];
+];*/
+
 
 const ProfilePage: React.FC = () => {
 	const [user, setUser] = useState<User | null>(null);
+	const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
+	const [opponentNames, setOpponentNames] = useState<Record<number, string>>({});
 
 	useEffect(() => {
-	  	(async () => {
-			const userId = sessionStorage.getItem('activeUserId');
-			if (!userId) return;
-	
-			const fetchedUser = await getUser(userId);
-			setUser(fetchedUser);
-	  	})();
+	(async () => {
+		const userId = sessionStorage.getItem('activeUserId')!;
+		const sessionData = JSON.parse(sessionStorage.getItem(userId)!);
+		const accToken = sessionData.accessToken;
+
+		const fetchedUser = await getUser(userId);
+		setUser(fetchedUser);
+
+		const matchResults = await getMatchHistory({ accToken }, userId);
+		if (!matchResults.data) 
+			return;
+
+		setMatchHistory(matchResults.data);
+
+		const opponentIds = Array.from(
+		new Set(matchResults.data.map((match) => match.opponent_id))
+		);
+
+		const opponentFetches = opponentIds.map(async (id) => {
+		try {
+			const opponent = await getUser(String(id));
+			return { id, name: opponent.name };
+		} catch {
+			return { id, name: `User #${id}` };
+		}
+		});
+
+		const opponentResults = await Promise.all(opponentFetches);
+		const nameMap: Record<number, string> = {};
+		opponentResults.forEach(({ id, name }) => {
+		nameMap[id] = name;
+		});
+
+		setOpponentNames(nameMap);
+	})();
 	}, []);
+
 	
-	if (!user) return <div>Loading...</div>;
+	if (!user) 
+		return <div>Loading...</div>;
 
 	const totalMatches = user.wins + user.losses;
 	const winRate = totalMatches ? (user.wins / totalMatches) * 100 : 0;
@@ -87,24 +122,47 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Match History */}
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Match History</h2>
-        <ul className="space-y-6 w-full mx-auto">
-          {mockMatches.map((match) => (
-            <li
-              key={match.id}
-              className={`p-6 rounded-md shadow-lg ${
-                match.result === 'Win' ? 'bg-green-300' : 'bg-red-300'
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-medium">{match.opponent}</span>
-                <span className="text-lg font-bold">{match.result}</span>
-              </div>
-              <div className="text-sm text-gray-500">{match.date}</div>
-            </li>
-          ))}
-        </ul>
+		{/* Match History */}
+		<h2 className="text-2xl font-semibold text-gray-800 mb-6">Match History</h2>
+		{matchHistory.length === 0 ? (
+		<p className="text-gray-500">No matches found.</p>
+		) : (
+		<ul className="space-y-6 w-full mx-auto">
+			{matchHistory.map((match) => {
+			const loggedInUserId = Number(sessionStorage.getItem('activeUserId'));
+			const isWin = match.winner_id === loggedInUserId;
+			const opponentId = match.opponent_id;
+			const opponentName = opponentNames[opponentId] || `User #${opponentId}`;
+			const formattedDate = new Date(match.date).toLocaleDateString();
+
+			return (
+				<li
+				key={match.id}
+				className={`p-6 rounded-md shadow-lg ${
+					isWin ? 'bg-green-300' : 'bg-red-300'
+				}`}
+				>
+				<div className="flex justify-between items-center mb-2">
+					<span className="text-xl font-semibold">You vs. {opponentName}</span>
+					<span className="text-lg font-bold">{isWin ? 'Win' : 'Loss'}</span>
+				</div>
+
+				<div className="flex justify-between text-md font-medium text-gray-800 mb-1">
+					<span>Your Score: <span className="font-bold">{match.user_score}</span></span>
+					<span>Opponent Score: <span className="font-bold">{match.opponent_score}</span></span>
+				</div>
+
+				<div className="flex justify-between items-center text-sm text-gray-600">
+					<span>{formattedDate}</span>
+					<span className="bg-gray-300 text-gray-800 px-2 py-0.5 rounded-full text-xs font-semibold">
+					{match.match_type}
+					</span>
+				</div>
+				</li>
+			);
+			})}
+		</ul>
+		)}
       </div>
     </div>
   );
