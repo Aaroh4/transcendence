@@ -1,4 +1,4 @@
-import { AUTHSERV} from '../config/env-config.js';
+import { AUTHSERV } from '../config/env-config.js';
 
 interface AuthFetchOptions {
 	method: string;

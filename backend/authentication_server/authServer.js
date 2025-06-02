@@ -19,7 +19,8 @@ const fastify = Fastify({
 
 await fastify.register(dbInit)
 await fastify.register(cors, {
-    origin: [`https://${process.env.HOST_LAN_IP}:${process.env.PORT}`],
+    origin: [`https://${process.env.HOST_LAN_IP}:${process.env.PORT}`, 'http://localhost:5173', 
+		'https://localhost:5001'],
 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,

@@ -16,12 +16,6 @@ detect_os:
 		printf '\nHOST_LAN_IP=$(HOST_LAN_IP)\n' >> backend/.env; \
 	fi
 
-	@if grep -q '^REDIRECT_URI=' backend/.env; then \
-		sed -i 's|^REDIRECT_URI=.*|REDIRECT_URI=https://$(HOST_LAN_IP)/api/googleauth/callback|' backend/.env; \
-	else \
-		printf '\nREDIRECT_URI=https://$(HOST_LAN_IP)/api/googleauth/callback\n' >> backend/.env; \
-	fi
-
 	@if grep -q '^AUTHSERV=' backend/.env; then \
 		sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
 	else \
