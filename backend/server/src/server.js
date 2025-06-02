@@ -13,6 +13,7 @@ import multipart from '@fastify/multipart'
 import { fileURLToPath } from 'url';
 import { setupNetworking } from './networking.js';
 import { Logger, LogLevel } from './utils/logger.js';
+import fs from 'fs'
 
 
 // Compute __dirname for ES modules
@@ -28,7 +29,11 @@ log.info("DIST:::: " + FRONTEND_DIST);
 dotenv.config({ path: "../.env" });
 
 const fastify = Fastify({
-	logger: true
+	logger: true,
+	https: {
+	key: fs.readFileSync(path.join('../../nginx', 'localhost.key')),
+	cert: fs.readFileSync(path.join('../../nginx', 'localhost.crt'))
+	}
 })
 
 fastify.register(view, {
@@ -72,7 +77,7 @@ fastify.register(userRoutes)
 fastify.register(friendRoutes)
 fastify.register(tournamentRoutes)
 
-await fastify.listen({ port: process.env.PORT || 5001, host: process.env.HOST }, function (err, address) {
+await fastify.listen({ port: process.env.PORT || 5001, host: process.env.HOST || '0.0.0.0' }, function (err, address) {
 	log.info('Listening on port', process.env.PORT);
 	if (err) {
 		log.info('Error: ', err)

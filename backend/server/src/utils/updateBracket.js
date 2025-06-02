@@ -137,6 +137,9 @@ function readyUpTimer(tournamentId) {
   db.prepare('UPDATE tournament_players SET is_ready = ? WHERE tournament_id = ? AND is_ready = ? AND won_previous = 0')
     .run(2, tournamentId, 0)
 
+	db.prepare('UPDATE tournament_players SET won_previous = ? WHERE tournament_id = ? AND (is_ready = 0 OR 1)')
+		.run(1, tournamentId)
+
   const playerIds = players.map(player => player.user_id)
 
   for (let i = 0; i < playerIds.length; i++) {

@@ -1,4 +1,5 @@
 import { authFetch } from "./api";
+import { AUTHSERV } from '../config/env-config.js';
 
 export interface RegistrationRequest {
 	name: string;
@@ -69,10 +70,10 @@ export interface LoginResponse {
 	error: string;
 }
 
-const API_AUTH_URL = 'http://localhost:4000'; //add to .env
+const API_AUTH_URL = AUTHSERV;
 
 export async function loginUser(userData: LoginRequest, captchaToken): Promise<LoginResponse> {
-
+	console.log("P: " + API_AUTH_URL);
 	try {
 		const response = await fetch(`${API_AUTH_URL}/api/login`, {
 			method: 'POST',

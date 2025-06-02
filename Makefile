@@ -10,6 +10,24 @@ detect_os:
 	$(eval OS=$(shell uname))
 	$(eval HOST_LAN_IP=$(shell if [ "$(OS)" = "Darwin" ]; then echo "localhost"; else ip route get 1.1.1.1 | awk '/src/ {print $$7}'; fi))
 	@echo "HOST_LAN_IP is set to: $(HOST_LAN_IP)"
+	@if grep -q '^HOST_LAN_IP=' backend/.env; then \
+		sed -i 's|^HOST_LAN_IP=.*|HOST_LAN_IP=$(HOST_LAN_IP)|' backend/.env; \
+	else \
+		printf '\nHOST_LAN_IP=$(HOST_LAN_IP)\n' >> backend/.env; \
+	fi
+
+	@if grep -q '^REDIRECT_URI=' backend/.env; then \
+		sed -i 's|^REDIRECT_URI=.*|REDIRECT_URI=https://$(HOST_LAN_IP)/api/googleauth/callback|' backend/.env; \
+	else \
+		printf '\nREDIRECT_URI=https://$(HOST_LAN_IP)/api/googleauth/callback\n' >> backend/.env; \
+	fi
+
+	@if grep -q '^AUTHSERV=' backend/.env; then \
+		sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
+	else \
+		printf '\nAUTHSERV=https://$(HOST_LAN_IP):4000\n' >> backend/.env; \
+	fi
+
 
 devbuild:
 		@cd ./frontend && npm install && npm run tailwind
@@ -28,6 +46,7 @@ dev: detect_os
 		-e "s|__TURN_USER__|${TURN_USER}|g" \
 		-e "s|__TURN_PASS__|${TURN_PASS}|g" \
 		-e "s|__EXT_IP__|${HOST_LAN_IP}|g" \
+		-e "s|__AUTHSERV__|${AUTHSERV}|g" \
 		frontend/src/config/env-config.ts; \
 	else \
 		sed -i \
@@ -36,6 +55,7 @@ dev: detect_os
 		-e "s|__TURN_USER__|${TURN_USER}|g" \
 		-e "s|__TURN_PASS__|${TURN_PASS}|g" \
 		-e "s|__EXT_IP__|${HOST_LAN_IP}|g" \
+		-e "s|__AUTHSERV__|${AUTHSERV}|g" \
 		frontend/src/config/env-config.ts; \
 	fi; \
 	trap 'cp frontend/src/config/env-config.template.ts frontend/src/config/env-config.ts && rm -f turn.out' INT; \

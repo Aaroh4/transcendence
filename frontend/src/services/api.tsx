@@ -1,4 +1,4 @@
-// import { tournament } from "../services/tournamentApi"
+import { AUTHSERV} from '../config/env-config.js';
 
 interface AuthFetchOptions {
 	method: string;
@@ -42,7 +42,7 @@ export interface Tournament {
 	message?: string;
 }
 
-const API_AUTH_URL = 'http://localhost:4000'; //add to .env
+const API_AUTH_URL = AUTHSERV;
 
 export async function authFetch(url: string, options: AuthFetchOptions): Promise<AuthFetchResponse> {
 
