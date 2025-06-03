@@ -70,5 +70,7 @@ client_secret.json
 .env
 turn.out
 **/database.bc*
+/database.db
 **/database.db
 **/output.css
+**/game_instance.log

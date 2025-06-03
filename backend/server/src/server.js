@@ -1,7 +1,8 @@
 import dotenv from "dotenv"
 import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
-import { root, userRoutes, friendRoutes, tournamentRoutes } from './routes/routes.js'
+import cors from '@fastify/cors';
+import { root, userRoutes, friendRoutes, tournamentRoutes, debugRoutes } from './routes/routes.js'
 import dbInit from './database.js'
 import path from 'path'
 import cookie from '@fastify/cookie'
@@ -38,6 +39,11 @@ const fastify = Fastify({
 	cert
 	}
 })
+
+await fastify.register(cors, {
+  origin: ['http://localhost:5173'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+});
 
 fastify.register(view, {
   engine: {
@@ -79,6 +85,7 @@ fastify.register(root)
 fastify.register(userRoutes)
 fastify.register(friendRoutes)
 fastify.register(tournamentRoutes)
+fastify.register(debugRoutes)
 
 await fastify.listen({ port: process.env.PORT || 5001, host: process.env.HOST || '0.0.0.0' }, function (err, address) {
 	log.info('Listening on port', process.env.PORT);
