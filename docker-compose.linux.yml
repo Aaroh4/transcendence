@@ -1,6 +1,7 @@
 networks:
   appnet:
     driver: bridge
+
 services:
   app:
     build:

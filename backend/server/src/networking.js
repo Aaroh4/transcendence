@@ -197,25 +197,34 @@ export function setupNetworking(server){
         db.prepare('UPDATE tournament_players SET is_ready = 1 WHERE user_id = ?')
           .run(userId)
 
-        const match = db.prepare('SELECT * FROM matches WHERE player_one_id = ? OR player_two_id = ?')
-          .get(userId, userId)
+        const match = db.prepare('SELECT * FROM matches WHERE (player_one_id = ? OR player_two_id = ?) AND status = ?')
+          .get(userId, userId, "waiting")
 
         let hasDisconnected = 0
+		let enemyID;
 
         if (match && match.player_one_id == userId) {
           hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
             .get(match.player_two_id)
 			rooms[roomId].sockets[match.player_one_id] = socket;
+			enemyID = match.player_two_id;
         } else if (match && match.player_two_id == userId) {
           hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
             .get(match.player_one_id)
 			rooms[roomId].sockets[match.player_two_id] = socket;
+			enemyID = match.player_one_id;
         }
-        if (hasDisconnected.is_ready == 2) {
+        if ((!hasDisconnected && match) || hasDisconnected.is_ready == 2) {
           db.prepare('UPDATE matches SET status = ? WHERE id = ?')
             .run('in_progress', match.id)
 			socket.emit("disconnectWin");
-          updateBracket(userId, hasDisconnected.user_id, 1, 0)
+			if (!hasDisconnected)
+			{
+				console.log("ENEMYID: "+ enemyID);
+				updateBracket(userId, enemyID, 1, 0)
+			}
+			else
+          		updateBracket(userId, hasDisconnected.user_id, 1, 0)
         } else {
           joinRoom(roomId, socket, userId);
         }

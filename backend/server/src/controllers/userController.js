@@ -2,7 +2,12 @@ import bcrypt from 'bcrypt'
 import fs from 'fs'
 import util from 'util'
 import { pipeline } from 'stream'
-import path from 'path'
+import path from 'path';
+import { fileURLToPath } from 'url';
+import crypto from 'node:crypto';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const getUsers = async function (req, reply) {
   const db = req.server.db
@@ -180,22 +185,33 @@ const updatePassword = async function (req, reply) {
   }
 }
 
-const getDashboard = async function(req, reply) {
-  try {
-    const username = req.user.name
-    return reply.view('../public/dashboard.ejs', { username })
-  } catch (error) {
-    console.log(error)
-  }
-}
-
 const uploadAvatar = async function(req, reply) {
   try {
     const userId = req.user.id
     const db = req.server.db
     const avatar = await req.file()
     const pump = util.promisify(pipeline)
+
+    const result = db.prepare('SELECT avatar FROM users WHERE id = ?').get(userId)
+    const prevAvatarPath = result.avatar
+
+    if (prevAvatarPath && prevAvatarPath !== process.env.DEFAULT_AVATAR) {
+      const fullPath = path.join(__dirname, '../../public', prevAvatarPath)
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath)
+      }
+    }
+    
     const uploadDir = path.join(__dirname, '../../public/avatars')
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/png']
+    if (!allowedTypes.includes(avatar.mimetype)) {
+      return reply.code(400).send({ error: 'Invalid file type' })
+    }
+
     const uniqueId = crypto.randomBytes(16).toString('hex')
     const extension = path.extname(avatar.filename)
     const uniqueFilename = `${uniqueId}${extension}`
@@ -206,6 +222,8 @@ const uploadAvatar = async function(req, reply) {
     const avatarPath = `avatars/${uniqueFilename}`
     db.prepare('UPDATE users SET avatar = ? WHERE id = ?')
       .run(avatarPath, userId)
+    
+    return reply.code(200).send({ avatar: avatarPath })
   } catch (error) {
     return reply.code(500).send({ error: error.message })
   }
@@ -227,6 +245,23 @@ const searchUsers = async function(req, reply) {
   }
 }
 
+const getMatchHistory = async function (req, reply) {
+  const db = req.server.db
+  const { id } = req.params
+
+  try {
+    const matchHistory = db.prepare("SELECT * FROM match_history WHERE user_id = ?")
+      .all(id)
+
+    if (matchHistory.length === 0) {
+      return reply.code(404).send({ error: "User has no match history" })
+    }
+    return reply.send(matchHistory)
+  } catch (error) {
+      return reply.code(500).send({ error: error.message })
+  }
+}
+
 export { 
   getUser,
   addUser,
@@ -234,7 +269,7 @@ export {
   deleteUser,
   updateUser,
   updatePassword,
-  getDashboard,
+  getMatchHistory,
   uploadAvatar,
   searchUsers
 }

@@ -16,7 +16,7 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     console.log("-------in UpdateBracket----------");
     db.prepare('UPDATE matches SET status = ?, winner_id = ? WHERE id = ?')
       .run('completed', winnerId, match.id)
-    db.prepare('UPDATE tournament_players SET is_ready = 0 WHERE user_id = ? AND tournament_id = ?')
+    db.prepare('UPDATE tournament_players SET is_ready = 0 , won_previous = 1 WHERE user_id = ? AND tournament_id = ?')
       .run(winnerId, match.tournament_id)
 
     db.prepare(`
@@ -43,13 +43,15 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
       match_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(loserId, winnerId, loserScore, winnerScore, winnerId, match.round, match.tournament_id, 'tournament')
     
-    db.prepare('UPDATE users SET wins = wins + 1 WHERE id = ?')
-      .run(winnerId)
+	db.prepare('UPDATE users SET wins = wins + 1 WHERE id = ?')
+	.run(winnerId)
+
     db.prepare('UPDATE users SET losses = losses + 1 WHERE id = ?')
       .run(loserId)
     
-    db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
-      .run(loserId, match.tournament_id)
+	console.log("LOSERID::::::::: " + loserId);
+	db.prepare('DELETE FROM tournament_players WHERE user_id = ? AND tournament_id = ?')
+	.run(loserId, match.tournament_id)
 
     const nextMatch = db.prepare(`
       SELECT * FROM matches
@@ -75,6 +77,17 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     }
 
     if (nextMatch) {
+		const players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ?')
+			.all(match.tournament_id);
+		if (nextMatch.status == 'waiting' && players.length <= 0)
+		{
+			db.prepare('UPDATE matches SET status = ? WHERE id = ?')
+				.run('completed', nextMatch.id)
+			db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
+				.run('completed', match.tournament_id)
+			return ;
+		}
+	
       const matches = db.prepare('SELECT * FROM matches WHERE tournament_id = ? AND round = ?')
         .all(match.tournament_id, match.round)
       
@@ -84,7 +97,7 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
         })
         if (notCompleted.length === 0) {
           setTimeout(() => {
-            readyUpTimer(tournamentId)
+            readyUpTimer(match.tournamentId)
           }, 60000)
         }
       }
@@ -121,13 +134,16 @@ function updateMatchHistory(winnerId, loserId, winnerScore, loserScore) {
 }
 
 function readyUpTimer(tournamentId) {
-  const players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND is_ready = ?')
+  let players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND is_ready = ? AND won_previous = 0')
     .all(tournamentId, 0)
 
   if (players.length < 1) return
 
-  db.prepare('UPDATE tournament_players SET is_ready = ? WHERE tournament_id = ? AND is_ready = ?')
+  db.prepare('UPDATE tournament_players SET is_ready = ? WHERE tournament_id = ? AND is_ready = ? AND won_previous = 0')
     .run(2, tournamentId, 0)
+
+	db.prepare('UPDATE tournament_players SET won_previous = ? WHERE tournament_id = ? AND (is_ready = 0 OR 1)')
+		.run(1, tournamentId)
 
   const playerIds = players.map(player => player.user_id)
 
@@ -137,14 +153,14 @@ function readyUpTimer(tournamentId) {
     if (opponent.player_one_id === playerIds[i]) {
       db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
         .run('in_progress', playerIds[i], opponent.player_two_id, tournamentId)
-        if (rooms[opponent.room_id])
-          rooms[opponent.room_id].sockets[opponent.player_two_id].emit("disconnectWin");
+		if (rooms[opponent.room_id])
+			rooms[opponent.room_id].sockets[opponent.player_two_id].emit("disconnectWin");
       updateBracket(opponent.player_two_id, playerIds[i], 1, 0)
     } else {
       db.prepare('UPDATE matches SET status = ? WHERE player_one_id = ? AND player_two_id = ? AND tournament_id = ?')
         .run('in_progress', opponent.player_one_id, playerIds[i], tournamentId)
-      if (rooms[opponent.room_id])
-		    rooms[opponent.room_id].sockets[opponent.player_one_id].emit("disconnectWin");
+		if (rooms[opponent.room_id])
+			rooms[opponent.room_id].sockets[opponent.player_one_id].emit("disconnectWin");
       updateBracket(opponent.player_one_id, playerIds[i], 1, 0)
     }
   }

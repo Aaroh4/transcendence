@@ -4,27 +4,39 @@ import loginRoutes from './routes/authRoutes.js'
 import dbInit from '../server/src/database.js'
 import jwt from '@fastify/jwt'
 import cors from '@fastify/cors'
+import path from 'path'
+import { promises as fs } from 'fs'
 
 dotenv.config({ path: "../.env" });
 
+const key = await fs.readFile(path.join('../../nginx', 'localhost.key'))
+const cert = await fs.readFile(path.join('../../nginx', 'localhost.crt'))
+
 const fastify = Fastify({
-  logger: true
+  logger: true,
+	https: {
+    key,
+    cert
+  }
 })
 
 await fastify.register(dbInit)
-await Promise.all([
-  fastify.register(loginRoutes),
-  fastify.register(cors, {
-    origin: ['http://localhost:5001', 'http://localhost:5173'],
+await fastify.register(cors, {
+    origin: [`https://${process.env.HOST_LAN_IP}:${process.env.PORT}`, 'http://localhost:5173', 
+		'https://localhost:5001'],
+
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
-  }),
-])
-fastify.register(jwt, {
-  secret: process.env.ACCESS_TOKEN_SECRET,
+  })
+
+await fastify.register(jwt, {
+secret: process.env.ACCESS_TOKEN_SECRET,
 })
 
-await fastify.listen({ port: process.env.AUTH_PORT || 4000 }, function (err, address) {
+await fastify.register(loginRoutes)
+
+
+await fastify.listen({ port: process.env.AUTH_PORT || 4000, host: process.env.HOST || '0.0.0.0' }, function (err, address) {
   if (err) {
     fastify.log.error(err)
     process.exit(1)

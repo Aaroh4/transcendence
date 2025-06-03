@@ -64,7 +64,7 @@ const completeGoogleLogin = async function(req, reply, user) {
             name: ${JSON.stringify(user.name)},
             accessToken: ${JSON.stringify(accessToken)},
             refreshToken: ${JSON.stringify(refreshToken)}
-          }, 'http://localhost:5173');
+          }, 'https://localhost:5001');
           window.close();
         </script>
       </body>
@@ -81,7 +81,7 @@ const completeGoogleLogin = async function(req, reply, user) {
         <script>
           window.opener.postMessage({
             error: "Google login failed. Please try again."
-          }, 'http://localhost:5173');
+          }, 'https://localhost:5001');
           window.close();
         </script>
       </body>

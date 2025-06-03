@@ -222,7 +222,7 @@ const matchTypeButtons = () => {
 					</select>
 
 					<details id="edit-game" hidden>
-						<summary className="mt-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-2 rounded border-2 border-black transform transition-transform hover:scale-102 duration-100">
+						<summary className="mt-2 cursor-pointer bg-gray-400 hover:bg-gray-500 text-white p-2 rounded border-2 border-black transform transition-transform hover:scale-102 duration-100">
 							Edit ball settings
 						</summary>
 						<p className="text-center text-white">Ball size</p>

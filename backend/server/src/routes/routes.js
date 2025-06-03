@@ -8,7 +8,7 @@ import {
   deleteUserOpts, 
   updateUserOpts, 
   updatePasswordOpts,
-  dashboardOpts,
+  getMatchHistoryOpts,
   uploadOpts
 } from '../schemas/userSchemas.js'
 import { 
@@ -59,7 +59,7 @@ async function userRoutes (fastify, options) {
   fastify.get('/api/users', getUsersOpts) //Palauttaa User objektin joka käyttäjälle mikä sisältää: id, name, status(1 = online, 0 = offline), wins, losses, path avatariin
   fastify.get('/api/users/search', searchUsersOpts)
   fastify.get('/api/user/:id', getUserOpts) //Vaatii parametrina ID:n ja palauttaa User objektin id:n perusteella
-  fastify.get('/api/dashboard', dashboardOpts) //mahdollista käyttää myöhemmin esim profiili sivuna, redirectaa käyttäjän loginin jälkeen
+  fastify.get('/api/user/:id/match_history', getMatchHistoryOpts)
   fastify.put('/api/upload', uploadOpts) //Avatarin uploadaamiseen, ottaa kuva tiedoston ja tallentaa kuvan avatars kansioon ja pathin databaseen
   fastify.put('/api/user/:id', updateUserOpts) //Vaatii parametrina ID:n ja request bodyssa: name, email, number, password 
   fastify.put('/api/user/pwd/:id', updatePasswordOpts) //Vaatii Parametrina ID:n ja request bodyssa password

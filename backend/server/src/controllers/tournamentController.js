@@ -223,7 +223,7 @@ const getTournamentParticipant = async function(req, reply) {
 	let tournament;
 	tournament = db.prepare("SELECT * FROM tournament_players WHERE user_id = ?")
 	.all(userId)
-	if (tournament.length === 0) return reply.code(404).send({ error: `No tournament found` }) // Toomi!! voisko 204 olla parempi palautus jos se on tyhja?? ei tuu error.log sillo
+	if (tournament.length === 0) return reply.code(204);
 	if (tourType === 'tourPage')
 	{
 		const realTournament = db.prepare("SELECT * FROM tournaments WHERE id = ? AND status = 'created'")

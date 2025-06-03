@@ -3,7 +3,6 @@ import Header from "../components/headers.js";
 import Background from '../components/background.js';
 import { useNavigate } from "react-router-dom";
 import { useToast } from '../components/toastBar/toastContext.js';
-// import { useEffect } from 'react';
 
 const Home: React.FC = () => {
 
@@ -13,14 +12,14 @@ const Home: React.FC = () => {
 	const handleGoogleLogin = () => {
 
 		const popup = window.open(
-		  'http://localhost:4000/api/googleauth',
-		  'GoogleLogin',
-		  'width=500,height=600'
+		  'https://localhost:4000/api/googleauth', // FUCK THIS SCHOOL AND GOOGLE
+		  'GoogleLogin',							// WORKS ONLY WITH HOST COMPUTER
+		  'width=500,height=600'					// CANT USE PRIVATE IP FOR THIS...
 		);
 	  
 		window.addEventListener('message', (event) => {
 
-		if (event.origin !== "http://localhost:4000")
+		if (event.origin !== "https://localhost:4000")
 			return;
 	
 		const { userId, accessToken, refreshToken } = event.data;
