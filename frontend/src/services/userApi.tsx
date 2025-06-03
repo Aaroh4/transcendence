@@ -1,4 +1,4 @@
-import { authFetch } from "./api";
+import { User, MatchHistory, authFetch } from "./api";
 
 export interface RegistrationRequest {
 	name: string;
@@ -252,4 +252,321 @@ export async function deleteUser(userData: DeleteUserRequest): Promise<DeleteUse
 			error: 'Something went wrong. Please try again.'
 		};
 	}
-} //force logaout/delete if refreshToken has expired?
+}
+
+interface UploadImageRequest {
+	accToken: string;
+	file: File;
+}
+
+interface UploadImageResponse {
+	status: number;
+	avatar?: string;
+	error?: string;
+}
+
+export async function uploadAvatar(uploadData: UploadImageRequest): Promise<UploadImageResponse> {
+
+	try {
+			const formData = new FormData();
+			formData.append('avatar', uploadData.file);
+
+			const options = {
+				method: 'PUT',
+				body: formData,
+				headers: {
+					'Authorization': `Bearer ${uploadData.accToken}`
+				}
+			}
+
+		const response = await authFetch('/api/upload', options)
+
+		if (response.status === 1) {
+			const retryResponse = await fetch('/api/upload', {
+				method: 'PUT',
+				body: formData,
+				headers: {
+					'Authorization': `Bearer ${response.newToken}`
+				}
+			});
+
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+		
+			if (!retryResponse.ok) {
+				return {
+					status: retryResponse.status,
+					error: responseData.error || 'Avatar upload failed'
+				};
+			}
+			return {
+				status: retryResponse.status,
+				avatar: responseData.avatar,
+				error: responseData.error || 'Avatar upload successful',
+			};
+		}
+
+		if (response.status >= 300)
+			return {
+			status: response.status,
+			error: response.error || 'Avatar upload failed'
+		}
+		return {
+			status: response.status,
+			avatar: response.avatarPath,
+			error: response.error || 'Avatar upload successful'
+		};
+
+	} catch (error) {
+		console.error("Avatar upload:", error);
+		return {
+			status: 500,
+			error: 'Something went wrong. Please try again.'
+		};
+	}
+}
+
+export interface UpdateUserRequest {
+  accToken: string;
+  name: string;
+  email: string;
+}
+
+export interface UpdateUserResponse {
+  status: number;
+  error?: string;
+}
+
+export async function updateUser(userData: UpdateUserRequest, id: string): Promise<UpdateUserResponse> {
+	console.log(userData.name, userData.email);
+	try {
+			const options = {
+			method: 'PUT',
+			body: JSON.stringify({name: userData.name, email: userData.email}),
+			headers: {
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${userData.accToken}`
+			}
+		}
+
+		const response = await authFetch(`/api/user/${id}`, options);
+
+		if (response.status === 1) {
+			const retryResponse = await fetch(`/api/user/${id}`, {
+				method: 'PUT',
+				body: JSON.stringify({name: userData.name, email: userData.email}),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			})
+
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+			
+			if (!retryResponse.ok)
+				return {
+				status: retryResponse.status,
+				error: responseData.error || 'Update failed'
+				}
+			return {
+				status: retryResponse.status,
+				error: responseData.error || 'Update successful'
+			};
+		}
+
+		if (response.status >= 300)
+			return {
+			status: response.status,
+			error: response.error || 'Update failed'
+		}
+		return {
+			status: response.status,
+			error: response.error || 'Update successful'
+		};
+
+	} catch (error) {
+		console.error("Update user:", error);
+		return {
+			status: 500,
+			error: 'Something went wrong. Please try again.'
+		};
+	}
+}
+
+export interface UpdatePasswordRequest {
+	accToken: string;
+	password: string;
+}
+  
+export interface UpdatePasswordResponse {
+	status: number;
+	error?: string;
+}
+  
+export async function updatePassword(userData: UpdatePasswordRequest, id: string): Promise<UpdatePasswordResponse> {
+	try {
+			const options = {
+				method: 'PUT',
+				body: JSON.stringify({password: userData.password}),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${userData.accToken}`
+				}
+			}
+
+		const response = await authFetch(`/api/user/pwd/${id}`, options);
+
+		if (response.status === 1) {
+			const retryResponse = await fetch(`/api/user/pwd/${id}`, {
+				method: 'PUT',
+				body: JSON.stringify({password: userData.password}),
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${response.newToken}`
+				}
+			})
+
+			const responseData = await retryResponse.json();
+			console.log(retryResponse);
+			
+			if (!retryResponse.ok)
+				return {
+				status: retryResponse.status,
+				error: responseData.error || 'Update failed'
+				}
+			return {
+				status: retryResponse.status,
+				error: responseData.error || 'Update successful'
+			};
+		}
+
+		if (response.status >= 300)
+			return {
+			status: response.status,
+			error: response.error || 'Update failed'
+		}
+		return {
+			status: response.status,
+			error: response.error || 'Update successful'
+		};
+
+	} catch (error) {
+		console.error("Update password:", error);
+		return {
+			status: 500,
+			error: 'Something went wrong. Please try again.'
+		};
+	}
+}
+
+export async function getUser(id: string): Promise<User> {
+
+	try {
+		const response = await fetch(`/api/user/${id}`, {
+			method: 'GET',
+			headers: {
+			'Content-Type': 'application/json',
+			}
+		});
+
+		const responseData = await response.json();
+
+		if (!response.ok)
+			return { name: '',
+				online_status: 0,
+				wins: 0,
+				losses: 0,
+				avatar: '',
+				email: '',
+				id: 0
+		}
+		return { name: responseData.name,
+			online_status: responseData.status,
+			wins: responseData.wins,
+			losses: responseData.losses,
+			avatar: responseData.avatar,
+			email: responseData.email,
+			id: responseData.id
+		}
+		
+	} catch (error) {
+		error.console.log();
+		console.error("Get user error:", error);
+		return { name: '',
+			online_status: 0,
+			wins: 0,
+			losses: 0,
+			avatar: '',
+			email: '',
+			id: 0
+		};
+	}
+}
+
+export interface GetMatchHistoryRequest {
+	accToken: string;
+}
+
+export interface GetMatchHistoryResponse {
+	status: number;
+	data?: MatchHistory[];
+	error?: string;
+}
+
+export async function getMatchHistory(requestData: GetMatchHistoryRequest, userId: string): Promise<GetMatchHistoryResponse> {
+	
+	try {
+			const options = {
+				method: 'GET',
+				headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${requestData.accToken}`,
+				}
+			}
+
+			const response = await authFetch(`/api/user/${userId}/match_history`, options);
+
+			if (response.status === 1) {
+				const retryResponse = await fetch(`/api/user/${userId}/match_history`, {
+					method: 'GET',
+					headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${response.newToken}`,
+					}
+				})
+
+				const responseData = await retryResponse.json();
+
+			if (!retryResponse.ok) {
+				return {
+					status: retryResponse.status,
+					error: responseData.error || 'Failed to fetch match history (retry)',
+				};
+			}
+
+			return {
+				status: retryResponse.status,
+				data: responseData as MatchHistory[],
+			};
+		}
+
+		if (response.status >= 300) {
+			return {
+				status: response.status,
+				error: response.error || 'Failed to fetch match history',
+			};
+		}
+		return {
+			status: response.status,
+			data: response.matchHistory as MatchHistory[] || [],
+		}
+
+	} catch (error) {
+		console.error("Fetch match history:", error);
+		return {
+			status: 500,
+			error: 'Something went wrong. Please try again.',
+		};
+	}
+}

@@ -1,10 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
-import { DeleteUserRequest, deleteUser } from "../services/userApi";
-import { useToast } from "../components/toastBar/toastContext";
 import UserHeader from "../components/userHeader";
 import Background from "../components/background";
-import { getUser, User } from "../services/api";
+import { getUser } from "../services/userApi";
+import { User } from "../services/api";
 import { useEffect, useState } from 'react';
+import { MatchHistory } from '../services/api';
+import { getMatchHistory } from "../services/userApi";
 import { Doughnut, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -26,31 +26,48 @@ ChartJS.register(
   Legend
 );
 
-type Match = {
-  id: number;
-  opponent: string;
-  result: 'Win' | 'Loss';
-  date: string;
-};
-
-const mockMatches: Match[] = [
-  { id: 1, opponent: 'PlayerOne', result: 'Win', date: '2025-04-21' },
-  { id: 2, opponent: 'PlayerTwo', result: 'Loss', date: '2025-04-20' },
-  { id: 3, opponent: 'PlayerThree', result: 'Win', date: '2025-04-18' },
-];
-
 const ProfilePage: React.FC = () => {
-
-const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<User | null>(null);
+	const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
+	const [opponentNames, setOpponentNames] = useState<Record<number, string>>({});
 
 	useEffect(() => {
-	  	(async () => {
-			const userId = sessionStorage.getItem('activeUserId');
-			if (!userId) return;
-	
-			const fetchedUser = await getUser(userId);
-			setUser(fetchedUser);
-	  	})();
+    (async () => {
+      const userId = sessionStorage.getItem('activeUserId')!;
+      const sessionData = JSON.parse(sessionStorage.getItem(userId)!);
+      const accToken = sessionData.accessToken;
+
+      const fetchedUser = await getUser(userId);
+      setUser(fetchedUser);
+
+      const matchResults = await getMatchHistory({ accToken }, userId);
+      if (!matchResults.data) 
+        return;
+
+      setMatchHistory(matchResults.data);
+
+      const opponentIds = Array.from(
+      new Set(matchResults.data.map((match) => match.opponent_id))
+      );
+
+      const opponentFetches = opponentIds.map(async (id) => {
+        try {
+          const opponent = await getUser(String(id));
+          return { id, name: opponent.name };
+        } catch {
+          return { id, name: `User #${id}` };
+        }
+      });
+
+        const opponentResults = await Promise.all(opponentFetches);
+        const nameMap: Record<number, string> = {};
+        
+        opponentResults.forEach(({ id, name }) => {
+        nameMap[id] = name;
+      });
+
+      setOpponentNames(nameMap);
+    })();
 	}, []);
 	
 	if (!user) return <div>Loading...</div>;
@@ -141,21 +158,41 @@ const [user, setUser] = useState<User | null>(null);
             
             <div className="w-2/5 border-2 border-black rounded-lg bg-[#2a2a2a] p-4">
               <h2 className="text-2xl font-semibold text-white mb-2">Match History</h2>
-              <ul className="space-y-3 w-full max-h-[900px] overflow-y-auto pr-2">
-                {mockMatches.map((match) => (
-                  <div key={match.id}
-                    className={`p-2 border border-black rounded-md shadow-lg ${
-                      match.result === 'Win' ? 'bg-green-600' : 'bg-red-600'
-                    }`}
-                    >
-                    <div className="flex justify-between items-center">
-                      <span className="text-xl font-medium">{match.opponent}</span>
-                      <span className="text-lg font-bold">{match.result}</span>
-                    </div>
-                    <div className="text-sm text-gray-300">{match.date}</div>
-                  </div>
-                  ))}
-              </ul>
+                <ul className="space-y-3 w-full max-h-[850px] overflow-y-auto pr-2">
+                  {matchHistory.map((match) => {
+                    const loggedInUserId = Number(sessionStorage.getItem('activeUserId'));
+                    const isWin = match.winner_id === loggedInUserId;
+                    const opponentId = match.opponent_id;
+                    const opponentName = opponentNames[opponentId] || `User #${opponentId}`;
+                    const formattedDate = new Date(match.date).toLocaleDateString();
+
+                    return (
+                      <li
+                        key={match.id}
+                        className={`p-3 sm:p-4 border border-black rounded-md shadow-lg ${
+                          isWin ? 'bg-green-600' : 'bg-red-600'
+                        }`}
+                      >
+                        <div className="flex flex-wrap justify-between items-center mb-1 gap-1">
+                          <span className="text-xl font-semibold text-white truncate max-w-[60%]">vs. {opponentName}</span>
+                          <span className="text-lg font-bold text-white truncate">{isWin ? 'Win' : 'Loss'}</span>
+                        </div>
+
+                        <div className="flex flex-wrap justify-between text-sm font-medium text-gray-100 mb-1">
+                          <span>Your Score: <span className="font-bold">{match.user_score}</span></span>
+                          <span>Opponent Score: <span className="font-bold">{match.opponent_score}</span></span>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-gray-300 gap-1">
+                          <span>{formattedDate}</span>
+                          <span className="bg-gray-200 text-black px-2 py-0.5 rounded-full text-xs font-semibold">
+                            {match.match_type}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
             </div>
 
             <div className="w-3/5 bg-[#2a2a2a] rounded-lg p-8 border-2 border-black shadow-md flex flex-col items-center justify-start">

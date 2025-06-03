@@ -191,6 +191,16 @@ const uploadAvatar = async function(req, reply) {
     const db = req.server.db
     const avatar = await req.file()
     const pump = util.promisify(pipeline)
+
+    const result = db.prepare('SELECT avatar FROM users WHERE id = ?').get(userId)
+    const prevAvatarPath = result.avatar
+
+    if (prevAvatarPath && prevAvatarPath !== process.env.DEFAULT_AVATAR) {
+      const fullPath = path.join(__dirname, '../../public', prevAvatarPath)
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath)
+      }
+    }
     
     const uploadDir = path.join(__dirname, '../../public/avatars')
     if (!fs.existsSync(uploadDir)) {

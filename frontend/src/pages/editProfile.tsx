@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getUser, User } from "../services/api";
+import {User } from "../services/api";
 import { deleteUser } from '../services/userApi';
 import { useNavigate } from "react-router-dom";
-import { uploadAvatar } from '../services/api'; 
-import { updateUser } from '../services/api';
-import { updatePassword } from '../services/api';
 import Background from '../components/background';
 import UserHeader from '../components/userHeader';
 import { useToast } from '../components/toastBar/toastContext';
+import {
+	updatePassword,
+	getUser,
+	uploadAvatar,
+	updateUser 
+} from '../services/userApi';
 
 const EditProfile: React.FC = () => {
 	const [message, setMessage] = useState('');
@@ -165,6 +168,7 @@ const EditProfile: React.FC = () => {
 		const userId = sessionStorage.getItem('activeUserId');
 		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 		const accToken = sessionData.accessToken;
+		const refreshToken = sessionData.refreshToken;
 
 		try {
 			const response = await uploadAvatar({ file, accToken });
@@ -175,6 +179,9 @@ const EditProfile: React.FC = () => {
 
 			setMessage('Avatar updated successfully!');
 			toast.open("Avatar updated successfully!", "success")
+			sessionStorage.removeItem(userId);
+			sessionStorage.setItem('activeUserId', userId.toString());
+			sessionStorage.setItem(userId.toString(), JSON.stringify({...sessionData, avatar: response.avatar, accessToken: accToken, refreshToken: refreshToken}));
 		} catch (error) {
 			console.error(error);
 			setMessage('Failed to upload avatar.');
