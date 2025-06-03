@@ -4,16 +4,19 @@ import loginRoutes from './routes/authRoutes.js'
 import dbInit from '../server/src/database.js'
 import jwt from '@fastify/jwt'
 import cors from '@fastify/cors'
-import fs from 'fs'
 import path from 'path'
+import { promises as fs } from 'fs'
 
 dotenv.config({ path: "../.env" });
+
+const key = await fs.readFile(path.join('../../nginx', 'localhost.key'))
+const cert = await fs.readFile(path.join('../../nginx', 'localhost.crt'))
 
 const fastify = Fastify({
   logger: true,
 	https: {
-    key: fs.readFileSync(path.join('../../nginx', 'localhost.key')),
-    cert: fs.readFileSync(path.join('../../nginx', 'localhost.crt'))
+    key,
+    cert
   }
 })
 

@@ -13,7 +13,7 @@ import multipart from '@fastify/multipart'
 import { fileURLToPath } from 'url';
 import { setupNetworking } from './networking.js';
 import { Logger, LogLevel } from './utils/logger.js';
-import fs from 'fs'
+import { promises as fs } from 'fs'
 
 
 // Compute __dirname for ES modules
@@ -28,11 +28,14 @@ log.info("DIST:::: " + FRONTEND_DIST);
 
 dotenv.config({ path: "../.env" });
 
+const key = await fs.readFile(path.join('../../nginx', 'localhost.key'));
+const cert = await fs.readFile(path.join('../../nginx', 'localhost.crt'));
+
 const fastify = Fastify({
 	logger: true,
 	https: {
-	key: fs.readFileSync(path.join('../../nginx', 'localhost.key')),
-	cert: fs.readFileSync(path.join('../../nginx', 'localhost.crt'))
+	key,
+	cert
 	}
 })
 

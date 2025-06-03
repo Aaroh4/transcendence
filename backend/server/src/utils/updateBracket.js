@@ -56,15 +56,6 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
       AND status = ?
     `).get(match.id, match.id, 'waiting')
 
-	//const emptyPlayers = db.prepare("SELECT * FROM tournament_players WHERE tournament_id = ?")
-    //	.all(match.tournamentId);
-
-	//console.log(emptyPlayers.length === 0, " : " + match.tournamentId);
-
-	//if (Object.keys(emptyPlayers.length === 0))
-	//	db.prepare('UPDATE tournaments SET status = ?, winner = ? WHERE id = ?')
-    //    .run('completed', 0, match.tournament_id)
-
     if (!nextMatch) {
       db.prepare('UPDATE tournaments SET status = ?, winner = ? WHERE id = ?')
         .run('completed', winnerId, match.tournament_id)
@@ -83,6 +74,17 @@ function updateBracket(winnerId, loserId, winnerScore, loserScore) {
     }
 
     if (nextMatch) {
+		const players = db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ?')
+			.all(match.tournament_id);
+		if (nextMatch.status == 'waiting' && players.length <= 0)
+		{
+			db.prepare('UPDATE matches SET status = ? WHERE id = ?')
+				.run('completed', nextMatch.id)
+			db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
+				.run('completed', match.tournament_id)
+			return ;
+		}
+	
       const matches = db.prepare('SELECT * FROM matches WHERE tournament_id = ? AND round = ?')
         .all(match.tournament_id, match.round)
       
