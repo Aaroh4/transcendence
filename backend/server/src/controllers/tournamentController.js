@@ -113,11 +113,9 @@ const joinTournament = async function(req, reply) {
     db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
 		  .run(players.length, tournament.id)
 
-		if (players.length === tournament.size) {
+	if (players.length === tournament.size) {
       db.prepare('UPDATE tournaments SET status = ? WHERE id = ?')
         .run('ready', tournament.id)
-      db.prepare('UPDATE tournaments SET playerAmount = ? WHERE id = ?')
-      .run(players.length, tournament.id)
       return startTournament(req, reply, tournamentId, tournament.name)
 		}
 
@@ -263,9 +261,6 @@ const leaveTournament = async function(req, reply) {
 
     db.prepare('DELETE FROM tournament_players WHERE tournament_id = ? AND user_id = ?')
       .run(tournamentId, userId)
-
-    db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
-		  .run(tournamentId)
     
 	db.prepare('UPDATE tournaments SET playerAmount = MAX(playerAmount - 1, 0) WHERE id = ?')
 	  .run(tournamentId)
