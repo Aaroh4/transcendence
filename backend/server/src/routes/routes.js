@@ -29,6 +29,7 @@ import {
   leaveTournamentOpts,
   getTournamentBracketOpts
 } from '../schemas/tournamentSchemas.js'
+import { postDebugLogOpts } from '../schemas/debugSchemas.js';
 
 let cachedIP = null;
 
@@ -87,4 +88,9 @@ async function tournamentRoutes (fastify, options) {
   fastify.delete('/api/tournament/:tournamentId/leave', leaveTournamentOpts)
 }
 
-export { root, userRoutes, friendRoutes, tournamentRoutes }
+async function debugRoutes(fastify, options) {
+	console.log("✅ Registering /api/debug-log route");
+  fastify.post('/api/debug-log', postDebugLogOpts);
+}
+
+export { root, userRoutes, friendRoutes, tournamentRoutes, debugRoutes }
