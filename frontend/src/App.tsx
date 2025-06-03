@@ -58,14 +58,7 @@ const App = () => {
         ::-webkit-scrollbar-thumb:hover {
           background: #555;
         }
-      `}</style>
-      
-      <div id="pong-container" ref={containerRef}>
-        <div id="ball" ref={ballRef}></div>
-        <div id="paddle-left" className="paddle" ref={paddleLeftRef}></div>
-        <div id="paddle-right" className="paddle" ref={paddleRightRef}></div>
-      </div>
-      
+      `}</style>  
       <RouterProvider router={router}></RouterProvider>
     </>
   )
