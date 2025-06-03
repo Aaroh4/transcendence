@@ -40,7 +40,7 @@ const UserPage: React.FC = () => {
 		<>
 		<UserHeader />
 		<Background />
-		<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw]">
+		<div className="flex flex-col items-center justify-center gap-6 pt-[30vh] px-[1vw] pb-[30vh]">
   			<div className="flex flex-wrap gap-6 justify-center">
 
 				<Link 

@@ -36,7 +36,7 @@ const completeLogin = async function(req, reply, user) {
     db.prepare('INSERT INTO refresh_tokens (user_id, refresh_token) VALUES (?, ?)')
       .run(user.id, refreshToken)
   
-    return reply.send({ userId: user.id, name: user.name, accessToken: accessToken, refreshToken: refreshToken })
+    return reply.send({ userId: user.id, name: user.name, avatar: user.avatar, accessToken: accessToken, refreshToken: refreshToken })
   } catch (error) {
     console.log(error)
     return reply.code(500).send({ error: error.message})
@@ -88,7 +88,6 @@ const completeGoogleLogin = async function(req, reply, user) {
     </html>
     `;
     return reply.header('Content-Type', 'text/html').send(html);
-    // return reply.code(500).send({ error: error.message})
   }
 }
 

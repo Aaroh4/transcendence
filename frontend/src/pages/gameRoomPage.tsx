@@ -210,7 +210,7 @@ const matchTypeButtons = () => {
 				<div id="gameroom-page" className="bg-[#1a1a1a] border-2 border-green-500 p-6 rounded-lg shadow-lg w-[600px] max-h-[80vh] overflow-y-auto flex flex-col">
 				{matchTypeButtons()}
 
-					<label htmlFor="colorSelect" className="p-2 text-white rounded-md ">Choose padel color:</label>
+					<label htmlFor="colorSelect" className="p-2 text-white rounded-md ">Choose padle color:</label>
 					<select id="colorSelect" name="mySelect" defaultValue="white" className="p-2 border-2 border-black bg-[#2a2a2a] text-white focus:outline-none focus:ring-2 focus:ring-green-500 rounded">
 						<option value="white" >White</option>
 						<option value="green">Green</option>
@@ -220,7 +220,7 @@ const matchTypeButtons = () => {
 					</select>
 
 					<details id="edit-game" hidden>
-						<summary className="mt-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white p-2 rounded border-2 border-black transform transition-transform hover:scale-102 duration-100">
+						<summary className="mt-2 cursor-pointer bg-gray-400 hover:bg-gray-500 text-white p-2 rounded border-2 border-black transform transition-transform hover:scale-102 duration-100">
 							Edit ball settings
 						</summary>
 						<p className="text-center text-white">Ball size</p>
