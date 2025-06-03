@@ -39,14 +39,10 @@ const TournamentsPage: React.FC = () => {
 		try {
 			const data = await getTournaments();
 			
-			if (Array.isArray(data)) {
+			if (Array.isArray(data) && data.length > 0) {
 				setFetchedTournaments(data);
-				if (data.length > 0) {
-					await handleFetchLeaveButton();
-				}
-		//   } else {
-		// 	console.error("Unexpected data format:", data);
-		  } // is this 'else' neccessary??
+				await handleFetchLeaveButton();
+			}
 		} catch (error) {
 		  console.error("Failed to fetch tournaments", error);
 		}

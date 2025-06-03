@@ -454,7 +454,7 @@ function startGameLoop(roomId) {
 
 	if (game.getScores()[0] >= 10 || game.getScores()[1] >= 10) {
 		game.stop();
-		const winner = game.getScores()[0] >= 5 ? 0 : 1
+		const winner = game.getScores()[0] >= 10 ? 1 : 0
     const winnerId = playerList[winner].dbId;
     const loserId = playerList[1 - winner].dbId;
     const winnerScore = game.getScores()[winner]

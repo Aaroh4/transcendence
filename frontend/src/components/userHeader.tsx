@@ -222,7 +222,7 @@ const UserHeader: React.FC = () => {
 
 		<div className="flex items-center space-x-10">
 			<img
-				src={`http://localhost:5001/public/${userAvatar ?? 'avatars/default_avatar.jpg'}`}
+				src={`https://localhost:5001/public/${userAvatar ?? 'avatars/default_avatar.jpg'}`}
 				alt="User Avatar"
 				className="w-16 h-16 rounded-full object-cover"
 			/>
@@ -318,7 +318,7 @@ const UserHeader: React.FC = () => {
 						  .map((req) => (
 						  <div key={req.id} className="flex items-center rounded-md justify-between p-2 hover:bg-[#2a2a2a]">
 							<div className="flex items-center space-x-2">
-							  <img src={`http://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
+							  <img src={`https://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
 							  <span className="text-white">{req.name}</span>
 							</div>
 							<div className="flex space-x-2">
@@ -342,7 +342,7 @@ const UserHeader: React.FC = () => {
 								<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2 hover:bg-[#2a2a2a]">
 									
 								<div className="flex items-center space-x-2">
-									<img src={`http://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
+									<img src={`https://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
 									<span className="text-white">{req.name}</span>
 								</div>
 
@@ -379,8 +379,11 @@ const UserHeader: React.FC = () => {
 							{friendsList.map((req) => (
 							<div key={req.id} className="flex items-center justify-between p-2 rounded mb-2 hover:bg-[#2a2a2a]">
 								<div className="flex items-center">
-								<img src={`http://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
-								<span className="text-white">{req.name}</span>
+								<img src={`https://localhost:5001/public/${req.avatar}`} alt="User Avatar" className="w-8 h-8 border border-black rounded-full mr-2" />
+									<Link
+										to={`/user/friend/${req.id}`}
+										className="px-2 border border-black text-white rounded-md hover:bg-[#424141] tranform transition-transform hover:scale-103 duration-100">{req.name}
+									</Link>
 								</div>
 								
 								<div className="flex items-center space-x-2">
