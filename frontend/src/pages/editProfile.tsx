@@ -202,14 +202,12 @@ const EditProfile: React.FC = () => {
 							>
 								Change Avatar
 							</button>
-							{!isGoogleUser && (
 								<button
 									onClick={() => setChangeMode('password')}
 									className="w-full bg-gray-400 text-white border-2 border-black py-3 rounded-md hover:bg-gray-500 text-center transform transition-transform hover:scale-102 duration-100"
 								>
 									Change Password
 								</button>
-							)}
 							<input
 								type="file"
 								accept="image/*"
