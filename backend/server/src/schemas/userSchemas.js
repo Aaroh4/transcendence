@@ -31,7 +31,10 @@ const addUserOpts = {
       type: 'object',
       required: ['name', 'email', 'password', 'captchaToken'],
       properties: {
-        name: { type: 'string' },
+        name: { 
+          type: 'string',
+          maxLength: 30
+        },
         email: { type: 'string', format: 'email' },
         password: { 
 			type: 'string',
@@ -80,7 +83,10 @@ const updateUserOpts = {
       type: 'object',
       required: ['name', 'email'],
       properties: {
-        name: { type: 'string' },
+        name: { 
+          type: 'string',
+          maxLength: 30
+        },
         email: { type: 'string', format: 'email' },
       },
     },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {User } from "../services/api";
 import { deleteUser } from '../services/userApi';
 import { useNavigate } from "react-router-dom";
@@ -80,7 +80,7 @@ const EditProfile: React.FC = () => {
 					sessionStorage.setItem('activeUserId', userId.toString());
 					sessionStorage.setItem(userId.toString(), JSON.stringify({...sessionData, name: newValue, accessToken: accToken, refreshToken: refreshToken}));
 				} else {
-					toast.open(response.error || 'Username updated failed', "error");
+					toast.open(response.message, "error");
 					// throw new Error(response.error || 'Update failed');
 					
 				}
