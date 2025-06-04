@@ -36,7 +36,10 @@ const fastify = Fastify({
 	logger: true,
 	https: {
 	key,
-	cert
+	cert,
+	secureProtocol: 'TLSv1_2_method',
+  	ciphers: 'ECDHE-RSA-AES128-GCM-SHA256',
+  	honorCipherOrder: true
 	}
 })
 

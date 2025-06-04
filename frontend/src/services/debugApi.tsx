@@ -1,4 +1,4 @@
-const DEBUG_API_URL = 'http://localhost:5001/api/debug-log'; // move to .env if needed
+const DEBUG_API_URL = 'https://localhost:5001/api/debug-log'; // move to .env if needed
 
 export type DebugLogRequest = {
 	label: string;
