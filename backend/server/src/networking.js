@@ -133,9 +133,21 @@ export function setupNetworking(server){
 		socket.on('ice-candidate', (candidate) => {
 			log.info(`Received ICE candidate from frontend socket ${socket.id}`);
 			log.debug('Candidate:', candidate);
+
+			const isValidCandidate =
+				candidate &&
+				typeof candidate.candidate === 'string' &&
+				candidate.candidate.trim() !== '' &&
+				candidate.candidate.startsWith('candidate:');
+
+			if (!isValidCandidate) {
+				log.warn(`Skipping invalid ICE candidate from ${socket.id}:`, candidate);
+				return;
+			}
+
 			const playerRoom = socket.room;
 			if (playerRoom) {
-				const peerConnection = rooms[playerRoom].players[socket.id].peerConnection;
+				const peerConnection = rooms[playerRoom]?.players[socket.id]?.peerConnection;
 				if (peerConnection) {
 					peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
 						.then(() => log.info(`ICE candidate added for ${socket.id}`))
@@ -147,6 +159,7 @@ export function setupNetworking(server){
 				log.warn(`No player room found for socket ${socket.id}`);
 			}
 		});
+
 
 		// finding room for tournament
 		function findGameRoom(userId) {		  
