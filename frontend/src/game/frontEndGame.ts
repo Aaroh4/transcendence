@@ -1,415 +1,426 @@
 // @ts-ignore
-import { Logger, LogLevel } from '../utils/logger.js';
-import { TURN_USER, TURN_PASS, EXT_IP, STUN_URL} from '../config/env-config.js';
-import { setupButtons  } from './matchmaking.js';
-import { router } from '../App';
-import { GameAI } from './gameAI';
-import { Renderer2D } from './renderer2d.js';
-import { Renderer3D } from './renderer3d.js';
-import { debugTracker } from '../utils/debugTracker';
+import { Logger, LogLevel } from "../utils/logger.js";
+import {
+    TURN_USER,
+    TURN_PASS,
+    EXT_IP,
+    STUN_URL,
+} from "../config/env-config.js";
+import { setupButtons } from "./matchmaking.js";
+import { router } from "../App";
+import { GameAI } from "./gameAI";
+import { Renderer2D } from "./renderer2d.js";
+import { Renderer3D } from "./renderer3d.js";
+import { debugTracker } from "../utils/debugTracker";
 
 const log = new Logger(LogLevel.INFO);
 
-log.info("UI ready")
+log.info("UI ready");
 
 let totalGameCount = 0;
 
 export class Entity {
-	public yVel: number;
-	public xVel: number;
-	public height: number;
-	public width: number;
-	public yPos: number;
-	public xPos: number;
-	public speed: number;
+    public yVel: number;
+    public xVel: number;
+    public height: number;
+    public width: number;
+    public yPos: number;
+    public xPos: number;
+    public speed: number;
 
-	constructor(h, w, y, x) {
-		this.yVel = 0;
-		this.xVel = 0;
-		this.height = h;
-		this.width = w;
-		this.yPos = y;
-		this.xPos = x;
-	}
+    constructor(h, w, y, x) {
+        this.yVel = 0;
+        this.xVel = 0;
+        this.height = h;
+        this.width = w;
+        this.yPos = y;
+        this.xPos = x;
+    }
 
-	getpos() {
-		return [this.yPos, this.xPos];
-	}
+    getpos() {
+        return [this.yPos, this.xPos];
+    }
 
-	lerp(a: number, b: number, t: number): number {
-		return a + (b - a) * t;
-	}
+    lerp(a: number, b: number, t: number): number {
+        return a + (b - a) * t;
+    }
 }
 
 // Ball and the logic for it
 export class Ball extends Entity {
-	constructor(h, w, y, x) {
-		super(h, w, y, x);
-		this.speed = 10;
+    constructor(h, w, y, x) {
+        super(h, w, y, x);
+        this.speed = 10;
 
-		this.xVel = Math.random() < 0.5 ? 1 : -1;
-		this.yVel = Math.random() < 0.5 ? 1 : -1;
-	}
+        this.xVel = Math.random() < 0.5 ? 1 : -1;
+        this.yVel = Math.random() < 0.5 ? 1 : -1;
+    }
 
-	resetPosition(scorer: 1 | 2, game) {
+    resetPosition(scorer: 1 | 2, game) {
+        this.yPos = game.canvasHeight / 2 - this.height / 2;
 
-		this.yPos = game.canvasHeight / 2 - this.height / 2;
+        if (scorer === 1) {
+            // Ball starts near left side, goes right toward P1
+            this.xPos = 50;
+            this.xVel = 1;
+        } else {
+            // Ball starts near right side, goes left toward P2
+            this.xPos = game.canvasWidth - 50 - this.width;
+            this.xVel = -1;
+        }
 
-		if (scorer === 1) {
-			// Ball starts near left side, goes right toward P1
-			this.xPos = 50;
-			this.xVel = 1;
-		} else {
-			// Ball starts near right side, goes left toward P2
-			this.xPos = game.canvasWidth - 50 - this.width;
-			this.xVel = -1;
-		}
+        this.yVel = Math.random() < 0.5 ? 1 : -1; // random vertical
+    }
 
-		this.yVel = Math.random() < 0.5 ? 1 : -1; // random vertical
-	}
+    update(player, player2, deltaTime) {
+        const length = Math.hypot(this.xVel, this.yVel);
+        this.xVel = this.xVel / length;
+        this.yVel = this.yVel / length;
 
-	update(player, player2, deltaTime) {
+        const nextX = this.xPos + this.xVel * this.speed * deltaTime;
+        const nextY = this.yPos + this.yVel * this.speed * deltaTime;
 
-		const length = Math.hypot(this.xVel, this.yVel);
-		this.xVel = (this.xVel / length);
-		this.yVel = (this.yVel / length);
+        const scoreMargin = 5; // adjust to prevent hits with paddle ends
 
-		const nextX = this.xPos + this.xVel * this.speed * deltaTime;
-		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
+        if (nextX <= scoreMargin) {
+            game.setScore(1, 0);
+            this.resetPosition(2, game);
+            return; // skip position update this frame
+        } else if (nextX + this.width >= game.canvasWidth - scoreMargin) {
+            game.setScore(0, 1);
+            this.resetPosition(1, game);
+            return; // skip position update this frame
+        }
 
-		const scoreMargin = 5; // adjust to prevent hits with paddle ends
+        if (nextY + this.height >= 600) this.yVel = -1;
+        else if (nextY <= 0) this.yVel = 1;
 
-		if (nextX <= scoreMargin) {
-			game.setScore(1, 0);
-			this.resetPosition(2, game);
-			return; // skip position update this frame
-		} else if (nextX + this.width >= game.canvasWidth - scoreMargin) {
-			game.setScore(0, 1);
-			this.resetPosition(1, game);
-			return; // skip position update this frame
-		}
+        if (
+            nextX <= player.xPos + player.width &&
+            nextY + this.height >= player.yPos &&
+            nextY <= player.yPos + player.height
+        ) {
+            const paddleCenter = player.yPos + player.height / 2;
+            const ballCenter = nextY + this.height / 2;
 
-		if (nextY + this.height >= 600) this.yVel = -1;
-		else if (nextY <= 0) this.yVel = 1;
+            const offset = (ballCenter - paddleCenter) / (player.height / 2); // range: -1 to +1
+            const maxBounceAngle = Math.PI / 3; // 60 degrees max
 
-		if (
-			nextX <= player.xPos + player.width &&
-			nextY + this.height >= player.yPos &&
-			nextY <= player.yPos + player.height
-		) {
-			const paddleCenter = player.yPos + player.height / 2;
-			const ballCenter = nextY + this.height / 2;
+            const angle = offset * maxBounceAngle;
 
-			const offset = (ballCenter - paddleCenter) / (player.height / 2); // range: -1 to +1
-			const maxBounceAngle = Math.PI / 3; // 60 degrees max
+            this.xVel = Math.cos(angle);
+            this.yVel = Math.sin(angle);
 
-			const angle = offset * maxBounceAngle;
+            const len = Math.hypot(this.xVel, this.yVel);
+            this.xVel /= len;
+            this.yVel /= len;
+        }
+        if (
+            nextX + this.width >= player2.xPos &&
+            nextY + this.height >= player2.yPos &&
+            nextY <= player2.yPos + player2.height
+        ) {
+            const paddleCenter = player2.yPos + player2.height / 2;
+            const ballCenter = nextY + this.height / 2;
 
-			this.xVel = Math.cos(angle);
-			this.yVel = Math.sin(angle);
+            const offset = (ballCenter - paddleCenter) / (player2.height / 2);
+            const maxBounceAngle = Math.PI / 3;
 
-			const len = Math.hypot(this.xVel, this.yVel);
-			this.xVel /= len;
-			this.yVel /= len;
-		}
-		if (
-			nextX + this.width >= player2.xPos &&
-			nextY + this.height >= player2.yPos &&
-			nextY <= player2.yPos + player2.height
-		) {
-			const paddleCenter = player2.yPos + player2.height / 2;
-			const ballCenter = nextY + this.height / 2;
+            const angle = offset * maxBounceAngle;
 
-			const offset = (ballCenter - paddleCenter) / (player2.height / 2);
-			const maxBounceAngle = Math.PI / 3;
+            this.xVel = -Math.cos(angle);
+            this.yVel = Math.sin(angle);
 
-			const angle = offset * maxBounceAngle;
+            const len = Math.hypot(this.xVel, this.yVel);
+            this.xVel /= len;
+            this.yVel /= len;
+        }
 
-			this.xVel = -Math.cos(angle);
-			this.yVel = Math.sin(angle);
+        this.xPos = nextX;
+        this.yPos = nextY;
+    }
 
-			const len = Math.hypot(this.xVel, this.yVel);
-			this.xVel /= len;
-			this.yVel /= len;
-		}
-	
-		this.xPos = nextX;
-		this.yPos = nextY;
-	}
-
-	set(value)
-	{
-		this.height = Number(value.ballSize);
-		this.width = Number(value.ballSize);
-		this.speed = Number(value.ballSpeed);
-	}
+    set(value) {
+        this.height = Number(value.ballSize);
+        this.width = Number(value.ballSize);
+        this.speed = Number(value.ballSpeed);
+    }
 }
 
 // Player and the logic for it
 export class Player extends Entity {
-	constructor(h, w, y, x) {
-		super(h, w, y, x);
-		this.speed = 8;
-	}
+    constructor(h, w, y, x) {
+        super(h, w, y, x);
+        this.speed = 8;
+    }
 
-	setvel(velocityY) {
-		this.yVel = velocityY;
-	}
+    setvel(velocityY) {
+        this.yVel = velocityY;
+    }
 
-	move(deltaTime) {
-		const nextY = this.yPos + this.yVel * this.speed * deltaTime;
-		
-		if (nextY + this.height - this.yVel >= 600) return;
-		else if (nextY + this.yVel <= 0) return;
+    move(deltaTime) {
+        const nextY = this.yPos + this.yVel * this.speed * deltaTime;
 
-		this.yPos += this.yVel * this.speed * deltaTime;
-	}
+        if (nextY + this.height - this.yVel >= 600) return;
+        else if (nextY + this.yVel <= 0) return;
 
-	setpos(value) {
-		this.yPos = value;
-	}
+        this.yPos += this.yVel * this.speed * deltaTime;
+    }
+
+    setpos(value) {
+        this.yPos = value;
+    }
 }
 
-enum KeyBindings{
-	UP = 'KeyW',
-  DOWN = 'KeyS',
-	SUP = 'ArrowUp',
-	SDOWN = 'ArrowDown'
+enum KeyBindings {
+    UP = "KeyW",
+    DOWN = "KeyS",
+    SUP = "ArrowUp",
+    SDOWN = "ArrowDown",
 }
 
 export interface GameState {
-	canvasWidth: number;
-	canvasHeight: number;
-	activePlayerId: number;
-	player1Y: number;
-	player2Y: number;
-	player1Height: number;
-	player2Height: number;
-	ballSize: number;
-	ball: Ball | null;
-	player1Score: number;
-	player2Score: number;
-	color: string;
-	gameAI: GameAI;
-	isAIgame: boolean;
-	AIdebug: boolean;
+    canvasWidth: number;
+    canvasHeight: number;
+    activePlayerId: number;
+    player1Y: number;
+    player2Y: number;
+    player1Height: number;
+    player2Height: number;
+    ballSize: number;
+    ball: Ball | null;
+    player1Score: number;
+    player2Score: number;
+    color: string;
+    gameAI: GameAI;
+    isAIgame: boolean;
+    AIdebug: boolean;
 }
 
 export interface GameRenderer {
-	init(state: GameState): void;
-	dispose(): void;
-	render(state: GameState): void;
-	setActive(): void;
-	setInactive(): void;
+    init(state: GameState): void;
+    dispose(): void;
+    render(state: GameState): void;
+    setActive(): void;
+    setInactive(): void;
+    reset(state: GameState): void; // 👈 NEW
 }
 
 export class frontEndGame {
-	private keysPressed: { [key: string]: boolean } = {};
-	public 	canvasWidth : number = 800;
-	public 	canvasHeight : number = 600;
-	private renderer2D: Renderer2D | null = null;
-	private renderer3D: Renderer3D | null = null;
-	private activeRenderer: GameRenderer | null = null;
-	public  currentMode: '2D' | '3D' = '2D';
-	private color : string;
-	private player1Score : number = 0;
-	private player2Score : number = 0;
-	private player1 : Player | null = null;
-	private player2 : Player | null = null;
-	private activePlayerId: number = 1; // 1 for player1, 2 for player2
-	private ballSize : number;
-	private ball: Ball | null = null;
-	private lastUpdateTime: number;
-	private isAIgame: boolean = false;
-	private gameAI: GameAI | null = null;
-	private AIdebug: boolean = false;
-	private isLocalGame: boolean = false;
+    private keysPressed: { [key: string]: boolean } = {};
+    public canvasWidth: number = 800;
+    public canvasHeight: number = 600;
+    private renderer2D: Renderer2D | null = null;
+    private renderer3D: Renderer3D | null = null;
+    private activeRenderer: GameRenderer | null = null;
+    public currentMode: "2D" | "3D" = "2D";
+    private color: string;
+    private player1Score: number = 0;
+    private player2Score: number = 0;
+    private player1: Player | null = null;
+    private player2: Player | null = null;
+    private activePlayerId: number = 1; // 1 for player1, 2 for player2
+    private ballSize: number;
+    private ball: Ball | null = null;
+    private lastUpdateTime: number;
+    private isAIgame: boolean = false;
+    private gameAI: GameAI | null = null;
+    private AIdebug: boolean = false;
+    private isLocalGame: boolean = false;
 
-	private dataChannel: RTCDataChannel | null = null;
-  private peerConnection: RTCPeerConnection | null = null;
-	private configuration: RTCConfiguration;
+    private dataChannel: RTCDataChannel | null = null;
+    private peerConnection: RTCPeerConnection | null = null;
+    private configuration: RTCConfiguration;
 
-	// Add a property to store candidates that arrive before remote description
-	private bufferedCandidates: RTCIceCandidateInit[] = [];
+    // Add a property to store candidates that arrive before remote description
+    private bufferedCandidates: RTCIceCandidateInit[] = [];
 
-	private keyDownHandler: (e: KeyboardEvent) => void;
-	private keyUpHandler: (e: KeyboardEvent) => void;
-	private cameraKeyHandler: (e: KeyboardEvent) => void;
+    private keyDownHandler: (e: KeyboardEvent) => void;
+    private keyUpHandler: (e: KeyboardEvent) => void;
+    private cameraKeyHandler: (e: KeyboardEvent) => void;
 
-	constructor() {
-		this.player1 = new Player(60, 10, 300, 10);
-		this.player2 = new Player(60, 10, 300, 780);
-		this.configuration = {
-			iceServers: [
-				{
-					urls: "turn:"+EXT_IP+":3478",
-					username: TURN_USER,
-					credential: TURN_PASS
-				},
-				{
-					urls: STUN_URL
-				}
-			]
-		};
-		debugTracker.logCreate("frontEndGame");
-	}
+    constructor() {
+        this.player1 = new Player(60, 10, 300, 10);
+        this.player2 = new Player(60, 10, 300, 780);
+        this.configuration = {
+            iceServers: [
+                {
+                    urls: "turn:" + EXT_IP + ":3478",
+                    username: TURN_USER,
+                    credential: TURN_PASS,
+                },
+                {
+                    urls: STUN_URL,
+                },
+            ],
+        };
+        debugTracker.logCreate("frontEndGame");
+    }
 
-	getGameState(): GameState {
-		return {
-			canvasWidth: this.canvasWidth,
-			canvasHeight: this.canvasHeight,
-			activePlayerId: this.activePlayerId,
-			player1Y: this.player1.getpos()[0],
-			player2Y: this.player2.getpos()[0],
-			player1Height: this.player1.height,
-			player2Height: this.player2.height,
-			ball: this.ball,
-			ballSize: this.ballSize,
-			player1Score: this.player1Score,
-			player2Score: this.player2Score,
-			color: this.color,
-			gameAI: this.gameAI,
-			isAIgame: this.isAIgame,
-			AIdebug: this.AIdebug,
-		};
-	}
+    getGameState(): GameState {
+        return {
+            canvasWidth: this.canvasWidth,
+            canvasHeight: this.canvasHeight,
+            activePlayerId: this.activePlayerId,
+            player1Y: this.player1.getpos()[0],
+            player2Y: this.player2.getpos()[0],
+            player1Height: this.player1.height,
+            player2Height: this.player2.height,
+            ball: this.ball,
+            ballSize: this.ballSize,
+            player1Score: this.player1Score,
+            player2Score: this.player2Score,
+            color: this.color,
+            gameAI: this.gameAI,
+            isAIgame: this.isAIgame,
+            AIdebug: this.AIdebug,
+        };
+    }
 
-	setIsAIgame(isAIgame: boolean) {
-		this.isAIgame = isAIgame;
-	}
+    setIsAIgame(isAIgame: boolean) {
+        this.isAIgame = isAIgame;
+    }
 
-	setIsLocalGame(isLocalGame: boolean) {
-		this.isLocalGame = isLocalGame;
-	}
+    setIsLocalGame(isLocalGame: boolean) {
+        this.isLocalGame = isLocalGame;
+    }
 
-	setScore(player1Score, player2Score) {
-		this.player1Score += player1Score;
-		this.player2Score += player2Score;
-	}
+    setScore(player1Score, player2Score) {
+        this.player1Score += player1Score;
+        this.player2Score += player2Score;
+    }
 
-	createRenderingContext() {
+    createRenderingContext() {
+        if (!this.renderer2D) {
+            this.renderer2D = new Renderer2D();
+            this.renderer2D.init(this.getGameState());
+            this.renderer2D.setInactive();
+        }
+        if (!this.renderer3D) {
+            this.renderer3D = new Renderer3D();
+            this.renderer3D.init(this.getGameState());
+            this.renderer3D.setInactive();
+        }
 
-		if (!this.renderer2D) {
-			this.renderer2D = new Renderer2D();
-			this.renderer2D.init(this.getGameState());
-			this.renderer2D.setInactive();
-		}
-		if (!this.renderer3D) {
-			this.renderer3D = new Renderer3D();
-			this.renderer3D.init(this.getGameState());
-			this.renderer3D.setInactive();
-		}
+        // Deactivate current
+        // if (this.activeRenderer) {
+        // 	this.activeRenderer.setInactive();
+        // }
 
-		// Deactivate current
-		// if (this.activeRenderer) {
-		// 	this.activeRenderer.setInactive();
-		// }
+        // Set new renderer
+        if (this.currentMode === "2D") {
+            this.activeRenderer = this.renderer2D;
+        } else {
+            this.activeRenderer = this.renderer3D;
+        }
 
-		// Set new renderer
-		if (this.currentMode === '2D') {
-			this.activeRenderer = this.renderer2D;
-		} else {
-			this.activeRenderer = this.renderer3D;
-		}
+        // Activate
+        this.activeRenderer.setActive();
+    }
 
-		// Activate
-		this.activeRenderer.setActive();
-	}
+    setupAI() {
+        this.gameAI = new GameAI(
+            this.canvasHeight,
+            this.player2.xPos,
+            this.player2.height
+        );
+    }
 
+    setupPeerConnectionEvents(socket) {
+        log.info("Setting up peer connection events");
+        // Send ICE candidates to backend explicitly
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                log.info("ICE candidate generated");
+                log.debug(event.candidate);
+                socket.emit("ice-candidate", event.candidate);
+            } else {
+                log.info("ICE candidate gathering complete");
+            }
+        };
 
-	setupAI() 
-	{
-		this.gameAI = new GameAI(this.canvasHeight, this.player2.xPos, this.player2.height);
-	}
+        // Handle incoming data channel from server
+        this.peerConnection.ondatachannel = (event) => {
+            log.info("Received data channel from server");
+            this.dataChannel = event.channel;
 
-	setupPeerConnectionEvents(socket) {
-		log.info("Setting up peer connection events");
-		// Send ICE candidates to backend explicitly
-		this.peerConnection.onicecandidate = event => {
-			if (event.candidate) {
-				log.info("ICE candidate generated");
-				log.debug(event.candidate);
-				socket.emit('ice-candidate', event.candidate);
-			} else {
-				log.info("ICE candidate gathering complete");
-			}
-		};
-			
-		// Handle incoming data channel from server
-		this.peerConnection.ondatachannel = (event) => {
-			log.info("Received data channel from server");
-			this.dataChannel = event.channel;
-			  
-			this.dataChannel.onopen = () => {
-				log.info("Data channel explicitly OPENED");
-				this.setupOnlineKeyListeners(this.dataChannel);
-				this.setupCameraKeyListeners();
-			};
-			  
-			this.dataChannel.onclose = () => log.info("Data channel closed");
-			this.dataChannel.onerror = (e) => log.error("Data channel error:", e);
-			  
-			this.dataChannel.onmessage = (e) => {
-				log.debug("Message received from backend:", e.data);
-				try {
-					const data = JSON.parse(e.data);
-					if (data.type === 'gameState') {
-						this.updateFromBackend(data.positions, data.velocities, data.scores);
-						log.debug(" Game state updated");
-					}
-				} catch (err) {
-					log.error("Error handling data channel message:", err);
-				}
-			};
-		};
-			
-		this.peerConnection.onconnectionstatechange = () => {
-			log.debug("Connection state:", this.peerConnection.connectionState);
-		};
-	
-		this.peerConnection.oniceconnectionstatechange = () => {
-			log.debug("ICE connection state:", this.peerConnection.iceConnectionState);
-		};
-	}
+            this.dataChannel.onopen = () => {
+                log.info("Data channel explicitly OPENED");
+                this.setupOnlineKeyListeners(this.dataChannel);
+                this.setupCameraKeyListeners();
+            };
 
-	cleanUp() {
+            this.dataChannel.onclose = () => log.info("Data channel closed");
+            this.dataChannel.onerror = (e) =>
+                log.error("Data channel error:", e);
 
-		if (this.keyDownHandler) {
-				document.removeEventListener('keydown', this.keyDownHandler);
-				this.keyDownHandler = null;
-		}
-		
-		if (this.keyUpHandler) {
-				document.removeEventListener('keyup', this.keyUpHandler);
-				this.keyUpHandler = null;
-		}
+            this.dataChannel.onmessage = (e) => {
+                log.debug("Message received from backend:", e.data);
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === "gameState") {
+                        this.updateFromBackend(
+                            data.positions,
+                            data.velocities,
+                            data.scores
+                        );
+                        log.debug(" Game state updated");
+                    }
+                } catch (err) {
+                    log.error("Error handling data channel message:", err);
+                }
+            };
+        };
 
-		if (this.cameraKeyHandler) {
-			window.removeEventListener("keydown", this.cameraKeyHandler);
-			this.cameraKeyHandler = null;
-		}	
+        this.peerConnection.onconnectionstatechange = () => {
+            log.debug("Connection state:", this.peerConnection.connectionState);
+        };
 
-		if (this.dataChannel) {
-			this.dataChannel.close();
-			this.dataChannel = null;
-		}
-		if (this.peerConnection) {
-			this.peerConnection.close();
-			this.peerConnection = null;
-		}
-		if (this.renderer2D) {
-			this.renderer2D.dispose();
-			this.renderer2D = null;
-		}	
-		if (this.renderer3D) {
-			this.renderer3D.dispose();
-			this.renderer3D = null;
-		}
-		log.info("Cleaned up game resources");
-	}
+        this.peerConnection.oniceconnectionstatechange = () => {
+            log.debug(
+                "ICE connection state:",
+                this.peerConnection.iceConnectionState
+            );
+        };
+    }
 
-	setupOnlineKeyListeners(dataChannel) {
-		log.info("Setting up key listeners");
+    cleanUp() {
+        if (this.keyDownHandler) {
+            document.removeEventListener("keydown", this.keyDownHandler);
+            this.keyDownHandler = null;
+        }
+
+        if (this.keyUpHandler) {
+            document.removeEventListener("keyup", this.keyUpHandler);
+            this.keyUpHandler = null;
+        }
+
+        if (this.cameraKeyHandler) {
+            window.removeEventListener("keydown", this.cameraKeyHandler);
+            this.cameraKeyHandler = null;
+        }
+
+        if (this.dataChannel) {
+            this.dataChannel.close();
+            this.dataChannel = null;
+        }
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
+        }
+        if (this.renderer2D) {
+            this.renderer2D.dispose();
+            this.renderer2D = null;
+        }
+        if (this.renderer3D) {
+            this.renderer3D.dispose();
+            this.renderer3D = null;
+        }
+        log.info("Cleaned up game resources");
+    }
+
+    setupOnlineKeyListeners(dataChannel) {
+        log.info("Setting up key listeners");
         this.keyDownHandler = (e) => {
             if (e.code === KeyBindings.UP || e.code === KeyBindings.DOWN) {
                 const data = { key: e.code, isPressed: true };
@@ -417,7 +428,7 @@ export class frontEndGame {
                 dataChannel.send(JSON.stringify(data));
             }
         };
-        
+
         this.keyUpHandler = (e) => {
             if (e.code === KeyBindings.UP || e.code === KeyBindings.DOWN) {
                 const data = { key: e.code, isPressed: false };
@@ -425,492 +436,574 @@ export class frontEndGame {
                 dataChannel.send(JSON.stringify(data));
             }
         };
-        
-        document.addEventListener('keydown', this.keyDownHandler);
-        document.addEventListener('keyup', this.keyUpHandler);
-	}
 
-	setupLocalKeyListeners() {
+        document.addEventListener("keydown", this.keyDownHandler);
+        document.addEventListener("keyup", this.keyUpHandler);
+    }
+
+    setupLocalKeyListeners() {
         this.keyDownHandler = (e) => {
             this.keysPressed[e.code] = true;
         };
-        
+
         this.keyUpHandler = (e) => {
             this.keysPressed[e.code] = false;
         };
 
-        document.addEventListener('keydown', this.keyDownHandler);
-        document.addEventListener('keyup', this.keyUpHandler);
-	}
+        document.addEventListener("keydown", this.keyDownHandler);
+        document.addEventListener("keyup", this.keyUpHandler);
+    }
 
-	setupCameraKeyListeners() {
-		this.cameraKeyHandler = (e: KeyboardEvent) => {
-			if (!this.renderer3D || this.currentMode !== "3D") return;
+    setupCameraKeyListeners() {
+        this.cameraKeyHandler = (e: KeyboardEvent) => {
+            if (!this.renderer3D || this.currentMode !== "3D") return;
 
-			if (e.key === "1" || e.key === "2" || e.key === "3") {
-				console.log("Camera key pressed:", e.key, " by player", this.activePlayerId);
-				this.renderer3D.handleCameraKey(e.key);
-			}
-		};
+            if (e.key === "1" || e.key === "2" || e.key === "3") {
+                console.log(
+                    "Camera key pressed:",
+                    e.key,
+                    " by player",
+                    this.activePlayerId
+                );
+                this.renderer3D.handleCameraKey(e.key);
+            }
+        };
 
-		window.addEventListener("keydown", this.cameraKeyHandler);
-	}
+        window.addEventListener("keydown", this.cameraKeyHandler);
+    }
 
+    updateFromBackend(positions, velocities, scores) {
+        this.player1Score = scores[0];
+        this.player2Score = scores[1];
 
-	updateFromBackend(positions, velocities, scores) {
+        if (
+            positions &&
+            positions.length >= 3 &&
+            velocities &&
+            velocities.length >= 3
+        ) {
+            // Update player 1 position
+            this.player1.setpos(positions[0][0]);
+            this.player1.setvel(velocities[0][0]);
 
-		this.player1Score = scores[0];
-		this.player2Score = scores[1];
+            // Update player 2 position
+            this.player2.setpos(positions[1][0]);
+            this.player2.setvel(velocities[1][0]);
 
-		if (positions && positions.length >= 3 &&
-				velocities && velocities.length >= 3
-		) {
-		  // Update player 1 position
-		  this.player1.setpos(positions[0][0]);
-			this.player1.setvel(velocities[0][0]);
-		  
-		  // Update player 2 position
-		  this.player2.setpos(positions[1][0]);
-			this.player2.setvel(velocities[1][0]);
-		  
-			// let lerp_treshold = 10;
-			// if ((Math.abs(positions[2][0] - this.ball.yPos) < lerp_treshold) &&
-			// (Math.abs(positions[2][1] - this.ball.xPos) < lerp_treshold))
-			// {
-			// 	this.ball.xPos = this.ball.lerp(this.ball.xPos, positions[2][1], 0.2);
-			// 	this.ball.yPos = this.ball.lerp(this.ball.yPos, positions[2][0], 0.2);
-			// } else { // too big chaneg dont lerp
-			// 	this.ball.yPos = positions[2][0];
-			// 	this.ball.xPos = positions[2][1];
-			// }
+            // let lerp_treshold = 10;
+            // if ((Math.abs(positions[2][0] - this.ball.yPos) < lerp_treshold) &&
+            // (Math.abs(positions[2][1] - this.ball.xPos) < lerp_treshold))
+            // {
+            // 	this.ball.xPos = this.ball.lerp(this.ball.xPos, positions[2][1], 0.2);
+            // 	this.ball.yPos = this.ball.lerp(this.ball.yPos, positions[2][0], 0.2);
+            // } else { // too big chaneg dont lerp
+            // 	this.ball.yPos = positions[2][0];
+            // 	this.ball.xPos = positions[2][1];
+            // }
 
-			this.ball.yPos = positions[2][0];
-			this.ball.xPos = positions[2][1];
+            this.ball.yPos = positions[2][0];
+            this.ball.xPos = positions[2][1];
 
-			// Update ball velocity
-		  this.ball.yVel = velocities[2][0];
-		  this.ball.xVel = velocities[2][1];
+            // Update ball velocity
+            this.ball.yVel = velocities[2][0];
+            this.ball.xVel = velocities[2][1];
 
-		  // Decoupled rendering from backend updates
-			this.activeRenderer.render(this.getGameState());
-		} else {
-			log.error("Invalid positions or velocities received from backend, shit happens.");
-		}
-	}
+            // Decoupled rendering from backend updates
+            this.activeRenderer.render(this.getGameState());
+        } else {
+            log.error(
+                "Invalid positions or velocities received from backend, shit happens."
+            );
+        }
+    }
 
-	updateNetworkGameState() {
-		const now = performance.now();
-		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
-		this.lastUpdateTime = now;
-		// const dir = this.currentMode === '3D' ? -1 : 1;
+    updateNetworkGameState() {
+        const now = performance.now();
+        const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
+        this.lastUpdateTime = now;
+        // const dir = this.currentMode === '3D' ? -1 : 1;
 
-		this.player1.move(deltaTime);
-		this.player2.move(deltaTime);
-		this.ball.update(this.player1, this.player2, deltaTime);	
-	}
+        this.player1.move(deltaTime);
+        this.player2.move(deltaTime);
+        this.ball.update(this.player1, this.player2, deltaTime);
+    }
 
-	updateSoloGameState()
-	{
-		const now = performance.now();
-		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
-		this.lastUpdateTime = now;
+    updateSoloGameState() {
+        const now = performance.now();
+        const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
+        this.lastUpdateTime = now;
 
-		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
-		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);	
-		else
-			this.player1.setvel(0);
+        if (this.keysPressed[KeyBindings.UP]) this.player1.setvel(-1);
+        else if (this.keysPressed[KeyBindings.DOWN]) this.player1.setvel(1);
+        else this.player1.setvel(0);
 
-		if (this.keysPressed[KeyBindings.SUP]) 
-			this.player2.setvel(-1);
-		else if (this.keysPressed[KeyBindings.SDOWN])
-			this.player2.setvel(1);
-		else
-			this.player2.setvel(0);
+        if (this.keysPressed[KeyBindings.SUP]) this.player2.setvel(-1);
+        else if (this.keysPressed[KeyBindings.SDOWN]) this.player2.setvel(1);
+        else this.player2.setvel(0);
 
-		this.player1.move(deltaTime);
-		this.player2.move(deltaTime);
-		this.ball.update(this.player1, this.player2, deltaTime);
+        this.player1.move(deltaTime);
+        this.player2.move(deltaTime);
+        this.ball.update(this.player1, this.player2, deltaTime);
 
-		this.activeRenderer.render(this.getGameState());
-	}
+        this.activeRenderer.render(this.getGameState());
+    }
 
-	updateAIGameState()
-	{
-		const now = performance.now();
-		const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
-		this.lastUpdateTime = now;
-		//const dir = this.currentMode === '3D' ? -1 : 1;
+    updateAIGameState() {
+        const now = performance.now();
+        const deltaTime = (now - this.lastUpdateTime) / 16.67; // Normalize to ~60 FPS
+        this.lastUpdateTime = now;
+        //const dir = this.currentMode === '3D' ? -1 : 1;
 
-		if (this.keysPressed[KeyBindings.UP])
-			this.player1.setvel(-1);
-		else if (this.keysPressed[KeyBindings.DOWN])
-			this.player1.setvel(1);
-		else
-			this.player1.setvel(0);
+        if (this.keysPressed[KeyBindings.UP]) this.player1.setvel(-1);
+        else if (this.keysPressed[KeyBindings.DOWN]) this.player1.setvel(1);
+        else this.player1.setvel(0);
 
-		// Simulate AI player movement
-		this.gameAI.getKeyPresses(this.ball, this.player2.getpos()[0]);
-		this.keysPressed[KeyBindings.SUP] = this.gameAI.aiPlayerInput.SUP;
-		this.keysPressed[KeyBindings.SDOWN] = this.gameAI.aiPlayerInput.SDOWN;
+        // Simulate AI player movement
+        this.gameAI.getKeyPresses(this.ball, this.player2.getpos()[0]);
+        this.keysPressed[KeyBindings.SUP] = this.gameAI.aiPlayerInput.SUP;
+        this.keysPressed[KeyBindings.SDOWN] = this.gameAI.aiPlayerInput.SDOWN;
 
- 		if (this.keysPressed[KeyBindings.SUP]) 
-			this.player2.setvel(-1);
-		else if (this.keysPressed[KeyBindings.SDOWN])
-			this.player2.setvel(1);
-		else
-			this.player2.setvel(0);
+        if (this.keysPressed[KeyBindings.SUP]) this.player2.setvel(-1);
+        else if (this.keysPressed[KeyBindings.SDOWN]) this.player2.setvel(1);
+        else this.player2.setvel(0);
 
-		this.player1.move(deltaTime);
-		this.player2.move(deltaTime);
+        this.player1.move(deltaTime);
+        this.player2.move(deltaTime);
 
-		this.ball.update(this.player1, this.player2, deltaTime);
-		
-		this.activeRenderer.render(this.getGameState());
-	}
+        this.ball.update(this.player1, this.player2, deltaTime);
 
-	settings(settings, color)
-	{
-		this.color = color;
-		const {ballSettings, playerSettings} = settings;
-		this.ballSize = ballSettings.ballSize;
-		this.ball = ballSettings.ball;
-		this.lastUpdateTime = performance.now();
-	}
+        this.activeRenderer.render(this.getGameState());
+    }
 
-	switchMode(newMode: '2D' | '3D') {
-		if (this.currentMode === newMode) return;
+    settings(settings, color) {
+        this.color = color;
+        const { ballSettings, playerSettings } = settings;
 
-		// Inactivate current renderer
-		if (this.activeRenderer) {
-			this.activeRenderer.setInactive();
-		}
+        this.ballSize = Number(ballSettings.ballSize);
+        this.ball = ballSettings.ball;
+        this.lastUpdateTime = performance.now();
 
-		this.currentMode = newMode;
+        this.ball.set({
+            ballSize: this.ballSize,
+            ballSpeed: ballSettings.ballSpeed,
+        });
 
-		// Create lazily if needed
-		if (newMode === '2D') {
-			if (!this.renderer2D) {
-				this.renderer2D = new Renderer2D();
-				this.renderer2D.init(this.getGameState());
-			}
-			this.activeRenderer = this.renderer2D;
-		} else {
-			if (!this.renderer3D) {
-				this.renderer3D = new Renderer3D();
-				this.renderer3D.init(this.getGameState());
-			}
-			this.activeRenderer = this.renderer3D;
-		}
+        // Reset both renderers regardless of active state
+        this.renderer2D?.reset(this.getGameState());
+        this.renderer3D?.reset(this.getGameState());
+    }
 
-		// Reactivate
-		this.activeRenderer.setActive();
-	}
+    switchMode(newMode: "2D" | "3D") {
+        if (this.currentMode === newMode) return;
 
+        // Inactivate current renderer
+        if (this.activeRenderer) {
+            this.activeRenderer.setInactive();
+        }
 
-	socketLogic(socket)
-	{
-		socket.on('offer', async (offer) => {
-			try {
-				if (!this.peerConnection) {
-					this.peerConnection = new RTCPeerConnection(this.configuration);
-					log.info("Peer connection created");
-					this.setupPeerConnectionEvents(socket);
-				}
+        this.currentMode = newMode;
 
-				log.info("Frontend received offer");
-				log.debug(offer);
-				await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-				
-				const answer = await this.peerConnection.createAnswer();
-				await this.peerConnection.setLocalDescription(answer);
-				socket.emit('answer', answer);
-				log.info("Frontend sent answer.");
-				log.debug(this.peerConnection.localDescription);
-				if (this.bufferedCandidates && this.bufferedCandidates.length > 0) {
-					log.info("Processing buffered ICE candidates");
-					for (const candidate of this.bufferedCandidates) {
-						await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-					}
-					this.bufferedCandidates = [];
-				}
-			} catch (e) {
-				log.error("Error handling offer:", e);
-			}
-		});
-		
-		socket.on('answer', async (answer) => {
-			await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));		  
-		});
+        // Create lazily if needed
+        if (newMode === "2D") {
+            if (!this.renderer2D) {
+                this.renderer2D = new Renderer2D();
+                this.renderer2D.init(this.getGameState());
+            }
+            this.activeRenderer = this.renderer2D;
+        } else {
+            if (!this.renderer3D) {
+                this.renderer3D = new Renderer3D();
+                this.renderer3D.init(this.getGameState());
+            }
+            this.activeRenderer = this.renderer3D;
+        }
 
-		socket.on('ice-candidate', async (candidate) => {
-			if (!this.peerConnection) {
-				log.warn("Received ICE candidate but peer connection not created yet");
-				return;
-			}
-			
-			try {
-				// Buffer ICE candidates until remote description is set
-				if (!this.peerConnection.remoteDescription) {
-					log.info("Buffering ICE candidate until remote description is set");
-					this.bufferedCandidates = this.bufferedCandidates || [];
-					this.bufferedCandidates.push(candidate);
-				} else {
-					// Add ICE candidate if remote description is already set
-					await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-					log.info("Added ICE candidate successfully");
-				}
-			} catch (e) {
-				log.error("Error adding received ICE candidate", e);
-			}
-		});
+        // Reactivate
+        this.activeRenderer.setActive();
+    }
 
-		socket.on("connect", () => {
-			log.info("Connected to server");
-			const strtBtn = document.getElementById("start-btn");
-			const gameEdit = document.getElementById("edit-game");
-		
-			if (strtBtn)
-				strtBtn.hidden = true;
-			if (gameEdit)
-				gameEdit.hidden = true;
-		});
-		
-		socket.on("playerJoined", (playerAmount) => {
-			const sizeTxt = document.getElementById("size-txt");
-		
-			sizeTxt.textContent = "Lobby size: " + playerAmount + "/2";
-		});
-		
-		socket.on("playerDisconnected", (playerAmount) => {
-			log.info("Player disconnected");
-			const sizeTxt = document.getElementById("size-txt");
-		
-			sizeTxt.textContent = "Lobby size: " + playerAmount + "/2";
-		});
-		
-		// Room is full!
-		socket.on("roomFull", (type) => {
-			if (type === "normal") {
-				const strtBtn = document.getElementById("start-btn");
-				const gameEdit = document.getElementById("edit-game");
-			
-				const ballSize  = (document.getElementById("ball-size") as HTMLInputElement)
-				const ballSpeed = (document.getElementById("ball-speed") as HTMLInputElement)
-			
-				strtBtn.hidden = false
-				gameEdit.hidden = false;
-			
-				strtBtn.addEventListener("click", () => {
-					const ballSizeValue = ballSize.value.trim() === "" ? ballSize.placeholder : ballSize.value;
-					const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
-			
-					socket.emit("hostStart", {
-						ballSettings: {
-							ballSize: ballSizeValue,
-							ballSpeed: ballSpeedValue
-						},
-						playerSettings: {
-			
-						}
-					});
-				});
-			}
-			else if (type === "tournament") {
-				const container = document.getElementById("game-container")
-				const countdownElement = document.createElement("h1");
-				countdownElement.id = "countdown";
-				countdownElement.textContent = "10";
-				container.appendChild(countdownElement);
+    socketLogic(socket) {
+        socket.on("offer", async (offer) => {
+            try {
+                if (!this.peerConnection) {
+                    this.peerConnection = new RTCPeerConnection(
+                        this.configuration
+                    );
+                    log.info("Peer connection created");
+                    this.setupPeerConnectionEvents(socket);
+                }
 
-				let count = 10;
-				const intervalId = setInterval(() => {
-				  count--;
-				  countdownElement.textContent = count.toString();
-			
-				  if (count === 0) {
-					clearInterval(intervalId);
-					countdownElement.remove();
-				  }
-				}, 1000);
-			}
-		})
-		
-		// Socket wants to start the game
-		socket.on("startGame", ({ roomId, settings, player1Id, player2Id }) => {
-			const mySocketId = socket.id;
+                log.info("Frontend received offer");
+                log.debug(offer);
+                await this.peerConnection.setRemoteDescription(
+                    new RTCSessionDescription(offer)
+                );
 
-			this.activePlayerId = mySocketId === player1Id ? 1 :
-														mySocketId === player2Id ? 2 : null;
+                const answer = await this.peerConnection.createAnswer();
+                await this.peerConnection.setLocalDescription(answer);
+                socket.emit("answer", answer);
+                log.info("Frontend sent answer.");
+                log.debug(this.peerConnection.localDescription);
+                if (
+                    this.bufferedCandidates &&
+                    this.bufferedCandidates.length > 0
+                ) {
+                    log.info("Processing buffered ICE candidates");
+                    for (const candidate of this.bufferedCandidates) {
+                        await this.peerConnection.addIceCandidate(
+                            new RTCIceCandidate(candidate)
+                        );
+                    }
+                    this.bufferedCandidates = [];
+                }
+            } catch (e) {
+                log.error("Error handling offer:", e);
+            }
+        });
 
-			console.log("Assigned activePlayerId:", this.activePlayerId);
+        socket.on("answer", async (answer) => {
+            await this.peerConnection.setRemoteDescription(
+                new RTCSessionDescription(answer)
+            );
+        });
 
-			const select = document.getElementById("colorSelect") as HTMLSelectElement;
-			const color = select?.options[select.selectedIndex]?.value ?? "white";
+        socket.on("ice-candidate", async (candidate) => {
+            if (!this.peerConnection) {
+                log.warn(
+                    "Received ICE candidate but peer connection not created yet"
+                );
+                return;
+            }
 
-			const winnerElement = document.getElementById("winner-text");
-			if (winnerElement) {
-				winnerElement.remove();
-			}
-		
-			document.getElementById("gameroom-page").hidden = true;
-			document.getElementById("game-wrapper")?.classList.remove("hidden");
+            try {
+                // Buffer ICE candidates until remote description is set
+                if (!this.peerConnection.remoteDescription) {
+                    log.info(
+                        "Buffering ICE candidate until remote description is set"
+                    );
+                    this.bufferedCandidates = this.bufferedCandidates || [];
+                    this.bufferedCandidates.push(candidate);
+                } else {
+                    // Add ICE candidate if remote description is already set
+                    await this.peerConnection.addIceCandidate(
+                        new RTCIceCandidate(candidate)
+                    );
+                    log.info("Added ICE candidate successfully");
+                }
+            } catch (e) {
+                log.error("Error adding received ICE candidate", e);
+            }
+        });
 
-			log.info("Game started in room:", roomId);
-			
-			game.createRenderingContext();
-			
-			// Create Ball object locally
-			const networkBall = new Ball(20, 20, 400, 300); // or use ballSize and midpoint logic
+        socket.on("connect", () => {
+            log.info("Connected to server");
+            const strtBtn = document.getElementById("start-btn");
+            const gameEdit = document.getElementById("edit-game");
 
-			game.settings({
-				ballSettings: {
-					ball: networkBall,
-					ballSize: settings.ballSettings.ballSize,
-					ballSpeed: settings.ballSettings.ballSpeed
-				},
-				playerSettings: settings.playerSettings
-			}, color);
+            if (strtBtn) strtBtn.hidden = true;
+            if (gameEdit) gameEdit.hidden = true;
+        });
 
-			game.ball = networkBall;
+        socket.on("playerJoined", (playerAmount) => {
+            const sizeTxt = document.getElementById("size-txt");
 
-			if (this.peerConnection == null) {
-				this.peerConnection = new RTCPeerConnection(this.configuration);
-				log.info("Peer connection created");
-				this.setupPeerConnectionEvents(socket);
-			}
+            sizeTxt.textContent = "Lobby size: " + playerAmount + "/2";
+        });
 
-			function loopNetwork() {
-				game.updateNetworkGameState();
-				animationFrameId = requestAnimationFrame(loopNetwork);
-			}
-			loopNetwork();
-		});
-		
-		socket.on("gameOver", (winner : number, type : string) => {
-			if (type == "normal")
-				document.getElementById("gameroom-page").hidden = false;
-			var winnerElement = document.createElement("span");
-			winnerElement.id = "winner-text";
-			winnerElement.textContent = "Winner: " + winner;
-			const container = document.getElementById("game-container");
-				
-			container.prepend(winnerElement);
-			game.cleanUp();
-			if (type == "tournament")
-			{
-				setTimeout(() => {
-					router.navigate("/tournaments");
-				  }, 3000);
-			}
-		});
+        socket.on("playerDisconnected", (playerAmount) => {
+            log.info("Player disconnected");
+            const sizeTxt = document.getElementById("size-txt");
 
-		socket.on("disconnectWin", () => {
+            sizeTxt.textContent = "Lobby size: " + playerAmount + "/2";
+        });
 
-			gameToast.open("Other player left You win!", "success");
-			setTimeout(() => {
-				router.navigate("/tournaments");
-			  }, 3000);
-		});
-	}
+        // Room is full!
+        socket.on("roomFull", (type) => {
+            if (type === "normal") {
+                const strtBtn = document.getElementById("start-btn");
+                const gameEdit = document.getElementById("edit-game");
+
+                const ballSize = document.getElementById(
+                    "ball-size"
+                ) as HTMLInputElement;
+                const ballSpeed = document.getElementById(
+                    "ball-speed"
+                ) as HTMLInputElement;
+
+                strtBtn.hidden = false;
+                gameEdit.hidden = false;
+
+                strtBtn.addEventListener("click", () => {
+                    const ballSizeValue =
+                        ballSize.value.trim() === ""
+                            ? ballSize.placeholder
+                            : ballSize.value;
+                    const ballSpeedValue =
+                        ballSpeed.value.trim() === ""
+                            ? ballSpeed.placeholder
+                            : ballSpeed.value;
+
+                    socket.emit("hostStart", {
+                        ballSettings: {
+                            ballSize: ballSizeValue,
+                            ballSpeed: ballSpeedValue,
+                        },
+                        playerSettings: {},
+                    });
+                });
+            } else if (type === "tournament") {
+                const container = document.getElementById("game-container");
+                const countdownElement = document.createElement("h1");
+                countdownElement.id = "countdown";
+                countdownElement.textContent = "10";
+                container.appendChild(countdownElement);
+
+                let count = 10;
+                const intervalId = setInterval(() => {
+                    count--;
+                    countdownElement.textContent = count.toString();
+
+                    if (count === 0) {
+                        clearInterval(intervalId);
+                        countdownElement.remove();
+                    }
+                }, 1000);
+            }
+        });
+
+        // Socket wants to start the game
+        socket.on("startGame", ({ roomId, settings, player1Id, player2Id }) => {
+            const mySocketId = socket.id;
+
+            this.activePlayerId =
+                mySocketId === player1Id
+                    ? 1
+                    : mySocketId === player2Id
+                    ? 2
+                    : null;
+
+            console.log("Assigned activePlayerId:", this.activePlayerId);
+
+            const select = document.getElementById(
+                "colorSelect"
+            ) as HTMLSelectElement;
+            const color =
+                select?.options[select.selectedIndex]?.value ?? "white";
+
+            const winnerElement = document.getElementById("winner-text");
+            if (winnerElement) {
+                winnerElement.remove();
+            }
+
+            document.getElementById("gameroom-page").hidden = true;
+            document.getElementById("game-wrapper")?.classList.remove("hidden");
+
+            log.info("Game started in room:", roomId);
+
+            game.createRenderingContext();
+
+            // Create Ball object locally
+            // const networkBall = new Ball(20, 20, 400, 300); // or use ballSize and midpoint logic
+            const ballSizeNum = Number(settings.ballSettings.ballSize);
+            const ballX = this.canvasWidth / 2 - ballSizeNum / 2;
+            const ballY = this.canvasHeight / 2 - ballSizeNum / 2;
+
+            const networkBall = new Ball(
+                ballSizeNum,
+                ballSizeNum,
+                ballY,
+                ballX
+            );
+
+            game.settings(
+                {
+                    ballSettings: {
+                        ball: networkBall,
+                        ballSize: settings.ballSettings.ballSize,
+                        ballSpeed: settings.ballSettings.ballSpeed,
+                    },
+                    playerSettings: settings.playerSettings,
+                },
+                color
+            );
+
+            game.ball = networkBall;
+
+            if (this.peerConnection == null) {
+                this.peerConnection = new RTCPeerConnection(this.configuration);
+                log.info("Peer connection created");
+                this.setupPeerConnectionEvents(socket);
+            }
+
+            function loopNetwork() {
+                game.updateNetworkGameState();
+                animationFrameId = requestAnimationFrame(loopNetwork);
+            }
+            loopNetwork();
+        });
+
+        socket.on("gameOver", (winner: number, type: string) => {
+            if (type == "normal")
+                document.getElementById("gameroom-page").hidden = false;
+            var winnerElement = document.createElement("span");
+            winnerElement.id = "winner-text";
+            winnerElement.textContent = "Winner: " + winner;
+            const container = document.getElementById("game-container");
+
+            container.prepend(winnerElement);
+            game.cleanUp();
+            if (type == "tournament") {
+                setTimeout(() => {
+                    router.navigate("/tournaments");
+                }, 3000);
+            }
+        });
+
+        socket.on("disconnectWin", () => {
+            gameToast.open("Other player left You win!", "success");
+            setTimeout(() => {
+                router.navigate("/tournaments");
+            }, 3000);
+        });
+    }
 }
 
-let game : frontEndGame;
+let game: frontEndGame;
 let animationFrameId: number | null = null;
 let gameToast;
 
-export function createNewGame(matchType : string, socket, userId : string, toast : any)
-{
-	gameToast = toast;
-	console.log("id: ", userId);
-	setupButtons(socket, userId);
-	game = new frontEndGame();
-	totalGameCount++;
-	log.info("Creating new game instance, total count:", totalGameCount);
-	if (matchType != "solo" && matchType != "ai")
-	{
-		game.socketLogic(socket);
-	}
-	// add game to window object for 2D/3D renderer switching
-	window.game = game;
+export function createNewGame(
+    matchType: string,
+    socket,
+    userId: string,
+    toast: any
+) {
+    gameToast = toast;
+    console.log("id: ", userId);
+    setupButtons(socket, userId);
+    game = new frontEndGame();
+    totalGameCount++;
+    log.info("Creating new game instance, total count:", totalGameCount);
+    if (matchType != "solo" && matchType != "ai") {
+        game.socketLogic(socket);
+    }
+    // add game to window object for 2D/3D renderer switching
+    window.game = game;
 }
 
-export function cleanGame()
-{
-	log.info("Cleaning up game resources");
-	totalGameCount--;
-	if (animationFrameId != null)
-		cancelAnimationFrame(animationFrameId);
-	if (game)
-		game.cleanUp();
-	debugTracker.logDispose("frontEndGame");
-	game = null;
-} 
-
-export function startSoloGame()
-{
-	const select = document.getElementById("colorSelect") as HTMLSelectElement;
-	const color = select.options[select.selectedIndex].value;
-	const ballSize  = (document.getElementById("ball-size") as HTMLInputElement)
-	const ballSpeed = (document.getElementById("ball-speed") as HTMLInputElement)
-	const ballSizeValue = ballSize.value.trim() === "" ? ballSize.placeholder : ballSize.value;
-	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
-
-	document.getElementById("gameroom-page").hidden = true;
-	document.getElementById("game-wrapper")?.classList.remove("hidden");
-
-	game.setIsLocalGame(true);
-	game.setupLocalKeyListeners();
-	game.setupCameraKeyListeners();
-	game.createRenderingContext();
-	game.settings({
-		ballSettings: {
-			ball: new Ball(20, 20, 400, 300),
-			ballSize: ballSizeValue,
-			ballSpeed: ballSpeedValue
-		},
-		playerSettings: {
-
-		}
-	}, color);
-	function loopSolo() {
-		game.updateSoloGameState();
-		animationFrameId = requestAnimationFrame(loopSolo);
-	}
-	loopSolo();
+export function cleanGame() {
+    log.info("Cleaning up game resources");
+    totalGameCount--;
+    if (animationFrameId != null) cancelAnimationFrame(animationFrameId);
+    if (game) game.cleanUp();
+    debugTracker.logDispose("frontEndGame");
+    game = null;
 }
 
-export function startAIGame()
-{
-	const select = document.getElementById("colorSelect") as HTMLSelectElement;
-	const color = select.options[select.selectedIndex].value;
-	const ballSize  = (document.getElementById("ball-size") as HTMLInputElement)
-	const ballSpeed = (document.getElementById("ball-speed") as HTMLInputElement)
-	const ballSizeValue = ballSize.value.trim() === "" ? ballSize.placeholder : ballSize.value;
-	const ballSpeedValue = ballSpeed.value.trim() === "" ? ballSpeed.placeholder : ballSpeed.value;
+export function startSoloGame() {
+    const select = document.getElementById("colorSelect") as HTMLSelectElement;
+    const color = select.options[select.selectedIndex].value;
 
-	game.setIsAIgame(true);
-	game.setIsLocalGame(true);
-	document.getElementById("gameroom-page").hidden = true;
-	document.getElementById("game-wrapper")?.classList.remove("hidden");
-	game.setupLocalKeyListeners();
-	game.setupCameraKeyListeners();
-	game.createRenderingContext();
-	game.setupAI();
-	game.settings({
-		ballSettings: {
-			ball: new Ball(20, 20, 400, 300),
-			ballSize: ballSizeValue,
-			ballSpeed: ballSpeedValue
-		},
-		playerSettings: {
+    const ballSizeInput = document.getElementById(
+        "ball-size"
+    ) as HTMLInputElement;
+    const ballSpeedInput = document.getElementById(
+        "ball-speed"
+    ) as HTMLInputElement;
 
-		}
-	}, color);
-	function loopAI() {
-		game.updateAIGameState();
-		animationFrameId = requestAnimationFrame(loopAI);
-	}
-	loopAI();
+    const ballSizeValue =
+        ballSizeInput.value.trim() === ""
+            ? ballSizeInput.placeholder
+            : ballSizeInput.value;
+    const ballSpeedValue =
+        ballSpeedInput.value.trim() === ""
+            ? ballSpeedInput.placeholder
+            : ballSpeedInput.value;
+
+    const ballSizeNum = Number(ballSizeValue);
+    const ballX = game.canvasWidth / 2 - ballSizeNum / 2;
+    const ballY = game.canvasHeight / 2 - ballSizeNum / 2;
+    const networkBall = new Ball(ballSizeNum, ballSizeNum, ballY, ballX);
+
+    document.getElementById("gameroom-page").hidden = true;
+    document.getElementById("game-wrapper")?.classList.remove("hidden");
+
+    game.setIsLocalGame(true);
+    game.setupLocalKeyListeners();
+    game.setupCameraKeyListeners();
+    game.createRenderingContext();
+
+    game.settings(
+        {
+            ballSettings: {
+                ball: networkBall,
+                ballSize: ballSizeValue,
+                ballSpeed: ballSpeedValue,
+            },
+            playerSettings: {},
+        },
+        color
+    );
+
+    function loopSolo() {
+        game.updateSoloGameState();
+        animationFrameId = requestAnimationFrame(loopSolo);
+    }
+    loopSolo();
+}
+
+export function startAIGame() {
+    const select = document.getElementById("colorSelect") as HTMLSelectElement;
+    const color = select.options[select.selectedIndex].value;
+
+    const ballSizeInput = document.getElementById(
+        "ball-size"
+    ) as HTMLInputElement;
+    const ballSpeedInput = document.getElementById(
+        "ball-speed"
+    ) as HTMLInputElement;
+
+    const ballSizeValue =
+        ballSizeInput.value.trim() === ""
+            ? ballSizeInput.placeholder
+            : ballSizeInput.value;
+    const ballSpeedValue =
+        ballSpeedInput.value.trim() === ""
+            ? ballSpeedInput.placeholder
+            : ballSpeedInput.value;
+
+    const ballSizeNum = Number(ballSizeValue);
+
+    // Center the ball based on canvas and ball size
+    const ballX = game.canvasWidth / 2 - ballSizeNum / 2;
+    const ballY = game.canvasHeight / 2 - ballSizeNum / 2;
+    const networkBall = new Ball(ballSizeNum, ballSizeNum, ballY, ballX);
+
+    game.setIsAIgame(true);
+    game.setIsLocalGame(true);
+    document.getElementById("gameroom-page").hidden = true;
+    document.getElementById("game-wrapper")?.classList.remove("hidden");
+
+    game.setupLocalKeyListeners();
+    game.setupCameraKeyListeners();
+    game.createRenderingContext();
+    game.setupAI();
+
+    game.settings(
+        {
+            ballSettings: {
+                ball: networkBall,
+                ballSize: ballSizeValue,
+                ballSpeed: ballSpeedValue,
+            },
+            playerSettings: {},
+        },
+        color
+    );
+
+    function loopAI() {
+        game.updateAIGameState();
+        animationFrameId = requestAnimationFrame(loopAI);
+    }
+    loopAI();
 }

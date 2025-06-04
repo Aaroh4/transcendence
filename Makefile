@@ -7,27 +7,29 @@ all: detect_os dockerbuild
 
 # Detect the OS and set HOST_LAN_IP
 detect_os:
-	$(eval OS=$(shell uname))
-	$(eval HOST_LAN_IP=$(shell if [ "$(OS)" = "Darwin" ]; then echo "localhost"; else ip route get 1.1.1.1 | awk '/src/ {print $$7}'; fi))
+	$(eval OS := $(shell uname))
+	$(eval HOST_LAN_IP := $(shell [ "$(OS)" = "Darwin" ] && echo "localhost" || ip route get 1.1.1.1 | awk '/src/ {print $$7}'))
 	@echo "HOST_LAN_IP is set to: $(HOST_LAN_IP)"
+
 	@if grep -q '^HOST_LAN_IP=' backend/.env; then \
-		sed -i 's|^HOST_LAN_IP=.*|HOST_LAN_IP=$(HOST_LAN_IP)|' backend/.env; \
+		if [ "$(OS)" = "Darwin" ]; then \
+			sed -i '' 's|^HOST_LAN_IP=.*|HOST_LAN_IP=$(HOST_LAN_IP)|' backend/.env; \
+		else \
+			sed -i 's|^HOST_LAN_IP=.*|HOST_LAN_IP=$(HOST_LAN_IP)|' backend/.env; \
+		fi \
 	else \
 		printf '\nHOST_LAN_IP=$(HOST_LAN_IP)\n' >> backend/.env; \
 	fi
 
 	@if grep -q '^AUTHSERV=' backend/.env; then \
-		sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
+		if [ "$(OS)" = "Darwin" ]; then \
+			sed -i '' 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
+		else \
+			sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
+		fi \
 	else \
 		printf '\nAUTHSERV=https://$(HOST_LAN_IP):4000\n' >> backend/.env; \
 	fi
-
-
-devbuild:
-		@cd ./frontend && npm install && npm run tailwind
-		@cd ./backend && npm install
-		@cd ./backend/server && npm install
-		@cd ./backend/authentication_server && npm install
 
 # run without docker
 dev: detect_os
