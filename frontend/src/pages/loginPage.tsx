@@ -1,6 +1,6 @@
 import Header, { siteKey } from "../components/headers";
 import { LoginRequest, loginUser } from "../services/userApi";
-import React, { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useToast } from "../components/toastBar/toastContext";
@@ -16,6 +16,7 @@ const Login: React.FC = () => {
 	const [captchaError, setcaptchaError] = useState<string | null>(null);
 	const [captchaToken, setCaptchaToken] = useState("");
 	const [showCaptcha, setCaptcha] = useState(false);
+	const hasSubmitted = useRef(false);
 	const toast = useToast();
 
 	const [formState, setFormState] = useState<LoginProps>({
@@ -30,42 +31,53 @@ const Login: React.FC = () => {
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
+	
+	if (hasSubmitted.current) return;
+	hasSubmitted.current = true;
+
+	try {
 
 		if (!captchaToken && !showCaptcha)
-		{
-			setCaptcha(true);
-			return;
-		}
-
-		if (!captchaToken) {
-		  setcaptchaError("Please complete the CAPTCHA");
-		  return ;
-		}
-		setcaptchaError(null);
-	
-		const user: LoginRequest = {
-		  email: formState.email,
-		  password: formState.password,
-		  captchaToken: captchaToken
-		};
-
-		const response = await loginUser(user, captchaToken);
-
-		const { userId, name, avatar, accessToken, refreshToken, error} = response;
-		sessionStorage.setItem('activeUserId', userId.toString());
-
-		if (response.status == 200) {
-			// console.log(response);
-			sessionStorage.setItem(userId.toString(), JSON.stringify({name, avatar, accessToken, refreshToken, error}));
-			navigate("/user");
-			toast.open(response.error, "success");
-		} else {
-			toast.open(response.error, "error");
-			setFormState(prevState => ({
-				...prevState,
-				email: '',
-				password: ''
-			}));
+			{
+				setCaptcha(true);
+				return;
+			}
+			
+			if (!captchaToken) {
+				setcaptchaError("Please complete the CAPTCHA");
+				return ;
+			}
+			setcaptchaError(null);
+			
+			const user: LoginRequest = {
+				email: formState.email,
+				password: formState.password,
+				captchaToken: captchaToken
+			};
+			
+			const response = await loginUser(user, captchaToken);
+			
+			const { userId, name, avatar, accessToken, refreshToken, error} = response;
+			sessionStorage.setItem('activeUserId', userId.toString());
+			
+			if (response.status == 200) {
+				// console.log(response);
+				sessionStorage.setItem(userId.toString(), JSON.stringify({name, avatar, accessToken, refreshToken, error}));
+				navigate("/user");
+				toast.open(response.error, "success");
+			} else {
+				toast.open(response.error, "error");
+				setFormState(prevState => ({
+					...prevState,
+					email: '',
+					password: ''
+				}));
+			}
+		} catch (error) {
+			console.error("Login error:", error);
+			toast.open("Something went wrong. Please try again.", "error");
+		} finally {
+			hasSubmitted.current = false;
 		}
 	};
 	return (
@@ -114,8 +126,8 @@ const Login: React.FC = () => {
 					/> }
 					{captchaError && <p style={{ color: 'red' }}>{captchaError}</p>}
 					<button
-					type="submit"
-					className="w-64 border-2 border-black bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center transform transition-transform hover:scale-102 duration-100"
+						type="submit"
+						className="w-64 border-2 border-black bg-green-600 text-white py-2 rounded-md hover:bg-green-700 text-center transform transition-transform hover:scale-102 duration-100"
 					>
 						Login
 					</button>

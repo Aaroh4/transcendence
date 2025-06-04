@@ -14,6 +14,7 @@ export interface RegistrationResponse {
 	avatarPath: string;
 	status: number;
 	error: string;
+	message?: string;
 }
 
 export async function registerUser(userData: RegistrationRequest): Promise<RegistrationResponse> {
@@ -34,13 +35,14 @@ export async function registerUser(userData: RegistrationRequest): Promise<Regis
 				email: '',
 				avatarPath: '',
 				status: response.status,
-				error: responseData.error
+				error: responseData.error,
+				message: responseData.message
 		}
 		return { userId: responseData.userId,
 			email: responseData.email,
 			avatarPath: responseData.avatarPath,
 			status: response.status,
-			error: 'Registration successfull'
+			error: 'Registration successful'
 		}
 		
 	} catch (error) {
@@ -336,6 +338,7 @@ export interface UpdateUserRequest {
 export interface UpdateUserResponse {
   status: number;
   error?: string;
+  message?: string;
 }
 
 export async function updateUser(userData: UpdateUserRequest, id: string): Promise<UpdateUserResponse> {
@@ -368,7 +371,8 @@ export async function updateUser(userData: UpdateUserRequest, id: string): Promi
 			if (!retryResponse.ok)
 				return {
 				status: retryResponse.status,
-				error: responseData.error || 'Update failed'
+				error: responseData.error || 'Update failed',
+				message: responseData.message || 'Update failed'
 				}
 			return {
 				status: retryResponse.status,
@@ -379,7 +383,8 @@ export async function updateUser(userData: UpdateUserRequest, id: string): Promi
 		if (response.status >= 300)
 			return {
 			status: response.status,
-			error: response.error || 'Update failed'
+			error: response.error || 'Update failed',
+			message: response.message || 'Update failed'
 		}
 		return {
 			status: response.status,

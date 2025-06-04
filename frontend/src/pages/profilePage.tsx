@@ -16,6 +16,7 @@ import {
   Legend,
   ChartOptions
 } from 'chart.js';
+import { useToast } from "../components/toastBar/toastContext";
 
 ChartJS.register(
   ArcElement,
@@ -27,9 +28,12 @@ ChartJS.register(
 );
 
 const ProfilePage: React.FC = () => {
+
 	const [user, setUser] = useState<User | null>(null);
 	const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
 	const [opponentNames, setOpponentNames] = useState<Record<number, string>>({});
+
+  const toast = useToast();
 
 	useEffect(() => {
     (async () => {
@@ -41,8 +45,10 @@ const ProfilePage: React.FC = () => {
       setUser(fetchedUser);
 
       const matchResults = await getMatchHistory({ accToken }, userId);
-      if (!matchResults.data) 
+      if (!matchResults.data) {
+        toast.open(matchResults.error, "info");
         return;
+      }
 
       setMatchHistory(matchResults.data);
 
@@ -159,7 +165,7 @@ const ProfilePage: React.FC = () => {
             <div className="w-2/5 border-2 border-black rounded-lg bg-[#2a2a2a] p-4">
               <h2 className="text-2xl font-semibold text-white mb-2">Match History</h2>
                 <ul className="space-y-3 w-full max-h-[850px] overflow-y-auto pr-2">
-                  {matchHistory.map((match) => {
+                  {[...matchHistory].reverse().map((match) => {
                     const loggedInUserId = Number(sessionStorage.getItem('activeUserId'));
                     const isWin = match.winner_id === loggedInUserId;
                     const opponentId = match.opponent_id;

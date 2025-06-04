@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {User } from "../services/api";
 import { deleteUser } from '../services/userApi';
 import { useNavigate } from "react-router-dom";
@@ -18,19 +18,11 @@ const EditProfile: React.FC = () => {
 	const [newValue, setNewValue] = useState('');
 	// const [oldPassword, setOldPassword] = useState('');
 	const [confirmValue, setConfirmValue] = useState('');
-	const [isGoogleUser, setIsGoogleUser] = useState(false);
 	const [user, setUser] = useState<User | null>(null);
 
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const navigate = useNavigate();
 	const toast = useToast();
-
-	useEffect(() => {
-		const googleId = sessionStorage.getItem('googleId');
-		if (googleId) {
-			setIsGoogleUser(true);
-		}
-	}, []);
 
 	useEffect(() => {
 		(async () => {
@@ -80,7 +72,7 @@ const EditProfile: React.FC = () => {
 					sessionStorage.setItem('activeUserId', userId.toString());
 					sessionStorage.setItem(userId.toString(), JSON.stringify({...sessionData, name: newValue, accessToken: accToken, refreshToken: refreshToken}));
 				} else {
-					toast.open(response.error || 'Username updated failed', "error");
+					toast.open(response.message, "error");
 					// throw new Error(response.error || 'Update failed');
 					
 				}
@@ -92,16 +84,6 @@ const EditProfile: React.FC = () => {
 		}
 
 		if (changeMode === 'password') {
-			
-			if (isGoogleUser) {
-				setMessage("YOU CAN'T!!!");
-				setChangeMode(null);
-				setNewValue('');
-				setConfirmValue('');
-				toast.open("Not possible", "error");
-				return;
-			}
-			
 			try {
 			const response = await updatePassword({
 				accToken,

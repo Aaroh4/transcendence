@@ -12,6 +12,7 @@ import ProfilePage from './pages/profilePage'
 import EditProfile from './pages/editProfile'
 import ProtectedRoutes from './components/authRoutes'
 import RedirectForLoggedIn from './components/redirecForLoggedIn'
+import FriendPage from './pages/friendsProfile'
 
 // import "../output.css";
 
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
   {path: "/ai-game", element: <ProtectedRoutes> <GameRoom matchType="ai" /></ProtectedRoutes> },
   {path: "/tournaments", element: <ProtectedRoutes><TournamentsPage /></ProtectedRoutes> },
   {path: "/user", element: <ProtectedRoutes><UserPage /></ProtectedRoutes> },
+  {path: "/user/friend/:id", element: <ProtectedRoutes><FriendPage /></ProtectedRoutes> },
   {path: "/user/profile", element: <ProtectedRoutes><ProfilePage /></ProtectedRoutes> },
   {path: "/user/edit", element: <ProtectedRoutes><EditProfile /></ProtectedRoutes>},
   {path: "*", element: <NoPage />},
