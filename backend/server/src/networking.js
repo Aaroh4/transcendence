@@ -78,7 +78,7 @@ export function setupNetworking(server){
 
 		socket.on('frontend-log', (logdata) => {
 			const logLevel = logdata.level?.toUpperCase?.() ?? "DEBUG";
-			const method = log[logLevel.toLowerCase()] || logger.debug;
+			const method = log[logLevel.toLowerCase()] || log.debug;
 			method.call(log, ...logdata.args, { __frontend: true });
 		});
 
@@ -204,13 +204,19 @@ export function setupNetworking(server){
 		let enemyID;
 
         if (match && match.player_one_id == userId) {
-          hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
-            .get(match.player_two_id)
+			if (match.player_two_id != null)
+				hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+					.get(match.player_two_id)
+			else
+				hasDisconnected = -1;
 			rooms[roomId].sockets[match.player_one_id] = socket;
 			enemyID = match.player_two_id;
         } else if (match && match.player_two_id == userId) {
-          hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
-            .get(match.player_one_id)
+			if (match.player_one_id != null)
+				hasDisconnected = db.prepare('SELECT * FROM tournament_players WHERE user_id = ?')
+					.get(match.player_one_id)
+			else
+				hasDisconnected = -1;
 			rooms[roomId].sockets[match.player_two_id] = socket;
 			enemyID = match.player_one_id;
         }
@@ -454,11 +460,14 @@ function startGameLoop(roomId) {
 
 	if (game.getScores()[0] >= 10 || game.getScores()[1] >= 10) {
 		game.stop();
-		const winner = game.getScores()[0] >= 10 ? 0 : 1
+		const winner = game.getScores()[0] >= 10 ? 1 : 0
     const winnerId = playerList[winner].dbId;
     const loserId = playerList[1 - winner].dbId;
-    const winnerScore = game.getScores()[winner]
-    const loserScore = game.getScores()[1 - winner]
+    const loserScore = game.getScores()[winner]
+    const winnerScore = game.getScores()[1 - winner]
+
+	console.log("winnerscore: " + winnerScore);
+		console.log("loserscore: " + loserScore);
 
 		if (room.type === "normal") {
 			updateMatchHistory(winnerId, loserId, winnerScore, loserScore)

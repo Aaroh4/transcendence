@@ -19,28 +19,29 @@ const Home: React.FC = () => {
 	  
 		window.addEventListener('message', (event) => {
 
-		if (event.origin !== "https://localhost:4000")
-			return;
-	
-		const { userId, accessToken, refreshToken } = event.data;
-
+			if (event.origin !== "https://localhost:4000")
+				return;
 		
-	
-		if (userId && accessToken) {
-			sessionStorage.setItem("activeUserId", userId);
-			sessionStorage.setItem(
-				userId,
-				JSON.stringify({
-					accessToken,
-					refreshToken,
-					error: "Google signin successful",
-				})
-			);
-			navigate("/user");
-		} else { 
-			toast.open("Google signin failed", "error");
-		}
-		// console.log('User is now logged in');
+			const { userId, name, avatar, accessToken, refreshToken, error} = event.data;
+
+			
+		
+			if (userId && accessToken) {
+				sessionStorage.setItem("activeUserId", userId.toString());
+				sessionStorage.setItem(
+					userId.toString(),
+					JSON.stringify({
+						name,
+						avatar,
+						accessToken,
+						refreshToken,
+						error: "Google signin successful",
+					})
+				);
+				navigate("/user");
+			} else { 
+				toast.open("Google signin failed", "error");
+			}
 		});
 	}
 

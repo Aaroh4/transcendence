@@ -1,7 +1,7 @@
 import Header, { siteKey } from "../components/headers";
 import { useToast } from "../components/toastBar/toastContext";
 import { RegistrationRequest, registerUser } from "../services/userApi";
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import Background from "../components/background";
@@ -78,8 +78,11 @@ const Registration: React.FC = () => {
 			// console.log(response.error);
 			navigate("/login");
 		} else {
-			toast.open(response.error, "error");
-			// console.log(response.error);
+			if (response.message) {
+				toast.open(response.message, "error");
+			} else {
+				toast.open(response.error, "error");
+			}
 			setFormState(prev => ({
 				...prev,
 				username: '',
