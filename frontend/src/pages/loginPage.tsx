@@ -61,7 +61,6 @@ const Login: React.FC = () => {
 			sessionStorage.setItem('activeUserId', userId.toString());
 			
 			if (response.status == 200) {
-				// console.log(response);
 				sessionStorage.setItem(userId.toString(), JSON.stringify({name, avatar, accessToken, refreshToken, error}));
 				navigate("/user");
 				toast.open(response.error, "success");

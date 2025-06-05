@@ -213,7 +213,6 @@ export async function deleteUser(userData: DeleteUserRequest): Promise<DeleteUse
 		const response = await authFetch(`/api/user/delete` , options);
 
 		if (response.status === 1) {
-			console.log(userData.accToken);//delete
 			const retryResponse = await fetch(`/api/user/delete`, {
 				method: 'DELETE',
 				body: JSON.stringify({id: userData.id}),
@@ -294,7 +293,6 @@ export async function uploadAvatar(uploadData: UploadImageRequest): Promise<Uplo
 			});
 
 			const responseData = await retryResponse.json();
-			console.log(retryResponse);
 		
 			if (!retryResponse.ok) {
 				return {
@@ -342,7 +340,7 @@ export interface UpdateUserResponse {
 }
 
 export async function updateUser(userData: UpdateUserRequest, id: string): Promise<UpdateUserResponse> {
-	console.log(userData.name, userData.email);
+
 	try {
 			const options = {
 			method: 'PUT',
@@ -366,7 +364,6 @@ export async function updateUser(userData: UpdateUserRequest, id: string): Promi
 			})
 
 			const responseData = await retryResponse.json();
-			console.log(retryResponse);
 			
 			if (!retryResponse.ok)
 				return {
@@ -408,6 +405,7 @@ export interface UpdatePasswordRequest {
 export interface UpdatePasswordResponse {
 	status: number;
 	error?: string;
+	message?: string;
 }
   
 export async function updatePassword(userData: UpdatePasswordRequest, id: string): Promise<UpdatePasswordResponse> {
@@ -434,12 +432,12 @@ export async function updatePassword(userData: UpdatePasswordRequest, id: string
 			})
 
 			const responseData = await retryResponse.json();
-			console.log(retryResponse);
 			
 			if (!retryResponse.ok)
 				return {
 				status: retryResponse.status,
-				error: responseData.error || 'Update failed'
+				error: responseData.error || 'Update failed',
+				message: responseData.message || 'Update failed'
 				}
 			return {
 				status: retryResponse.status,
@@ -450,7 +448,8 @@ export async function updatePassword(userData: UpdatePasswordRequest, id: string
 		if (response.status >= 300)
 			return {
 			status: response.status,
-			error: response.error || 'Update failed'
+			error: response.error || 'Update failed',
+			message: response.message || 'Update failed'
 		}
 		return {
 			status: response.status,
@@ -542,7 +541,7 @@ export async function getMatchHistory(requestData: GetMatchHistoryRequest, userI
 					}
 				})
 
-				const responseData = await retryResponse.json();
+			const responseData = await retryResponse.json();
 
 			if (!retryResponse.ok) {
 				return {

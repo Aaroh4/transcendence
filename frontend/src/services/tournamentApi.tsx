@@ -1,10 +1,4 @@
-// import { tournament } from "../pages/tournamentPage";
 import { authFetch, Tournament } from "./api";
-
-// export interface tournament {
-// 	name: string;
-// 	size: number;
-// }
 
 export async function getPlayerAmount(tourId: number) : Promise<number> {	
 	try {
