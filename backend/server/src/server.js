@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
 import cors from '@fastify/cors';
 import { root, userRoutes, friendRoutes, tournamentRoutes, debugRoutes } from './routes/routes.js'
+import loginRoutes from './routes/authRoutes.js'
 import dbInit from './database.js'
 import path from 'path'
 import cookie from '@fastify/cookie'
@@ -89,6 +90,7 @@ fastify.register(userRoutes)
 fastify.register(friendRoutes)
 fastify.register(tournamentRoutes)
 fastify.register(debugRoutes)
+fastify.register(loginRoutes)
 
 await fastify.listen({ port: process.env.PORT || 5001, host: process.env.HOST || '0.0.0.0' }, function (err, address) {
 	log.info('Listening on port', process.env.PORT);
