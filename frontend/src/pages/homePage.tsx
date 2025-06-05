@@ -12,9 +12,9 @@ const Home: React.FC = () => {
 	const handleGoogleLogin = () => {
 
 		const popup = window.open(
-		  'https://localhost:4000/api/googleauth', // FUCK THIS SCHOOL AND GOOGLE
-		  'GoogleLogin',							// WORKS ONLY WITH HOST COMPUTER
-		  'width=500,height=600'					// CANT USE PRIVATE IP FOR THIS...
+		  'https://localhost:4000/api/googleauth',
+		  'GoogleLogin',
+		  'width=500,height=600'
 		);
 	  
 		window.addEventListener('message', (event) => {

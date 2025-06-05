@@ -1,6 +1,6 @@
 ### Add user
 
-POST http://localhost:5001/api/user
+POST http://localhost:4000/api/user
 Content-Type: application/json
 
 {
@@ -34,7 +34,7 @@ GET http://localhost:4000/api/googleauth
 
 ### Get users
 
-GET http://localhost:5001/api/users
+GET http://localhost:4000/api/users
 
 ### Get single user
 
@@ -123,7 +123,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibmFtZSI6I
 
 ### Get all tournaments
 
-GET http://localhost:5001/api/tournaments
+GET http://localhost:4000/api/tournaments
 
 ### Start tournament
 
@@ -132,8 +132,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibmFtZSI6I
 
 ### Check active tournament for user
 
-GET http://localhost:5001/api/tournament/1
+GET http://localhost:4000/api/tournament/1
 
 ### Search for users
 
-GET http:/localhost:5001/api/users/search?query=te
+GET http:/localhost:4000/api/users/search?query=te

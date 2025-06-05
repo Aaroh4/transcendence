@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { useToast } from "./toastBar/toastContext";
 import {
-	getAllUsers,
 	getFriends,
 	checkPending,
 	friendRequest,
@@ -45,7 +44,7 @@ interface friendsList {
 const UserHeader: React.FC = () => {
 
 	const [userName, setUserName] = useState('');
-	const [userAvatar, setUserAvatar] = useState<string | null>(null); //default path for 404 fix
+	const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
 	useEffect(() => {
 		const userId = sessionStorage.getItem('activeUserId');
@@ -101,9 +100,8 @@ const UserHeader: React.FC = () => {
 
 		if (response.status === 200 && response.users.length !== 0) {
 			setUserList(response.users);
-			console.log(response.users);
 		} else if (response.status === 200 && response.users.length === 0) {
-			toast.open("No Users found", "info");
+			toast.open("No users found", "info");
 			setSearchState(prevState => ({ ...prevState, query: '' }));
 		}
 	}
@@ -179,16 +177,6 @@ const UserHeader: React.FC = () => {
 
 		if (!showFriends) {
 
-			// const response = await getAllUsers();
-			// console.log(response.users);//test log
-
-			// if (Array.isArray(response.users)) {
-			// 	sessionStorage.setItem('users', JSON.stringify(response.users));
-			// } else {
-			// 	toast.open(response.error, "error");
-			// 	console.error("Error fetching users:", response);
-			// } // changing this to searchUsers endpoint api/users/search
-
 			const token: getFriendsRequest = {
 				accToken: sessionData.accessToken,
 			}
@@ -197,8 +185,6 @@ const UserHeader: React.FC = () => {
 
 			if (Array.isArray(response2.users) && response2.users.length !== 0) {
 				sessionStorage.setItem('friends', JSON.stringify(response2.users));
-				console.log(response2.users);//test log
-
 				setFriendsList(response2.users)
 			}
 
@@ -209,8 +195,7 @@ const UserHeader: React.FC = () => {
 			const response3 = await checkPending(token2);
 
 			if (response3.status < 204 && Array.isArray(response3.data)) {
-				console.log("data from friend request" ,response3.data)
-				toast.open("we have pending friend request", "info");
+				toast.open("You have pending friend request", "info");
 				setPendingRequests(response3.data);
 			}
 

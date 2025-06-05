@@ -8,7 +8,7 @@ const FriendHeader: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 
 	const [userName, setUserName] = useState('');
-	const [userAvatar, setUserAvatar] = useState<string | null>(null); //default path for 404 fix
+	const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
 	useEffect(() => {
 	(async () => {

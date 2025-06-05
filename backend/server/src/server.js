@@ -45,7 +45,7 @@ const fastify = Fastify({
 })
 
 await fastify.register(cors, {
-  origin: ['http://localhost:5173', 'https://localhost:5001'],
+  origin: ['http://localhost:5173', 'https://localhost:4000'],
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
 });
 
@@ -92,7 +92,7 @@ fastify.register(tournamentRoutes)
 fastify.register(debugRoutes)
 fastify.register(loginRoutes)
 
-await fastify.listen({ port: process.env.PORT || 5001, host: process.env.HOST || '0.0.0.0' }, function (err, address) {
+await fastify.listen({ port: process.env.PORT || 4000, host: process.env.HOST || '0.0.0.0' }, function (err, address) {
 	log.info('Listening on port', process.env.PORT);
 	if (err) {
 		log.info('Error: ', err)

@@ -1,5 +1,4 @@
 import UserHeader from "../components/userHeader";
-// import React, { useEffect, useState } from 'react'; // useState, add the check
 import { useNavigate, Link } from "react-router-dom";
 import { LogoutRequest, logoutUser } from "../services/userApi";
 import { useToast } from "../components/toastBar/toastContext";
@@ -23,9 +22,7 @@ const UserPage: React.FC = () => {
 				accToken: sessionData.accessToken
 			};
 
-			console.log("Calling logoutUser API");
 			const response = await logoutUser(user);
-			console.log("Returning from logoutUser API with status:", response);
 	
 			if (response.status === 204) {
 				sessionStorage.clear();

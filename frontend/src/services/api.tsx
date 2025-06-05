@@ -63,9 +63,7 @@ export interface MatchHistory {
 
 export async function authFetch(url: string, options: AuthFetchOptions): Promise<AuthFetchResponse> {
 
-	console.log("in authfetch before fetch", url, options);
 	const response = await fetch(url, options);
-	console.log("in authfetch after fetch", response);
 
 	if (response.status === 204) {
 		return {
@@ -84,8 +82,6 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 
 	if (response.status === 403) {
 
-		console.log("403, getting new token");
-
 		const userId = sessionStorage.getItem('activeUserId');
 		const sessionData = JSON.parse(sessionStorage.getItem(userId) || '{}')
 		const refreshToken = sessionData.refreshToken
@@ -99,12 +95,9 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 			}
 		});
 		
-		console.log("hello after fetch ",response);
 		const newResponse = await response.json();
-		console.log("with new accessToken ",newResponse);
 
 		if (response.ok) {
-			console.log("ok response");
 			sessionStorage.removeItem(userId);
 			sessionStorage.setItem('activeUserId', userId.toString());
 			sessionStorage.setItem(userId.toString(), JSON.stringify({...sessionData, accessToken: newResponse.accessToken, refreshToken: refreshToken}));
@@ -123,7 +116,6 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 			}
 		}
 	}
-	console.log(responseData); //logging
 	return {
 		status: response.status,
 		error: responseData.error,
@@ -137,5 +129,3 @@ export async function authFetch(url: string, options: AuthFetchOptions): Promise
 		message: responseData.message
 	};
 }
-//limit the friends list size in the back to not fetch that many to the front. 
-

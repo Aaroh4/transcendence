@@ -27,7 +27,7 @@ RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Expose port used by Fastify
-EXPOSE 5001
+EXPOSE 4000
 EXPOSE 4000
 
 # Default CMD (can be overridden)

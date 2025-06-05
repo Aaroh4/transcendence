@@ -7,12 +7,12 @@ export default defineConfig({
 	server: {
 	  proxy: {
 		'/api': {
-		  target: 'https://localhost:5001',
+		  target: 'https://localhost:4000',
 		  changeOrigin: true,
 		  secure: false,
 		},
 		'/socket.io': {
-		  target: 'https://localhost:5001',
+		  target: 'https://localhost:4000',
 		  ws: true, // WebSocket support
 		  secure: false,
 		},

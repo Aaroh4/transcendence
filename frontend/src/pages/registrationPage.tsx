@@ -67,15 +67,10 @@ const Registration: React.FC = () => {
 			captchaToken: captchaToken
 		}
 
-		console.log("Calling registerUser API");
 		const response = await registerUser(user);
-		console.log("Returning from registerUser API call with status: ", response);
-
-		console.log("Toast Context: ", toast);
 
 		if (response.status == 201) {
 			toast.open(response.error, "success");
-			// console.log(response.error);
 			navigate("/login");
 		} else {
 			if (response.message) {

@@ -23,22 +23,22 @@ detect_os:
 
 	@if grep -q '^AUTHSERV=' backend/.env; then \
 		if [ "$(OS)" = "Darwin" ]; then \
-			sed -i '' 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):5001|' backend/.env; \
+			sed -i '' 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
 		else \
-			sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):5001|' backend/.env; \
+			sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
 		fi \
 	else \
-		printf '\nAUTHSERV=https://$(HOST_LAN_IP):5001\n' >> backend/.env; \
+		printf '\nAUTHSERV=https://$(HOST_LAN_IP):4000\n' >> backend/.env; \
 	fi
 
 	@if grep -q '^PICTURE_IP=' backend/.env; then \
 		if [ "$(OS)" = "Darwin" ]; then \
-			sed -i '' 's|^PICTURE_IP=.*|PICTURE_IP=https://$(HOST_LAN_IP):5001|' backend/.env; \
+			sed -i '' 's|^PICTURE_IP=.*|PICTURE_IP=https://$(HOST_LAN_IP):4000|' backend/.env; \
 		else \
-			sed -i 's|^PICTURE_IP=.*|PICTURE_IP=https://$(HOST_LAN_IP):5001|' backend/.env; \
+			sed -i 's|^PICTURE_IP=.*|PICTURE_IP=https://$(HOST_LAN_IP):4000|' backend/.env; \
 		fi \
 	else \
-		printf '\nPICTURE_IP=https://$(HOST_LAN_IP):5001\n' >> backend/.env; \
+		printf '\nPICTURE_IP=https://$(HOST_LAN_IP):4000\n' >> backend/.env; \
 	fi
 
 # run without docker
@@ -101,7 +101,6 @@ devclean:
 		@cd ./frontend && rm -rf node_modules package-lock.json dist output.css
 		@cd ./backend && rm -rf node_modules package-lock.json
 		@cd ./backend/server && rm -rf node_modules package-lock.json
-		@cd ./backend/authentication_server && rm -rf node_modules package-lock.json
 
 # clean docker
 dockerclean:
