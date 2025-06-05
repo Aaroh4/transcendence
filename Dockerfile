@@ -18,7 +18,6 @@ COPY . .
 RUN cd backend && npm install
 RUN cd frontend && npm install && npm run tailwind
 RUN cd backend/server && npm install
-RUN cd backend/authentication_server && npm install
 
 # Make entrypoint script executable and copy it
 COPY entrypoint.sh /entrypoint.sh

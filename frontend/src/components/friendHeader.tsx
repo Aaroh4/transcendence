@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUser } from "../services/userApi";
 import { useParams, Link } from "react-router-dom";
+import { PICTURE_IP } from "../config/env-config";
 
 const FriendHeader: React.FC = () => {
 
@@ -26,7 +27,7 @@ const FriendHeader: React.FC = () => {
 
 			<div className="flex items-center space-x-10">
 				<img
-					src={`https://localhost:5001/public/${userAvatar ?? 'avatars/default_avatar.jpg'}`}
+					src={`${PICTURE_IP}/public/${userAvatar ?? 'avatars/default_avatar.jpg'}`}
 					alt="User Avatar"
 					className="w-16 h-16 rounded-full object-cover"
 				/>

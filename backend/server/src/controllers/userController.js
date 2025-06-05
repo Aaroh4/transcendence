@@ -143,7 +143,10 @@ const updateUser = async function (req, reply) {
     })
   } catch (error) {
     console.log(error)
-      return reply.code(500).send({ error: error.message })
+	 if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return reply.code(409).send({ error: "Username is already in use" })
+    }
+    return reply.code(500).send({ error: error.message })
   }
 }
 
