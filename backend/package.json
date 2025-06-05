@@ -2,12 +2,8 @@
     "name": "backend-root",
     "private": true,
     "scripts": {
-        "dev": "concurrently \"npm run devAuth --prefix authentication_server\" \"npm run dev --prefix server\"",
-        "start": "concurrently \"npm run start --prefix authentication_server\" \"npm run start --prefix server\""
-    },
-    "devDependencies": {
-        "concurrency": "^0.1.4",
-        "concurrently": "^9.1.2"
+        "dev": "npm run dev --prefix server",
+        "start": "npm run start --prefix server"
     },
     "dependencies": {
         "@fastify/cors": "^11.0.1",

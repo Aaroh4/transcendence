@@ -1,4 +1,4 @@
-import authenticateToken from '../../server/src/middleware/authentication.js'
+import authenticateToken from '../middleware/authentication.js'
 import { logoutUser, loginUser, getToken, googleAuthHandler } from '../controllers/loginController.js'
 
 const logoutOpts = {

@@ -23,12 +23,12 @@ detect_os:
 
 	@if grep -q '^AUTHSERV=' backend/.env; then \
 		if [ "$(OS)" = "Darwin" ]; then \
-			sed -i '' 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
+			sed -i '' 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):5001|' backend/.env; \
 		else \
-			sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):4000|' backend/.env; \
+			sed -i 's|^AUTHSERV=.*|AUTHSERV=https://$(HOST_LAN_IP):5001|' backend/.env; \
 		fi \
 	else \
-		printf '\nAUTHSERV=https://$(HOST_LAN_IP):4000\n' >> backend/.env; \
+		printf '\nAUTHSERV=https://$(HOST_LAN_IP):5001\n' >> backend/.env; \
 	fi
 
 	@if grep -q '^PICTURE_IP=' backend/.env; then \
@@ -70,6 +70,10 @@ dev: detect_os
 	cd ./backend && npm run dev & \
 	wait
 
+devbuild:
+		@cd ./frontend && npm install && npm run tailwind
+		@cd ./backend && npm install
+		@cd ./backend/server && npm install
 
 # run with docker
 dockerstart: detect_os
