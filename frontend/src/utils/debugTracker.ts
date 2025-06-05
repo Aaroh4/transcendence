@@ -71,7 +71,7 @@ class DebugTracker {
 				uid: this.uid
 			});
 		} catch (err) {
-			console.warn(`❌ Failed to send debug log for ${label}:`, err);
+			// console.warn(`❌ Failed to send debug log for ${label}:`, err);
 		}
 	}
 }

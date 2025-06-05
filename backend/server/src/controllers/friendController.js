@@ -17,7 +17,7 @@ const friendRequest = async function(req, reply) {
         return reply.code(400).send({ error: "Friend request already sent" })
       } else if (existing.status === 'accepted') {
         return reply.code(400).send({ error: "Users are already friends" })
-      } else if (existing.status === 'blocked' && userId === existing.friendId) {
+      } else if (existing.status === 'blocked') {
         return reply.code(400).send({ error: "User is blocked" })
       } else if (existing.status === 'declined') {
         db.prepare('UPDATE friends SET status = ? WHERE user_id = ? AND friend_id = ?')

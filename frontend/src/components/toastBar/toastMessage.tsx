@@ -36,7 +36,6 @@ const Toast: React.FC<ToastProps> = ({ message, type }) => {
 				padding: '1rem',
 				borderRadius: '0.5rem',
 				zIndex: 9999,
-				// Remove any opacity/animation for debugging
 			}}
 		>
 			{message}

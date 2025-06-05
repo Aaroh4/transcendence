@@ -529,7 +529,7 @@ export async function getFriends(requestData: getFriendsRequest): Promise<getFri
 		if (response.status === 204)
 			return {
 			status: response.status,
-			// error: response.error || 'Empty friends list',
+			error: response.error || 'Empty friends list',
 			users: []
 		}
 		return {
