@@ -191,10 +191,10 @@ export class Renderer3D {
     }
 
     setSideView(): void {
-        this.camera.rotation = this.originalRotation;
+        this.camera.rotation = new BABYLON.Vector3(0, 0, 0); // no tilt
         this.camera.position = new BABYLON.Vector3(0, 15, -45);
         this.camera.setTarget(BABYLON.Vector3.Zero());
-        this.camera.upVector = this.originalUp;
+        this.camera.upVector = new BABYLON.Vector3(0, 1, 0); // force upright
         this.scoreboardRoot.position = new BABYLON.Vector3(0, 9, 0);
     }
 
@@ -424,6 +424,10 @@ export class Renderer3D {
             this.ballMesh.scaling.setAll(expectedDiameter);
         }
 
+        console.log(
+            `Ball position: (${state.ball.xPos}, ${state.ball.yPos}), Size: ${state.ballSize}`
+        );
+
         // Compute diameter based on current ballSize
         const diameter = state.ballSize / this.unitScale;
 
@@ -441,7 +445,7 @@ export class Renderer3D {
             state.ball.yPos + state.ballSize / 2
         );
 
-        this.ballMesh.position.y = 20 + diameter / 2;
+        this.ballMesh.position.y = diameter / 2;
 
         const p1ScoreChanged = state.player1Score !== this.lastPlayer1Score;
         const p2ScoreChanged = state.player2Score !== this.lastPlayer2Score;
