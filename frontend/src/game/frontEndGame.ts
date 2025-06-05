@@ -803,7 +803,6 @@ export class frontEndGame {
             game.createRenderingContext();
 
             // Create Ball object locally
-            // const networkBall = new Ball(20, 20, 400, 300); // or use ballSize and midpoint logic
             const ballSizeNum = Number(settings.ballSettings.ballSize);
             const ballX = this.canvasWidth / 2 - ballSizeNum / 2;
             const ballY = this.canvasHeight / 2 - ballSizeNum / 2;
