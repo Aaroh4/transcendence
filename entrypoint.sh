@@ -8,6 +8,7 @@ echo "TURN_PASS: $TURN_PASS"
 echo "STUN_URL: $STUN_URL"
 echo "EXTERNAL_IP: $HOST_LAN_IP"
 echo "AUTHSERV: $AUTHSERV"
+echo "PICTURE_IP: $PICTURE_IP"
 
 
 # Fetch external IP
@@ -24,6 +25,7 @@ sed -i "s|__TURN_USER__|${TURN_USER}|g" /app/frontend/src/config/env-config.ts
 sed -i "s|__TURN_PASS__|${TURN_PASS}|g" /app/frontend/src/config/env-config.ts
 sed -i "s|__EXT_IP__|${HOST_LAN_IP}|g" /app/frontend/src/config/env-config.ts
 sed -i "s|__AUTHSERV__|${AUTHSERV}|g" /app/frontend/src/config/env-config.ts
+sed -i "s|__PICTURE_IP__|${PICTURE_IP}|g" /app/frontend/src/config/env-config.ts
 
 # Build frontend (AFTER placeholders are injected)
 cd frontend && npm run build

@@ -31,6 +31,16 @@ detect_os:
 		printf '\nAUTHSERV=https://$(HOST_LAN_IP):4000\n' >> backend/.env; \
 	fi
 
+	@if grep -q '^PICTURE_IP=' backend/.env; then \
+		if [ "$(OS)" = "Darwin" ]; then \
+			sed -i '' 's|^PICTURE_IP=.*|PICTURE_IP=https://$(HOST_LAN_IP):5001|' backend/.env; \
+		else \
+			sed -i 's|^PICTURE_IP=.*|PICTURE_IP=https://$(HOST_LAN_IP):5001|' backend/.env; \
+		fi \
+	else \
+		printf '\nPICTURE_IP=https://$(HOST_LAN_IP):5001\n' >> backend/.env; \
+	fi
+
 # run without docker
 dev: detect_os
 	@cp frontend/src/config/env-config.template.ts frontend/src/config/env-config.ts; \
