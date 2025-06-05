@@ -101,7 +101,6 @@ devclean:
 		@cd ./frontend && rm -rf node_modules package-lock.json dist output.css
 		@cd ./backend && rm -rf node_modules package-lock.json
 		@cd ./backend/server && rm -rf node_modules package-lock.json
-		@cd ./backend/authentication_server && rm -rf node_modules package-lock.json
 
 # clean docker
 dockerclean:
